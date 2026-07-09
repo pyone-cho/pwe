@@ -1,0 +1,149 @@
+Pwe - Product Documentation
+Date: 2026-07-05
+Overview
+Pwe is a web SaaS product for membership-based organizations in Myanmar — manage members, events, payments, announcements, attendance, and reporting — delivered as isolated organization workspaces with strong data privacy.
+Table of Contents
+1. Executive summary
+2. Goals & target users (Myanmar context)
+3. Architecture overview
+4. Deployment & environment strategy (test vs production)
+5. Components & responsibilities (backend, frontend, DBs, backlog)
+6. Features (user flows + APIs)
+7. Security & privacy
+8. Operational runbook (monitoring, backups)
+9. Developer guide (local setup, Docker)
+10. Product roadmap & backlog process
+11. Glossary
+12. Appendix (ER diagram, API reference, sample env files)
+
+1. Executive summary
+Pwe helps membership organizations (sports clubs, university societies, and community groups) manage members, run events, accept and track payments, deliver announcements, handle attendance, and produce reports — all inside private organization workspaces. Core value propositions: data isolation per organization, simple registration and attendance flows, and practical support for Myanmar context (language, low bandwidth, local payment patterns).
+Delivery constraint: The initial product build is planned for a 2-week MVP cycle. This documentation therefore separates the must-have features required for launch from future enhancements, so the team can focus on a realistic first release while keeping the product direction clear.
+
+2. Goals & target users (Myanmar context)
+Primary audiences: Local sports clubs, school/university clubs, training centers, community groups, NGOs.
+Considerations for Myanmar:
+- Burmese language support (Unicode).
+- Low-bandwidth UX: mobile-first, small payloads, efficient images, optional offline-friendly forms.
+- Simple onboarding: phone + email flows, guided setup wizards for non-technical admins.
+
+3. Architecture overview
+High-level single-server plan (initial / low-cost):
+- Host: one server (Linode) running Docker.
+- Containers: backend, frontend, Postgres with two logical DBs/schemas (prod & test), nginx reverse proxy.
+- Recommendation: separate docker-compose stacks per environment (prod, test, dev).
+Domain & environment separation: Production: pwe.example.com; Staging/Test: test.pwe.example.com (recommended).
+
+4. Deployment & environment strategy
+Environments: local, test/staging, production.
+Docker layout: backend (internal port proxied), frontend static, db-prod, db-test.
+DB options: Option A (recommended): single DB host with separate databases/schemas.
+Secrets: use env vars or secrets manager; never commit .env with secrets.
+CI/CD: GitHub Actions; branch flows: main->prod, develop->staging.
+
+5. Components & responsibilities
+Backend: Node.js + Express + Typescript. Responsibilities: auth, multi-tenant, business logic, REST/GraphQL, payments, attendance.
+Frontend: React + Tailwind. Responsibilities: admin dashboard, member UI, event pages, registration forms.
+Database: Postgres; migrations via Prisma or Sequelize.
+Backlog & issue tracking: GitHub Projects or Trello.
+Auth: email + phone OTP later; RBAC roles: Admin, Staff, Member, Guest.
+
+6. Feature list and introductions
+Feature 1: Organization Workspace — Each organization gets its own private workspace where admins can manage members, events, payments, announcements, and reports without mixing data with other organizations. This is the foundation for privacy, role-based access, and organization-level configuration.
+Feature 2: Member Management — Admins and staff can create, update, search, filter, import, and export member records. This feature helps clubs and community groups maintain a reliable member database with basic profile details, membership status, contact information, and organization-specific notes.
+Feature 3: Event Management — Staff can create events with dates, location, capacity, registration settings, and custom fields. This feature supports public events, member-only events, and mixed registration flows, giving organizations flexibility to manage trainings, matches, workshops, and community gatherings.
+Feature 4: Registration Forms — Members and guests can register for events through simple mobile-friendly forms. The system should collect required participant information, prevent duplicate registrations where possible, and show clear confirmation messages after submission.
+Feature 5: Attendance Tracking — Event staff can check participants in during an event using a basic attendance list for the MVP. QR check-in can be planned as a later enhancement if the 2-week timeline does not allow stable testing and deployment.
+Feature 6: Payment Tracking — Admins can record manual payments, mark members or event participants as paid or pending, and keep receipt-related notes. The MVP should focus on manual tracking first; automated payment integration can be added later.
+Feature 7: Announcements and Reports — Admins can send or publish important announcements and generate basic reports such as member lists, event registration summaries, attendance reports, and payment status exports. Advanced analytics can be included in the roadmap after the MVP.
+
+7. Security & privacy
+Tenant checks on all queries.
+TLS everywhere, HSTS, bcrypt for passwords, OTP for phone.
+Cookies scope, backups daily, least-privilege DB users.
+
+8. Operational runbook
+Monitoring: Prometheus + Grafana; health checks.
+Logs: centralized ELK/Loki or logrotate.
+Backups: pg_dump -> remote storage; restore steps documented.
+Incident response: severity levels, contact list, rollback plan.
+
+9. Developer guide (local setup)
+Prereqs: Docker, docker-compose, Node.js, yarn/npm, git.
+Local steps: git clone, cp .env.example .env, docker-compose -f docker-compose.dev.yml up --build, run migrations, open localhost.
+Testing & linting: npm test, eslint/prettier.
+
+10. Product roadmap & backlog process
+Backlog structure: Epic -> Feature -> User story -> Tasks; include assignee, estimate, priority, acceptance criteria.
+2-week MVP milestones: Week 1 focuses on product foundation, authentication, organization workspace, member management, and deployment setup. Week 2 focuses on event management, registration, attendance list, manual payment tracking, basic reports, testing, bug fixing, and deployment readiness.
+Team process: 2-week MVP sprint with short daily check-ins, prioritized task board, clear ownership, pull requests, testing before merge, and one final stabilization day before release.
+
+11. Glossary
+Org, Member, Guest, Registration mode, Tenancy definitions.
+
+12. Appendix
+ER diagram note, sample API endpoints, .env.example, docker-compose samples, security checklist.
+Backlog (2-week MVP plan)
+
+Week 1 - Foundations and Authentication
+Task: Setup Express.js boilerplate with Typescript, Linting, and Docker config
+Priority: Critical | Estimate: 3h
+Week 1 - Database and Tenant Setup
+Task: Prisma/Sequelize setup with Postgres. Design migration for Org, User, Profile tables
+Priority: Critical | Estimate: 5h
+Week 1 - Login, Signup, and Role Access
+Task: Auth API: JWT login/signup with Email/Password and Tenant (Org) lookup middleware
+Priority: Critical | Estimate: 8h
+Week 1 - Frontend Project Setup
+Task: Setup React/Vite boilerplate with TailwindCSS and Axios config
+Priority: High | Estimate: 4h
+Week 1 - Login and Organization Registration UI
+Task: UI: Login & Org Registration Pages with Formik/Zod validation
+Priority: Critical | Estimate: 6h
+Week 1 - Staging Deployment Setup
+Task: Setup GitHub Actions for CI (lint/test) and CD (deploy to Linode staging)
+Priority: High | Estimate: 6h
+Week 1 - Member Management API
+Task: CRUD APIs for Member management (create, list, update, toggle status)
+Priority: High | Estimate: 10h
+Week 1 - Tenant Isolation Controls
+Task: Tenant Isolation: Implement Global Middleware to filter all queries by sub-domain/org_id
+Priority: Critical | Estimate: 6h
+
+Week 2 - Admin Dashboard Layout
+Task: Dashboard Layout with Sidebar (Organizations list, Member list navigation)
+Priority: High | Estimate: 8h
+Week 2 - Member Management UI
+Task: UI: Member Management View (Search, Filters, Table by Org)
+Priority: High | Estimate: 12h
+Week 2 - CSV Import and Export
+Task: CSV Parser for Bulk Member Import API
+Priority: Medium | Estimate: 6h
+Week 2 - Event Management API
+Task: Core Event CRUD: Dates, Location, Registration Modes (Public/Member/Both)
+Priority: High | Estimate: 10h
+Week 2 - Registration API
+Task: Registration API: Logic for Member vs Guest status logic
+Priority: High | Estimate: 8h
+Week 2 - Event Creation UI
+Task: UI: Event Creation Wizard (Multi-step form with custom fields)
+Priority: High | Estimate: 14h
+Week 2 - Public Registration Page
+Task: Public Event Page: Registration form for guests and member-login-to-join button
+Priority: High | Estimate: 10h
+Week 2 - Attendance List
+Task: QR Code Generation API and Scan-Verification endpoint
+Priority: High | Estimate: 8h
+Week 2 - Manual Payment Tracking
+Task: Payment Logging API: Manual status toggle (Paid/Pending) + Receipt Metadata
+Priority: Medium | Estimate: 8h
+Week 2 - Attendance UI
+Task: Mobile Scanner UI for Event Staff to check-in members via Camera
+Priority: High | Estimate: 12h
+Week 2 - Basic Reports
+Task: Analytics Dashboard: Attendance charts and Membership growth stats
+Priority: Medium | Estimate: 10h
+Week 2 - Export and Release Readiness
+Task: Export Service: PDF Receipt generation and Excel Attendance report export
+Priority: Medium | Estimate: 10h
+
