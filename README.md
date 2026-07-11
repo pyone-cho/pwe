@@ -156,6 +156,10 @@ See [deployment.md](deployment.md) for full environment setup and Docker configu
 
 ```
 src/
+├── .claude/              # AI agent/skill configs (Claude Code)
+│   ├── agents/           # Specialized subagents (14)
+│   ├── skills/           # Scaffolding skills (9)
+│   └── rules/            # Workflow rules
 ├── backend/              # Express API server
 │   ├── src/
 │   │   ├── routes/       # API route definitions
@@ -165,11 +169,13 @@ src/
 │   │   └── prisma/       # DB client and migrations
 │   ├── Dockerfile
 │   └── package.json
-├── frontend/             # React SPA
+├── frontend/             # React SPA 🔄 Project setup complete
 │   ├── src/
 │   │   ├── components/   # Reusable UI components
-│   │   ├── pages/        # Route-level pages
+│   │   ├── features/     # Feature modules
 │   │   ├── hooks/        # Custom React hooks
+│   │   ├── lib/          # Axios, utils
+│   │   ├── pages/        # Route-level pages
 │   │   ├── services/     # API client
 │   │   └── types/        # TypeScript types
 │   ├── Dockerfile
