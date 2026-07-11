@@ -1,0 +1,306 @@
+================================================================================
+PWE Event Management System — API Reference
+Backend: Express.js + TypeScript + Prisma + PostgreSQL
+Base URL: http://localhost:3000/api/v1
+================================================================================
+
+AUTHENTICATION
+--------------
+All protected endpoints require a JWT token in the header:
+  Authorization: Bearer <access_token>
+
+Public/guest endpoints that need tenant context use:
+  x-org-id: <organization-uuid>
+
+Role Hierarchy (highest to lowest):
+  admin (4) > staff (3) > member (2) > guest (1)
+  requireMinRole("staff") means staff and admin can access.
+
+================================================================================
+1. AUTH — /api/v1/auth
+================================================================================
+
+POST /auth/signup
+  Body: { name, slug, email, password, phone? }
+  Auth: No
+  Rate limited: Yes
+  Description: Register a new organization and admin user in one step.
+
+POST /auth/login
+  Body: { email, password }
+  Auth: No
+  Rate limited: Yes
+  Description: Login with email/password. Returns JWT access token, refresh token, user profile, and organization info.
+
+POST /auth/refresh
+  Body: { refreshToken }
+  Auth: No
+  Rate limited: Yes
+  Description: Exchange a refresh token for a new access token.
+
+POST /auth/logout
+  Auth: Yes (any role)
+  Description: Revoke the current refresh token.
+
+GET /auth/profile
+  Auth: Yes (any role)
+  Description: Get the current authenticated user's profile and organization info.
+
+================================================================================
+2. ORGANIZATION — /api/v1/org
+================================================================================
+
+GET /org
+  Auth: Yes, min role: staff
+  Description: Get the current organization's details (name, slug, settings, etc.).
+
+PUT /org
+  Auth: Yes, min role: admin
+  Body: { name?, description?, logoUrl?, phone?, email?, address?, settings? }
+  Description: Update organization settings. Only admins can modify.
+
+GET /org/stats
+  Auth: Yes, min role: staff
+  Description: Get organization statistics (member count, event count, payment totals, etc.).
+
+================================================================================
+3. MEMBERS — /api/v1/members
+================================================================================
+
+GET /members
+  Auth: Yes, min role: staff
+  Query: page, limit, search, status, membershipType
+  Description: List all members with pagination and filtering.
+
+GET /members/export
+  Auth: Yes, min role: staff
+  Description: Export all members as a CSV file download.
+
+GET /members/:id
+  Auth: Yes, min role: staff
+  Description: Get a single member by ID with full details.
+
+POST /members
+  Auth: Yes, min role: staff
+  Body: { firstName, lastName?, email?, phone, membershipType?, joinDate?, emergencyContact?, notes? }
+  Description: Create a new member record.
+
+PUT /members/:id
+  Auth: Yes, min role: staff
+  Body: { firstName?, lastName?, email?, phone?, membershipType?, emergencyContact?, notes? }
+  Description: Update an existing member's details.
+
+PATCH /members/:id/status
+  Auth: Yes, min role: admin
+  Body: { membershipStatus }  (active | inactive | suspended)
+  Description: Change a member's membership status. Admin only.
+
+POST /members/import
+  Auth: Yes, min role: admin
+  Content-Type: multipart/form-data
+  Body: file (CSV)
+  Description: Bulk import members from a CSV file. Admin only.
+
+================================================================================
+4. EVENTS — /api/v1/events
+================================================================================
+
+GET /events/public
+  Auth: No (needs x-org-id header)
+  Description: List published events visible to the public. No authentication required.
+
+GET /events/public/:id
+  Auth: No (needs x-org-id header)
+  Description: Get a single published event by ID. No authentication required.
+
+POST /events/:eventId/register
+  Auth: Optional (guest registration needs x-org-id header)
+  Body: { guestName?, guestEmail?, guestPhone?, memberId?, formData? }
+  Description: Register for an event. Members authenticate with JWT; guests pass x-org-id header with guest details.
+
+GET /events
+  Auth: Yes, min role: staff
+  Query: page, limit, status, search
+  Description: List all events with pagination and filtering.
+
+GET /events/:id
+  Auth: Yes, min role: staff
+  Description: Get a single event with registration counts and details.
+
+POST /events
+  Auth: Yes, min role: staff
+  Body: { title, description?, location?, startDate, endDate?, capacity?, registrationMode?, requiresPayment?, paymentAmount?, customFields? }
+  Description: Create a new event.
+
+PUT /events/:id
+  Auth: Yes, min role: staff
+  Body: { title?, description?, location?, startDate?, endDate?, capacity?, registrationMode?, requiresPayment?, paymentAmount?, customFields? }
+  Description: Update an existing event.
+
+PATCH /events/:id/status
+  Auth: Yes, min role: staff
+  Body: { status }  (draft | published | cancelled | completed)
+  Description: Change event status.
+
+================================================================================
+5. REGISTRATIONS — /api/v1
+================================================================================
+
+GET /events/:eventId/registrations
+  Auth: Yes, min role: staff
+  Query: page, limit, status
+  Description: List all registrations for a specific event.
+
+PATCH /registrations/:id/cancel
+  Auth: Yes (any role)
+  Description: Cancel a registration. Sets status to "cancelled" and records cancelledAt timestamp.
+
+================================================================================
+6. ATTENDANCE — /api/v1
+================================================================================
+
+GET /events/:eventId/attendance
+  Auth: Yes, min role: staff
+  Query: page, limit
+  Description: List attendance records for an event.
+
+GET /events/:eventId/attendance/summary
+  Auth: Yes, min role: staff
+  Description: Get attendance summary (total checked in, by method, etc.).
+
+GET /events/:eventId/attendance/export
+  Auth: Yes, min role: staff
+  Description: Export attendance records as CSV.
+
+POST /events/:eventId/attendance
+  Auth: Yes, min role: staff
+  Body: { registrationId, memberId?, method?, notes? }
+  Description: Check in a single attendee. method: manual | qr | self.
+
+POST /events/:eventId/attendance/bulk
+  Auth: Yes, min role: staff
+  Body: { registrationIds: string[], method?, notes? }
+  Description: Bulk check-in multiple attendees at once.
+
+DELETE /attendance/:id
+  Auth: Yes, min role: admin
+  Description: Undo a check-in by deleting the attendance record. Admin only.
+
+================================================================================
+7. PAYMENTS — /api/v1/payments
+================================================================================
+
+GET /payments
+  Auth: Yes, min role: staff
+  Query: page, limit, status, memberId, eventId
+  Description: List all payments with pagination and filtering.
+
+GET /payments/summary
+  Auth: Yes, min role: staff
+  Description: Get payment summary (totals by status, method, time period).
+
+GET /payments/export
+  Auth: Yes, min role: staff
+  Description: Export payments as CSV.
+
+POST /payments
+  Auth: Yes, min role: staff
+  Body: { memberId, eventId?, registrationId?, amount, currency?, paymentMethod?, referenceNumber?, receiptUrl?, notes?, paidAt? }
+  Description: Record a new payment.
+
+PATCH /payments/:id
+  Auth: Yes, min role: admin
+  Body: { amount?, paymentMethod?, referenceNumber?, receiptUrl?, notes? }
+  Description: Update payment details. Admin only.
+
+PATCH /payments/:id/status
+  Auth: Yes, min role: admin
+  Body: { status }  (paid | pending | refunded)
+  Description: Change payment status. Admin only.
+
+================================================================================
+8. ANNOUNCEMENTS — /api/v1/announcements
+================================================================================
+
+GET /announcements
+  Auth: Yes, min role: member
+  Query: page, limit, status
+  Description: List published announcements.
+
+GET /announcements/:id
+  Auth: Yes, min role: member
+  Description: Get a single announcement.
+
+POST /announcements
+  Auth: Yes, min role: staff
+  Body: { title, content, eventId?, priority?, status? }
+  Description: Create a new announcement.
+
+PUT /announcements/:id
+  Auth: Yes, min role: staff
+  Body: { title?, content?, eventId?, priority?, status? }
+  Description: Update an existing announcement.
+
+PATCH /announcements/:id/status
+  Auth: Yes, min role: staff
+  Body: { status }  (draft | published | archived)
+  Description: Change announcement status.
+
+================================================================================
+9. REPORTS — /api/v1/reports
+================================================================================
+
+GET /reports/members
+  Auth: Yes, min role: staff
+  Description: Get member report with demographics, membership stats, join trends.
+
+GET /reports/members/export
+  Auth: Yes, min role: staff
+  Description: Export member report as CSV.
+
+GET /reports/events
+  Auth: Yes, min role: staff
+  Description: Get event report with attendance rates, registration stats.
+
+GET /reports/events/export
+  Auth: Yes, min role: staff
+  Description: Export event report as CSV.
+
+GET /reports/payments
+  Auth: Yes, min role: admin
+  Description: Get payment report with revenue, collection stats. Admin only.
+
+GET /reports/payments/export
+  Auth: Yes, min role: admin
+  Description: Export payment report as CSV. Admin only.
+
+================================================================================
+10. OTHER
+================================================================================
+
+GET /health
+  Auth: No
+  Description: Health check endpoint. Returns { status: "ok", timestamp }.
+
+================================================================================
+MULTI-TENANCY
+================================================================================
+
+All tenant-scoped endpoints require organization context:
+
+  Authenticated requests:
+    - orgId is extracted from the JWT access token automatically
+    - No extra header needed
+
+  Public/Guest requests:
+    - Pass x-org-id header with the organization UUID
+    - Example: x-org-id: 12353499-5be6-4678-834a-53a65df27736
+
+================================================================================
+TEST CREDENTIALS (after seeding)
+================================================================================
+
+  Admin:  admin@eventhub.com / admin123
+  Staff:  staff@eventhub.com / admin123
+
+================================================================================

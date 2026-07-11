@@ -1,0 +1,27 @@
+import { Router } from "express";
+import { eventController } from "../controllers/event.controller";
+import { registrationController } from "../controllers/registration.controller";
+import { authenticate, optionalAuth } from "../middleware/auth.middleware";
+import { requireMinRole } from "../middleware/rbac.middleware";
+import { tenantIsolation } from "../middleware/tenant.middleware";
+import { validate, eventSchemas, registrationSchemas } from "../middleware/validate.middleware";
+
+const router = Router();
+
+// Public routes (no auth required, but need org context)
+router.get("/public", tenantIsolation, eventController.getPublicEvents);
+router.get("/public/:id", tenantIsolation, eventController.getPublicEventById);
+
+// Guest registration (no auth required, needs org context via x-org-id header)
+router.post("/:eventId/register", optionalAuth, tenantIsolation, validate(registrationSchemas.create), registrationController.create);
+
+// Protected routes
+router.use(authenticate, tenantIsolation);
+
+router.get("/", requireMinRole("staff"), eventController.list);
+router.post("/", requireMinRole("staff"), validate(eventSchemas.create), eventController.create);
+router.get("/:id", requireMinRole("staff"), eventController.getById);
+router.put("/:id", requireMinRole("staff"), validate(eventSchemas.update), eventController.update);
+router.patch("/:id/status", requireMinRole("staff"), eventController.updateStatus);
+
+export default router;

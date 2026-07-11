@@ -1,0 +1,289 @@
+// PWE Event Management System - Database Schema
+// Multi-tenant PostgreSQL with org_id isolation
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ──────────────────────────────────────────────
+// Organization (Tenant Root)
+// ──────────────────────────────────────────────
+model Organization {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @db.VarChar(255)
+  slug        String   @unique @db.VarChar(100)
+  description String?  @db.Text
+  logoUrl     String?  @db.VarChar(500)
+  phone       String?  @db.VarChar(20)
+  email       String?  @db.VarChar(255)
+  address     String?  @db.Text
+  settings    Json     @default("{}")
+  status      String   @default("active") @db.VarChar(20)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz()
+
+  users          User[]
+  members        Member[]
+  events         Event[]
+  announcements  Announcement[]
+  payments       Payment[]
+  registrations  Registration[]
+  attendance     Attendance[]
+
+  @@index([status])
+  @@map("organizations")
+}
+
+// ──────────────────────────────────────────────
+// User (Auth & Identity)
+// ──────────────────────────────────────────────
+model User {
+  id            String    @id @default(uuid()) @db.Uuid
+  orgId         String    @map("org_id") @db.Uuid
+  email         String    @db.VarChar(255)
+  passwordHash  String    @map("password_hash") @db.VarChar(255)
+  role          String    @db.VarChar(20) // admin / staff / member / guest
+  phone         String?   @db.VarChar(20)
+  isActive      Boolean   @default(true) @map("is_active")
+  lastLoginAt   DateTime? @map("last_login_at") @db.Timestamptz()
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz()
+
+  organization  Organization  @relation(fields: [orgId], references: [id])
+  profile       Profile?
+  refreshTokens RefreshToken[]
+  createdEvents     Event[]           @relation("EventCreator")
+  checkedInAttend   Attendance[]      @relation("CheckedInBy")
+  recordedPayments  Payment[]         @relation("RecordedBy")
+  createdAnnouncements Announcement[] @relation("AnnouncementCreator")
+  members           Member[]
+
+  @@unique([orgId, email])
+  @@index([orgId])
+  @@map("users")
+}
+
+// ──────────────────────────────────────────────
+// Profile (Extended User Info)
+// ──────────────────────────────────────────────
+model Profile {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid @unique
+  firstName   String   @map("first_name") @db.VarChar(100)
+  lastName    String?  @map("last_name") @db.VarChar(100)
+  avatarUrl   String?  @map("avatar_url") @db.VarChar(500)
+  dateOfBirth DateTime? @map("date_of_birth") @db.Date
+  gender      String?  @db.VarChar(20) // male / female / other / prefer_not_to_say
+  address     String?  @db.Text
+  notes       String?  @db.Text
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz()
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("profiles")
+}
+
+// ──────────────────────────────────────────────
+// Member (Org-Level Record)
+// ──────────────────────────────────────────────
+model Member {
+  id                String   @id @default(uuid()) @db.Uuid
+  orgId             String   @map("org_id") @db.Uuid
+  userId            String?  @map("user_id") @db.Uuid
+  firstName         String   @map("first_name") @db.VarChar(100)
+  lastName          String?  @map("last_name") @db.VarChar(100)
+  email             String?  @db.VarChar(255)
+  phone             String   @db.VarChar(20)
+  membershipStatus  String   @default("active") @map("membership_status") @db.VarChar(20)
+  membershipType    String?  @map("membership_type") @db.VarChar(50) // regular / premium / honorary
+  joinDate          DateTime @default(now()) @map("join_date") @db.Date
+  emergencyContact  String?  @map("emergency_contact") @db.VarChar(255)
+  notes             String?  @db.Text
+  metadata          Json     @default("{}")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt         DateTime @default(now()) @map("updated_at") @db.Timestamptz()
+
+  organization  Organization   @relation(fields: [orgId], references: [id])
+  user          User?          @relation(fields: [userId], references: [id])
+  registrations Registration[]
+  payments      Payment[]
+  attendance    Attendance[]
+
+  @@index([orgId])
+  @@index([orgId, membershipStatus])
+  @@index([orgId, phone])
+  @@index([orgId, email])
+  @@map("members")
+}
+
+// ──────────────────────────────────────────────
+// Event
+// ──────────────────────────────────────────────
+model Event {
+  id                String   @id @default(uuid()) @db.Uuid
+  orgId             String   @map("org_id") @db.Uuid
+  title             String   @db.VarChar(255)
+  description       String?  @db.Text
+  location          String?  @db.VarChar(255)
+  startDate         DateTime @map("start_date") @db.Timestamptz()
+  endDate           DateTime? @map("end_date") @db.Timestamptz()
+  capacity          Int?
+  registrationMode  String   @default("member") @map("registration_mode") @db.VarChar(20)
+  status            String   @default("draft") @db.VarChar(20) // draft / published / cancelled / completed
+  requiresPayment   Boolean  @default(false) @map("requires_payment")
+  paymentAmount     Decimal? @map("payment_amount") @db.Decimal(10, 2)
+  customFields      Json     @default("[]") @map("custom_fields")
+  createdById       String?  @map("created_by") @db.Uuid
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt         DateTime @default(now()) @map("updated_at") @db.Timestamptz()
+
+  organization   Organization   @relation(fields: [orgId], references: [id])
+  createdBy      User?          @relation("EventCreator", fields: [createdById], references: [id])
+  registrations  Registration[]
+  attendance     Attendance[]
+  payments       Payment[]
+  announcements  Announcement[]
+
+  @@index([orgId])
+  @@index([orgId, status])
+  @@index([orgId, startDate])
+  @@map("events")
+}
+
+// ──────────────────────────────────────────────
+// Registration
+// ──────────────────────────────────────────────
+model Registration {
+  id          String    @id @default(uuid()) @db.Uuid
+  eventId     String    @map("event_id") @db.Uuid
+  orgId       String    @map("org_id") @db.Uuid
+  memberId    String?   @map("member_id") @db.Uuid
+  guestName   String?   @map("guest_name") @db.VarChar(200)
+  guestEmail  String?   @map("guest_email") @db.VarChar(255)
+  guestPhone  String?   @map("guest_phone") @db.VarChar(20)
+  status      String    @default("registered") @db.VarChar(20) // registered / cancelled / waitlisted
+  formData    Json      @default("{}") @map("form_data")
+  registeredAt DateTime @default(now()) @map("registered_at") @db.Timestamptz()
+  cancelledAt DateTime? @map("cancelled_at") @db.Timestamptz()
+
+  event      Event       @relation(fields: [eventId], references: [id])
+  organization Organization @relation(fields: [orgId], references: [id])
+  member     Member?     @relation(fields: [memberId], references: [id])
+  attendance Attendance[]
+  payments   Payment[]
+
+  @@index([eventId, memberId])
+  @@index([orgId])
+  @@index([eventId, status])
+  @@map("registrations")
+}
+
+// ──────────────────────────────────────────────
+// Attendance
+// ──────────────────────────────────────────────
+model Attendance {
+  id             String    @id @default(uuid()) @db.Uuid
+  eventId        String    @map("event_id") @db.Uuid
+  registrationId String    @map("registration_id") @db.Uuid
+  memberId       String?   @map("member_id") @db.Uuid
+  orgId          String    @map("org_id") @db.Uuid
+  checkedInAt    DateTime  @default(now()) @map("checked_in_at") @db.Timestamptz()
+  checkedInById  String?   @map("checked_in_by") @db.Uuid
+  method         String    @default("manual") @db.VarChar(20) // manual / qr / self
+  notes          String?   @db.Text
+
+  event        Event        @relation(fields: [eventId], references: [id])
+  registration Registration @relation(fields: [registrationId], references: [id])
+  member       Member?      @relation(fields: [memberId], references: [id])
+  organization Organization @relation(fields: [orgId], references: [id])
+  checkedInBy  User?        @relation("CheckedInBy", fields: [checkedInById], references: [id])
+
+  @@unique([eventId, registrationId])
+  @@index([orgId])
+  @@map("attendance")
+}
+
+// ──────────────────────────────────────────────
+// Payment
+// ──────────────────────────────────────────────
+model Payment {
+  id              String    @id @default(uuid()) @db.Uuid
+  orgId           String    @map("org_id") @db.Uuid
+  memberId        String    @map("member_id") @db.Uuid
+  eventId         String?   @map("event_id") @db.Uuid
+  registrationId  String?   @map("registration_id") @db.Uuid
+  amount          Decimal   @db.Decimal(10, 2)
+  currency        String    @default("MMK") @db.VarChar(3)
+  status          String    @default("pending") @db.VarChar(20) // paid / pending / refunded
+  paymentMethod   String?   @map("payment_method") @db.VarChar(50)
+  referenceNumber String?   @map("reference_number") @db.VarChar(100)
+  receiptUrl      String?   @map("receipt_url") @db.VarChar(500)
+  notes           String?   @db.Text
+  recordedById    String?   @map("recorded_by") @db.Uuid
+  paidAt          DateTime? @map("paid_at") @db.Timestamptz()
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime  @default(now()) @map("updated_at") @db.Timestamptz()
+
+  organization Organization @relation(fields: [orgId], references: [id])
+  member       Member       @relation(fields: [memberId], references: [id])
+  event        Event?       @relation(fields: [eventId], references: [id])
+  registration Registration? @relation(fields: [registrationId], references: [id])
+  recordedBy   User?        @relation("RecordedBy", fields: [recordedById], references: [id])
+
+  @@index([orgId])
+  @@index([memberId, eventId])
+  @@index([status])
+  @@map("payments")
+}
+
+// ──────────────────────────────────────────────
+// Announcement
+// ──────────────────────────────────────────────
+model Announcement {
+  id          String    @id @default(uuid()) @db.Uuid
+  orgId       String    @map("org_id") @db.Uuid
+  eventId     String?   @map("event_id") @db.Uuid
+  title       String    @db.VarChar(255)
+  content     String    @db.Text
+  priority    String    @default("normal") @db.VarChar(20) // low / normal / high / urgent
+  status      String    @default("draft") @db.VarChar(20) // draft / published / archived
+  publishedAt DateTime? @map("published_at") @db.Timestamptz()
+  createdById String?   @map("created_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamptz()
+
+  organization Organization @relation(fields: [orgId], references: [id])
+  event        Event?       @relation(fields: [eventId], references: [id])
+  createdBy    User?        @relation("AnnouncementCreator", fields: [createdById], references: [id])
+
+  @@index([orgId])
+  @@index([orgId, status])
+  @@index([orgId, publishedAt])
+  @@map("announcements")
+}
+
+// ──────────────────────────────────────────────
+// Refresh Token
+// ──────────────────────────────────────────────
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @map("token_hash") @db.VarChar(255)
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz()
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz()
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@unique([tokenHash])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
