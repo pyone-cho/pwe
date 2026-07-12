@@ -1,7 +1,6 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: pwe-db
     restart: unless-stopped
     ports:
       - "5432:5432"
@@ -21,7 +20,6 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
-    container_name: pwe-backend
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -46,7 +44,6 @@ services:
     build:
       context: ../frontend
       dockerfile: Dockerfile.dev
-    container_name: pwe-frontend
     restart: unless-stopped
     ports:
       - "5173:5173"
@@ -58,7 +55,6 @@ services:
 
   nginx:
     image: nginx:alpine
-    container_name: pwe-nginx
     restart: unless-stopped
     ports:
       - "80:80"
