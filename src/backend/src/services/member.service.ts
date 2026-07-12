@@ -5,8 +5,8 @@ import { generateCsv, generateMemberExportData } from "../utils/export";
 
 export class MemberService {
   async list(orgId: string, query: PaginationQuery): Promise<PaginatedResponse<any>> {
-    const page = query.page || 1;
-    const limit = query.limit || 20;
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 20;
     const skip = (page - 1) * limit;
 
     const where: any = { orgId };

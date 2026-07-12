@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "PWE Event Management System - Backend API",
   "main": "dist/server.js",
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",

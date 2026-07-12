@@ -218,25 +218,25 @@ export interface MemberReport {
   active: number;
   inactive: number;
   suspended: number;
-  byType: Record<string, number>;
-  monthlyNew: { month: string; count: number }[];
+  byType: { type: string; count: number }[];
+  monthly: { month: string; count: number }[];
 }
 
 export interface EventReport {
+  total: number;
+  byStatus: { status: string; count: number }[];
+  totalRevenue: number;
+  avgAttendance: number;
   events: {
     id: string;
     title: string;
-    date: string;
+    startDate: string;
+    status: string;
     registrations: number;
-    attended: number;
+    attendance: number;
     attendanceRate: number;
     revenue: number;
   }[];
-  summary: {
-    totalEvents: number;
-    avgAttendance: number;
-    totalRevenue: number;
-  };
 }
 
 // ── Common ──

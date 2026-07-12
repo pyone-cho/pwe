@@ -32,7 +32,10 @@ export class ReportService {
         type: t.membershipType || "unknown",
         count: t._count,
       })),
-      monthly,
+      monthly: monthly.map((row: any) => ({
+        month: row.month?.toISOString?.() ?? row.month,
+        count: Number(row.count),
+      })),
     };
   }
 
