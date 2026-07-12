@@ -13,15 +13,17 @@
 
 ### Quick Start
 ```bash
-docker compose up
+cd src/dev-deployment
+cp .env.example .env
+docker compose -f docker-compose.dev.yml up --build
 ```
 
 ### Services (Docker Compose)
 
 | Service | Port | Description |
 |---------|------|-------------|
-| nginx | 80, 443 | Reverse proxy, static files |
-| backend | 3001 | Express API server |
+| nginx | 80 | Reverse proxy, static files |
+| backend | 3000 | Express API server |
 | frontend | 5173 (dev) | React dev server / static build |
 | db | 5432 | PostgreSQL 16 |
 
@@ -29,60 +31,61 @@ docker compose up
 
 | Database | Purpose |
 |----------|---------|
-| pwe | Production data |
+| pwe_dev | Development data |
 | pwe_test | Test suite isolation |
 
 ---
 
 ## Environment Variables
 
-### Backend (`apps/backend/.env`)
+### Backend (`src/dev-deployment/.env`)
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| DATABASE_URL | PostgreSQL connection string | `postgresql://pwe_user:pwe_pass@db:5432/pwe` |
-| JWT_SECRET | Access token secret | — |
-| JWT_REFRESH_SECRET | Refresh token secret | — |
-| PORT | Server port | `3001` |
+| DATABASE_URL | PostgreSQL connection string | `postgresql://pwe_dev:dev_password@db:5432/pwe_dev` |
+| JWT_SECRET | Access token secret | `dev-jwt-secret-not-for-production` |
+| REFRESH_TOKEN_SECRET | Refresh token secret | `dev-refresh-secret-not-for-production` |
+| PORT | Server port | `3000` |
 | NODE_ENV | Environment | `development` |
-| CORS_ORIGIN | Allowed origin | `http://localhost:5173` |
+| FRONTEND_URL | Allowed CORS origin | `http://localhost` |
 
-### Frontend (`apps/frontend/.env`)
+### Frontend (`src/dev-deployment/.env`)
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| VITE_API_URL | Backend API base URL | `http://localhost:3001/api/v1` |
+| VITE_API_URL | Backend API base URL | `http://localhost/api/v1` |
 
 ---
 
 ## Deployment
 
 ### Target
-- **Provider**: Linode (Akamai)
+- **Provider**: DigitalOcean
 - **Spec**: 4GB RAM, 2 CPU minimum
-- **OS**: Ubuntu 24.04
+- **OS**: Ubuntu 22.04
 
 ### Production Setup
 ```bash
 # SSH into server
-ssh root@<linode-ip>
+ssh root@<droplet-ip>
 
 # Clone repo
 git clone <repo-url> /opt/pwe
 cd /opt/pwe
 
 # Start services
-docker compose -f docker-compose.prod.yml up -d
+cd src/dev-deployment
+docker compose -f docker-compose.dev.yml up -d --build
 
 # Run migrations
-docker compose exec backend npx prisma migrate deploy
+docker compose -f docker-compose.dev.yml exec backend npx prisma migrate deploy
 
 # Seed (first deploy only)
-docker compose exec backend npx prisma db seed
+docker compose -f docker-compose.dev.yml exec backend npx prisma db seed
 ```
 
 ### Nginx
-- Reverse proxy: `/api` → backend:3001
+- Reverse proxy: `/api` → backend:3000
 - Static files: frontend build served directly
 - TLS: Let's Encrypt via certbot
 - Rate limiting: API endpoints
@@ -105,15 +108,15 @@ certbot --nginx -d your-domain.com
 | Stage | Trigger | Actions |
 |-------|---------|---------|
 | Lint | Push to any branch | ESLint + Prettier check |
-| Test | Push to any branch | Jest backend + Vitest frontend |
+| Test | Push to any branch | Vitest (frontend) + Jest (backend) |
 | Build | Push to `develop` | Docker image build |
-| Deploy Staging | Push to `develop` | Deploy to Linode staging |
-| Deploy Production | Push to `main` | Deploy to Linode production |
+| Deploy Staging | Push to `develop` | Deploy to DigitalOcean staging |
+| Deploy Production | Push to `main` | Deploy to DigitalOcean production |
 
 ### Secrets Required (GitHub)
-- `LINODE_SSH_KEY` — SSH private key for deployment
-- `LINODE_HOST` — Server IP
-- `JWT_SECRET` / `JWT_REFRESH_SECRET` — Production secrets
+- `DEPLOY_SSH_KEY` — SSH private key for deployment
+- `DEPLOY_HOST` — Server IP
+- `JWT_SECRET` / `REFRESH_TOKEN_SECRET` — Production secrets
 - `DATABASE_URL` — Production database URL
 
 ---
@@ -123,16 +126,16 @@ certbot --nginx -d your-domain.com
 ### Database
 ```bash
 # Manual backup
-docker compose exec db pg_dump -U pwe_user pwe > backup_$(date +%Y%m%d).sql
+docker compose -f docker-compose.dev.yml exec db pg_dump -U pwe_dev pwe_dev > backup_$(date +%Y%m%d).sql
 
 # Restore
-cat backup.sql | docker compose exec -T db psql -U pwe_user pwe
+cat backup.sql | docker compose -f docker-compose.dev.yml exec -T db psql -U pwe_dev pwe_dev
 ```
 
 ### Automated (cron on server)
 ```bash
 # Daily backup at 2am
-0 2 * * * docker compose exec -T db pg_dump -U pwe_user pwe | gzip > /opt/pwe/backups/db_$(date +\%Y\%m\%d).sql.gz
+0 2 * * * docker compose -f /opt/pwe/src/dev-deployment/docker-compose.dev.yml exec -T db pg_dump -U pwe_dev pwe_dev | gzip > /opt/pwe/backups/db_$(date +\%Y\%m\%d).sql.gz
 
 # Keep last 7 days
 0 3 * * * find /opt/pwe/backups -name "*.sql.gz" -mtime +7 -delete
@@ -152,4 +155,4 @@ cat backup.sql | docker compose exec -T db psql -U pwe_user pwe
 
 | Date | Change | Author |
 |------|--------|--------|
-| — | Initial setup | — |
+| 2026-07-12 | DigitalOcean dev deployment setup | — |

@@ -158,38 +158,36 @@ Backend `.env` (never commit):
 ```
 DATABASE_URL=postgresql://...
 JWT_SECRET=...
-JWT_REFRESH_SECRET=...
-PORT=3001
+REFRESH_TOKEN_SECRET=...
+PORT=3000
 NODE_ENV=development
-CORS_ORIGIN=http://localhost:5173
+FRONTEND_URL=http://localhost
 ```
 
 Frontend `.env`:
 ```
-VITE_API_URL=http://localhost:3001/api/v1
+VITE_API_URL=http://localhost/api/v1
 ```
 
 ## Quick Commands
 
-> Note: These commands apply once `apps/` has been scaffolded. Currently no application code exists.
-
 ```bash
 # Start dev environment
-docker compose up
+cd src/dev-deployment && docker compose -f docker-compose.dev.yml up --build
 
 # Run migrations
-cd apps/backend && npx prisma migrate dev
+cd src/dev-deployment && docker compose -f docker-compose.dev.yml exec backend npx prisma migrate dev
 
 # Seed database
-cd apps/backend && npx prisma db seed
+cd src/dev-deployment && docker compose -f docker-compose.dev.yml exec backend npx prisma db seed
 
 # Run backend tests
-cd apps/backend && npm test
+cd src/backend && npm test
 
 # Run frontend tests
-cd apps/frontend && npm test
+cd src/frontend && npx vitest
 
 # Type check
-cd apps/backend && npx tsc --noEmit
-cd apps/frontend && npx tsc --noEmit
+cd src/backend && npx tsc --noEmit
+cd src/frontend && npx tsc --noEmit
 ```

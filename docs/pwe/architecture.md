@@ -249,7 +249,7 @@ src/
 ## Scalability Considerations
 
 ### Current: Single Server (MVP)
-- One Linode VPS handles everything
+- One DigitalOcean droplet handles everything
 - Docker Compose for service orchestration
 - Sufficient for <1000 users, <50 concurrent
 
