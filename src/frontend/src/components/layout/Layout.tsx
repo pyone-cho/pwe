@@ -1,0 +1,35 @@
+import { useState } from 'react';
+import { Outlet, Navigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import Sidebar from './Sidebar';
+import Header from './Header';
+import Spinner from '@/components/ui/Spinner';
+
+export default function Layout() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div className="flex-1">
+        <Header onMenuClick={() => setSidebarOpen(true)} />
+        <main className="p-4 sm:p-6">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+}
