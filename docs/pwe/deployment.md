@@ -7,8 +7,9 @@
 | Environment | Domain | Purpose | Database |
 |-------------|--------|---------|----------|
 | **Local** | localhost:5173 | Development | pwe_dev |
-| **Test/Staging** | test.pwe.example.com | QA, integration testing | pwe_test |
-| **Production** | pwe.example.com | Live users | pwe_prod |
+| **Dev** | dev.pwe-mm.site | Development server | pwe_dev |
+| **Test/Staging** | test.pwe-mm.site | QA, integration testing | pwe_test |
+| **Production** | pwe-mm.site | Live users | pwe_prod |
 
 ---
 
@@ -261,7 +262,7 @@ openssl rand -base64 64
 
 ## Nginx Configuration
 
-### nginx/nginx.conf
+### nginx/nginx.conf (Full Example)
 
 ```nginx
 events {
@@ -271,38 +272,55 @@ events {
 http {
     # Gzip compression
     gzip on;
-    gzip_types text/plain application/json application/javascript text/css;
+    gzip_types text/plain application/json application/javascript text/css application/xml;
     gzip_min_length 256;
 
     # Rate limiting
     limit_req_zone $binary_remote_addr zone=api:10m rate=100r/m;
     limit_req_zone $binary_remote_addr zone=auth:10m rate=5r/m;
 
-    # Upstream
+    # Upstreams
     upstream backend {
         server backend:3000;
     }
 
+    upstream frontend {
+        server frontend:5173;
+    }
+
+    # HTTP -> HTTPS redirect
     server {
         listen 80;
         server_name pwe.example.com test.pwe.example.com;
 
-        # Redirect HTTP to HTTPS
-        return 301 https://$host$request_uri;
+        location /.well-known/acme-challenge/ {
+            root /var/www/certbot;
+        }
+
+        location / {
+            return 301 https://$host$request_uri;
+        }
     }
 
+    # HTTPS server
     server {
-        listen 443 ssl http2;
+        listen 443 ssl;
         server_name pwe.example.com test.pwe.example.com;
 
-        ssl_certificate /etc/nginx/ssl/fullchain.pem;
-        ssl_certificate_key /etc/nginx/ssl/privkey.pem;
+        # SSL certificates (Let's Encrypt)
+        ssl_certificate /etc/letsencrypt/live/pwe.example.com/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/pwe.example.com/privkey.pem;
+
+        # SSL settings
         ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers on;
 
         # Security headers
-        add_header Strict-Transport-Security "max-age=31536000" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         add_header X-Content-Type-Options nosniff;
         add_header X-Frame-Options DENY;
+        add_header X-XSS-Protection "1; mode=block";
 
         # API proxy
         location /api/ {
@@ -320,19 +338,28 @@ http {
             proxy_pass http://backend;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
         }
 
-        # Frontend (React SPA)
+        # Health check
+        location /health {
+            proxy_pass http://backend;
+            proxy_set_header Host $host;
+        }
+
+        # Frontend (React SPA with Vite HMR)
         location / {
-            root /usr/share/nginx/html;
-            try_files $uri $uri/ /index.html;
-        }
+            proxy_pass http://frontend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
 
-        # Static assets with cache
-        location /assets/ {
-            root /usr/share/nginx/html;
-            expires 1y;
-            add_header Cache-Control "public, immutable";
+            # WebSocket support for Vite HMR
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
         }
     }
 }
@@ -578,22 +605,84 @@ backend:
 
 ### Let's Encrypt (Recommended)
 
+**Step 1: Install certbot**
+
 ```bash
-# Initial setup
-sudo certbot certonly --standalone \
+apt install -y certbot python3-certbot-nginx
+```
+
+**Step 2: Ensure nginx is running in HTTP-only mode**
+
+```bash
+cd /opt/pwe/src/dev-deployment
+docker compose -f docker-compose.dev.yml up -d nginx
+```
+
+**Step 3: Create webroot directory and get certificate**
+
+```bash
+mkdir -p /var/www/certbot
+
+certbot certonly --webroot --webroot-path=/var/www/certbot \
+  --email admin@your-domain.com \
+  --agree-tos \
   -d pwe.example.com \
   -d test.pwe.example.com
+```
 
-# Auto-renewal (cron)
-0 0 1 * * certbot renew --quiet && docker compose restart nginx
+**Step 4: Update nginx.conf for SSL**
+
+See the nginx configuration in the [Nginx Configuration](#nginx-configuration) section above for the full SSL server block.
+
+**Step 5: Restart nginx**
+
+```bash
+docker compose -f docker-compose.dev.yml restart nginx
+```
+
+### Auto-Renewal
+
+Certbot installs a systemd timer automatically. Verify it's active:
+
+```bash
+systemctl status certbot.timer
+```
+
+Or manually test renewal:
+
+```bash
+certbot renew --dry-run
 ```
 
 ### Certificate Files
+
+Let's Encrypt stores certificates at:
+
 ```
-nginx/ssl/
+/etc/letsencrypt/live/your-domain.com/
 ├── fullchain.pem    # Certificate + chain
 ├── privkey.pem      # Private key
-└── dhparam.pem      # Diffie-Hellman parameters (optional)
+└── README
+```
+
+### Docker Compose SSL Configuration
+
+Update `docker-compose.dev.yml` to mount host certbot directories:
+
+```yaml
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+    depends_on:
+      - backend
+      - frontend
 ```
 
 ---
