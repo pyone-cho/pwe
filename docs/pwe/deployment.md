@@ -82,7 +82,7 @@ services:
       NODE_ENV: development
       DATABASE_URL: postgresql://pwe_dev:dev_password@db:5432/pwe_dev
       JWT_SECRET: dev-jwt-secret-not-for-production
-      JWT_REFRESH_SECRET: dev-refresh-secret-not-for-production
+      REFRESH_TOKEN_SECRET: dev-refresh-secret-not-for-production
       PORT: 3000
     ports:
       - "3000:3000"
@@ -132,7 +132,7 @@ services:
       NODE_ENV: test
       DATABASE_URL: postgresql://pwe_user:${DB_PASSWORD}@db:5432/pwe_test
       JWT_SECRET: ${JWT_SECRET}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
       PORT: 3000
     depends_on:
       - db
@@ -186,7 +186,7 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgresql://pwe_user:${DB_PASSWORD}@db:5432/pwe_prod
       JWT_SECRET: ${JWT_SECRET}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
       PORT: 3000
     depends_on:
       - db
@@ -229,7 +229,7 @@ DB_PASSWORD=change-me-to-a-strong-password
 
 # === Authentication ===
 JWT_SECRET=change-me-to-a-random-64-char-string
-JWT_REFRESH_SECRET=change-me-to-another-random-64-char-string
+REFRESH_TOKEN_SECRET=change-me-to-another-random-64-char-string
 
 # === Application ===
 NODE_ENV=development

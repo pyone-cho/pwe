@@ -61,7 +61,7 @@ npm install
 
 ```bash
 # Create .env file
-echo "VITE_API_URL=http://localhost:3001/api/v1" > .env
+echo "VITE_API_URL=http://localhost/api/v1" > .env
 ```
 
 ### 3. Start development server

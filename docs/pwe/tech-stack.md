@@ -162,6 +162,6 @@
 | **2-week MVP** | Express + React + Prisma = fast dev velocity |
 | **Myanmar context** | Mobile-first Tailwind, low-bandwidth friendly, Unicode support |
 | **Multi-tenancy** | PostgreSQL + org_id pattern + Prisma middleware |
-| **Cost** | Single Linode server, free OSS tools, no managed services |
+| **Cost** | Single DigitalOcean droplet, free OSS tools, no managed services |
 | **Team hiring** | Node/React/TS = largest talent pool in Myanmar tech |
 | **Future scale** | Can split to microservices, add Redis caching, upgrade to Kubernetes if needed |

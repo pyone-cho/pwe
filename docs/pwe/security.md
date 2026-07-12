@@ -380,7 +380,7 @@ add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style
 5. **Learn** — Post-mortem, update procedures
 
 ### Contact Chain
-1. Lead developer → 2. Project owner → 3. Hosting provider (Linode support)
+1. Lead developer → 2. Project owner → 3. Hosting provider (DigitalOcean support)
 
 ---
 
