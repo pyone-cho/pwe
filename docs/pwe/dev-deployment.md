@@ -86,18 +86,30 @@ docker compose -f docker-compose.dev.yml exec backend npx prisma db seed
 
 ### Nginx
 - Reverse proxy: `/api` → backend:3000
-- Static files: frontend build served directly
-- TLS: Let's Encrypt via certbot
-- Rate limiting: API endpoints
+- Frontend: Vite dev server with HMR WebSocket support
+- TLS: Let's Encrypt via certbot (webroot method)
+- Rate limiting: API endpoints (100r/m), auth endpoints (5r/m)
 
-### SSL/TLS
+### SSL/TLS Setup
+
 ```bash
-# Initial cert setup
-certbot --nginx -d your-domain.com
+# 1. Install certbot
+apt install -y certbot python3-certbot-nginx
 
-# Auto-renewal (cron)
-0 0 1 * * certbot renew --quiet
+# 2. Create webroot directory
+mkdir -p /var/www/certbot
+
+# 3. Get certificate (nginx must be running on port 80)
+certbot certonly --webroot --webroot-path=/var/www/certbot \
+  --email admin@pwe-mm.site --agree-tos -d dev.pwe-mm.site
+
+# 4. Certbot auto-renewal is via systemd timer (not cron)
+systemctl status certbot.timer
 ```
+
+**Note:** Nginx runs in Docker and mounts host certbot directories:
+- `/etc/letsencrypt` → certificate files
+- `/var/www/certbot` → ACME challenge files
 
 ---
 
@@ -155,4 +167,5 @@ cat backup.sql | docker compose -f docker-compose.dev.yml exec -T db psql -U pwe
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-07-13 | SSL/TLS setup for dev.pwe-mm.site (Let's Encrypt) | — |
 | 2026-07-12 | DigitalOcean dev deployment setup | — |

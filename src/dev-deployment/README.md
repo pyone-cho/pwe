@@ -165,28 +165,92 @@ curl http://localhost/api/v1/health
 
 ## SSL/TLS (Let's Encrypt)
 
-After DNS is configured and propagating:
+After DNS is configured and pointing to your server:
 
 ```bash
-# Install certbot
-apt install -y certbot
+# 1. Install certbot
+apt install -y certbot python3-certbot-nginx
 
-# Get certificate
-certbot certonly --standalone -d your-domain.com
+# 2. Ensure nginx is running (HTTP only)
+cd /opt/pwe/src/dev-deployment
+docker compose -f docker-compose.dev.yml up -d nginx
 
-# Copy certs to nginx directory
-mkdir -p /opt/pwe/src/dev-deployment/ssl
-cp /etc/letsencrypt/live/your-domain.com/fullchain.pem /opt/pwe/src/dev-deployment/ssl/
-cp /etc/letsencrypt/live/your-domain.com/privkey.pem /opt/pwe/src/dev-deployment/ssl/
+# 3. Create webroot directory for ACME challenge
+mkdir -p /var/www/certbot
+
+# 4. Get certificate
+certbot certonly --webroot --webroot-path=/var/www/certbot \
+  --email admin@pwe-mm.site --agree-tos -d your-domain.com
+
+# 5. Update nginx.conf with SSL configuration (see below)
+
+# 6. Restart nginx
+docker compose -f docker-compose.dev.yml restart nginx
 ```
 
-Update `nginx.conf` to add HTTPS server block (see [deployment.md](../../docs/pwe/deployment.md) for full nginx SSL config).
-
-Auto-renewal cron:
+**Note:** Certbot auto-renewal is configured via systemd timer (`certbot.timer`). Verify with:
 
 ```bash
-0 0 1 * * certbot renew --quiet && docker compose -f /opt/pwe/src/dev-deployment/docker-compose.dev.yml restart nginx
+systemctl status certbot.timer
 ```
+
+### SSL nginx.conf Block
+
+Add this to your `nginx.conf` for HTTPS support:
+
+```nginx
+# HTTP -> HTTPS redirect
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# HTTPS server
+server {
+    listen 443 ssl;
+    server_name your-domain.com;
+
+    ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+
+    # Security headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options nosniff;
+    add_header X-Frame-Options DENY;
+    add_header X-XSS-Protection "1; mode=block";
+
+    # ... rest of your proxy configs
+}
+```
+
+### Docker Compose Update
+
+Update `docker-compose.dev.yml` to mount host certbot directories:
+
+```yaml
+nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+```
+
+See [deployment.md](../../docs/pwe/deployment.md) for full SSL configuration.
 
 ---
 
