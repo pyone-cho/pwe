@@ -21,8 +21,8 @@
     "zod-formik-adapter": "^1.2.0",
     "js-cookie": "^3.0.0",
     "recharts": "^2.15.0",
-    "jspdf": "^2.5.0",
-    "jspdf-autotable": "^3.8.0"
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
