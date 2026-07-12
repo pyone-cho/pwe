@@ -46,20 +46,29 @@ src/
 │   ├── prisma/
 │   │   ├── schema.prisma
 │   │   └── seed.ts
-│   └── Dockerfile
-└── frontend/         # React 19 + Vite + Tailwind
-    ├── src/
-    │   ├── components/   # shared UI components
-    │   ├── features/     # feature-specific components/hooks
-    │   │   └── <feature>/
-    │   ├── hooks/        # shared custom hooks
-    │   ├── lib/          # axios instance, utils
-    │   ├── pages/        # route-level components
-    │   ├── App.tsx
-    │   └── main.tsx
-    ├── tailwind.config.js
-    ├── vite.config.ts
-    └── Dockerfile
+│   ├── Dockerfile
+│   └── docker-compose.yml  # Basic dev (backend + db only)
+├── frontend/         # React 19 + Vite + Tailwind
+│   ├── src/
+│   │   ├── components/   # shared UI components
+│   │   ├── features/     # feature-specific components/hooks
+│   │   │   └── <feature>/
+│   │   ├── hooks/        # shared custom hooks
+│   │   ├── lib/          # axios instance, utils
+│   │   ├── pages/        # route-level components
+│   │   ├── App.tsx
+│   │   └── main.tsx
+│   ├── tailwind.config.js
+│   ├── vite.config.ts
+│   └── Dockerfile.dev
+├── dev-deployment/   # Docker deployment files
+│   ├── docker-compose.dev.yml
+│   ├── nginx.conf
+│   ├── .env.example
+│   ├── .dockerignore
+│   ├── setup-server.sh
+│   └── README.md
+└── .gitignore
 ```
 
 ## Tech Stack (Canonical)

@@ -24,7 +24,7 @@
 ```bash
 # 1. Clone the repository
 git clone https://github.com/your-org/pwe.git
-cd pwe
+cd pwe/src/dev-deployment
 
 # 2. Copy environment file
 cp .env.example .env
@@ -39,8 +39,8 @@ docker compose -f docker-compose.dev.yml exec backend npx prisma migrate dev
 docker compose -f docker-compose.dev.yml exec backend npx prisma db seed
 
 # 6. Open
-# Frontend: http://localhost:5173
-# Backend API: http://localhost:3000/api/v1
+# Frontend: http://localhost (via nginx)
+# Backend API: http://localhost/api/v1
 # Prisma Studio: http://localhost:5555 (run: npx prisma studio)
 ```
 
@@ -56,6 +56,8 @@ docker compose -f docker-compose.dev.yml down -v        # Stop + remove volumes 
 ## Docker Compose Files
 
 ### docker-compose.dev.yml (Local Development)
+
+> Located at `src/dev-deployment/docker-compose.dev.yml`
 
 ```yaml
 version: "3.8"
@@ -441,49 +443,50 @@ feature/* ──── feat-name
 
 ---
 
-## Server Setup (Linode)
+## Server Setup (DigitalOcean)
+
+> For automated setup, use `src/dev-deployment/setup-server.sh`
 
 ### Initial Server Provisioning
 
 ```bash
-# 1. Create Linode (Ubuntu 22.04, 4GB RAM, 2 CPU)
+# 1. Create Droplet (Ubuntu 22.04, 4GB RAM, 2 CPU)
 # 2. SSH in
 ssh root@<server-ip>
 
-# 3. Create deploy user
+# 3. Run setup script
+bash <(curl -s https://raw.githubusercontent.com/pyone-cho/pwe/main/src/dev-deployment/setup-server.sh)
+
+# OR manual setup:
+# 4. Create deploy user
 adduser pwe
 usermod -aG docker pwe
 usermod -aG sudo pwe
 
-# 4. Install Docker
+# 5. Install Docker
 curl -fsSL https://get.docker.com | sh
 systemctl enable docker
 
-# 5. Install Docker Compose
+# 6. Install Docker Compose
 apt install docker-compose-plugin
 
-# 6. Setup app directory
+# 7. Setup app directory
 mkdir -p /opt/pwe
 chown pwe:pwe /opt/pwe
 
-# 7. Clone repository
+# 8. Clone repository
 su - pwe
 cd /opt/pwe
 git clone https://github.com/your-org/pwe.git .
 
-# 8. Setup environment
-cp .env.example .env
-nano .env  # Fill in production secrets
+# 9. Setup environment
+cp src/dev-deployment/.env.example src/dev-deployment/.env
+nano src/dev-deployment/.env  # Fill in production secrets
 
-# 9. Setup SSL (Let's Encrypt)
-sudo apt install certbot
-sudo certbot certonly --standalone -d pwe.example.com -d test.pwe.example.com
-# Certs go to /etc/letsencrypt/live/pwe.example.com/
-# Copy or symlink to nginx/ssl/
-
-# 10. Start production
-docker compose -f docker-compose.prod.yml up -d
-docker compose -f docker-compose.prod.yml exec -T backend npx prisma migrate deploy
+# 10. Start dev deployment
+cd src/dev-deployment
+docker compose -f docker-compose.dev.yml up -d --build
+docker compose -f docker-compose.dev.yml exec -T backend npx prisma migrate deploy
 ```
 
 ---
@@ -494,7 +497,7 @@ docker compose -f docker-compose.prod.yml exec -T backend npx prisma migrate dep
 
 ```bash
 #!/bin/bash
-# /opt/pwe/scripts/backup.sh
+# /opt/pwe/src/dev-deployment/backup.sh
 
 BACKUP_DIR="/opt/pwe/backups"
 DATE=$(date +%Y%m%d_%H%M%S)
@@ -520,7 +523,7 @@ find $BACKUP_DIR -name "*.sql.gz" -mtime +$KEEP_DAYS -delete
 ```bash
 # Add to crontab: crontab -e
 # Run backup daily at 2:00 AM
-0 2 * * * /opt/pwe/scripts/backup.sh >> /opt/pwe/logs/backup.log 2>&1
+0 2 * * * /opt/pwe/src/dev-deployment/backup.sh >> /opt/pwe/logs/backup.log 2>&1
 ```
 
 ### Restore Procedure

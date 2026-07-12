@@ -128,7 +128,7 @@ See [Feature-spec.md](Feature-spec.md) for detailed user stories and acceptance 
 ```bash
 # Clone
 git clone https://github.com/your-org/pwe.git
-cd pwe
+cd pwe/src/dev-deployment
 
 # Setup environment
 cp .env.example .env
@@ -144,11 +144,11 @@ docker compose -f docker-compose.dev.yml exec backend npx prisma db seed
 ```
 
 **Services:**
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:3000/api/v1
+- Frontend: http://localhost (via nginx)
+- Backend API: http://localhost/api/v1
 - Prisma Studio: http://localhost:5555
 
-See [deployment.md](deployment.md) for full environment setup and Docker configuration.
+See [dev-deployment/README.md](src/dev-deployment/README.md) for full setup guide and [deployment.md](deployment.md) for production deployment.
 
 ---
 
@@ -169,7 +169,7 @@ src/
 │   │   └── prisma/       # DB client and migrations
 │   ├── Dockerfile
 │   └── package.json
-├── frontend/             # React SPA 🔄 Project setup complete
+├── frontend/             # React SPA
 │   ├── src/
 │   │   ├── components/   # Reusable UI components
 │   │   ├── features/     # Feature modules
@@ -178,14 +178,16 @@ src/
 │   │   ├── pages/        # Route-level pages
 │   │   ├── services/     # API client
 │   │   └── types/        # TypeScript types
-│   ├── Dockerfile
+│   ├── Dockerfile.dev
 │   └── package.json
-├── nginx/                # Nginx config + SSL
-├── scripts/              # Backup, deploy scripts
-├── docker-compose.dev.yml
-├── docker-compose.test.yml
-├── docker-compose.prod.yml
-└── .env.example
+├── dev-deployment/       # Docker deployment files
+│   ├── docker-compose.dev.yml
+│   ├── nginx.conf
+│   ├── .env.example
+│   ├── .dockerignore
+│   ├── setup-server.sh
+│   └── README.md
+└── backend/docker-compose.yml  # Basic dev compose (backend + db only)
 ```
 
 ---
@@ -228,21 +230,22 @@ See [architecture.md](architecture.md) and [security.md](security.md) for detail
 
 | Environment | Domain | Purpose |
 |-------------|--------|---------|
-| Local | localhost:5173 | Development |
-| Staging | test.pwe.example.com | QA, testing |
-| Production | pwe.example.com | Live users |
+| Local | localhost | Development |
+| Dev | dev.your-domain.com | Shared dev/staging |
+| Production | your-domain.com | Live users |
 
 ### Deploy
 
 ```bash
-# Staging (develop branch)
-git push origin develop
+# Dev deployment (on DigitalOcean droplet)
+cd src/dev-deployment
+docker compose -f docker-compose.dev.yml up -d --build
 
 # Production (main branch)
 git push origin main
 ```
 
-See [deployment.md](deployment.md) for server setup, CI/CD pipeline, and backup strategy.
+See [dev-deployment/README.md](src/dev-deployment/README.md) for DigitalOcean setup and [deployment.md](deployment.md) for CI/CD pipeline and backup strategy.
 
 ---
 
