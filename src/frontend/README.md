@@ -5,7 +5,7 @@ Frontend web application for the PWE Event Management System built with React, V
 ## Tech Stack
 
 - **Framework**: React 19
-- **Build Tool**: Vite 6
+- **Build Tool**: Vite 8
 - **Language**: TypeScript 5.7
 - **Styling**: Tailwind CSS 3
 - **Routing**: React Router v7
@@ -21,21 +21,11 @@ frontend/
 ├── src/
 │   ├── components/
 │   │   ├── ui/            # Reusable UI primitives (Button, Input, Modal, etc.)
-│   │   ├── layout/        # Layout components (Sidebar, Header, DashboardLayout)
-│   │   └── shared/        # Shared components (SearchBar, Pagination, etc.)
-│   ├── features/
-│   │   ├── auth/          # Authentication (login, signup)
-│   │   ├── members/       # Member management
-│   │   ├── events/        # Event management
-│   │   ├── registrations/ # Event registration
-│   │   ├── attendance/    # Attendance tracking
-│   │   ├── payments/      # Payment tracking
-│   │   ├── announcements/ # Announcements
-│   │   └── reports/       # Reports & analytics
+│   │   └── layout/        # Layout components (Sidebar, Header, Layout)
 │   ├── hooks/             # Custom React hooks
-│   ├── lib/               # Utilities (axios, helpers)
+│   ├── lib/               # Utilities (axios, utils)
 │   ├── pages/             # Route-level page components
-│   ├── services/          # API client
+│   ├── services/          # API client modules
 │   ├── types/             # TypeScript types
 │   ├── App.tsx            # Router setup
 │   ├── main.tsx           # Entry point

@@ -5,16 +5,16 @@ Docker-based development environment for deploying PWE on a DigitalOcean droplet
 ## Architecture
 
 ```
-Internet → :80 nginx → /api/* → backend:3000 → db:5432
-                     → /*     → frontend:5173 (Vite HMR)
+Internet → :80/:443 nginx → /api/* → backend:3000 → db:5432
+                          → /*     → frontend:5173 (Vite HMR)
 ```
 
-| Service    | Port | Description                     |
-|------------|------|---------------------------------|
-| nginx      | 80   | Reverse proxy, rate limiting    |
-| backend    | 3000 | Express API server              |
-| frontend   | 5173 | React dev server (Vite HMR)     |
-| db         | 5432 | PostgreSQL 16                   |
+| Service    | Port  | Description                     |
+|------------|-------|---------------------------------|
+| nginx      | 80, 443 | Reverse proxy, SSL, rate limiting |
+| backend    | 3000  | Express API server              |
+| frontend   | 5173  | React dev server (Vite HMR)     |
+| db         | 5432  | PostgreSQL 16                   |
 
 ---
 
@@ -363,10 +363,12 @@ docker compose -f docker-compose.dev.yml exec backend npx prisma migrate reset
 ```
 src/dev-deployment/
 ├── docker-compose.dev.yml   # Service orchestration
-├── Dockerfile.dev           # Frontend dev container
 ├── nginx.conf               # Reverse proxy config
 ├── .env.example             # Environment template
+├── .env                     # Active environment config
 ├── .dockerignore            # Build optimization
+├── generate-certs.sh        # SSL certificate generation
 ├── setup-server.sh          # Droplet provisioning
+├── ssl/                     # SSL certificates
 └── README.md                # This file
 ```

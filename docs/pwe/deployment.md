@@ -61,8 +61,6 @@ docker compose -f docker-compose.dev.yml down -v        # Stop + remove volumes 
 > Located at `src/dev-deployment/docker-compose.dev.yml`
 
 ```yaml
-version: "3.8"
-
 services:
   db:
     image: postgres:16-alpine
@@ -74,11 +72,16 @@ services:
       - "5432:5432"
     volumes:
       - pgdata_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pwe_dev -d pwe_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile.dev
+      context: ../backend
+      dockerfile: Dockerfile
     environment:
       NODE_ENV: development
       DATABASE_URL: postgresql://pwe_dev:dev_password@db:5432/pwe_dev
@@ -89,27 +92,42 @@ services:
       - "3000:3000"
       - "5555:5555"   # Prisma Studio
     volumes:
-      - ./backend/src:/app/src
+      - ../backend/src:/app/src
       - /app/node_modules
     depends_on:
-      - db
-    command: npx ts-node-dev --respawn --transpile-only src/server.ts
+      db:
+        condition: service_healthy
+    command: npm run dev
 
   frontend:
     build:
-      context: ./frontend
+      context: ../frontend
       dockerfile: Dockerfile.dev
     ports:
       - "5173:5173"
     volumes:
-      - ./frontend/src:/app/src
-    command: npx vite --host
+      - ../frontend/src:/app/src
+    command: npm run dev -- --host
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+      - frontend
 
 volumes:
   pgdata_dev:
 ```
 
 ### docker-compose.test.yml (Staging/Test)
+
+> **Note:** This compose file is planned but not yet created. Use `docker-compose.dev.yml` for development.
 
 ```yaml
 version: "3.8"
@@ -163,6 +181,8 @@ volumes:
 ```
 
 ### docker-compose.prod.yml (Production)
+
+> **Note:** This compose file is planned but not yet created. Use `docker-compose.dev.yml` for development.
 
 ```yaml
 version: "3.8"
@@ -369,6 +389,8 @@ http {
 
 ## CI/CD Pipeline
 
+> **Note:** The CI/CD pipeline is planned but not yet implemented. Below is the proposed configuration.
+
 ### GitHub Actions
 
 ```yaml
@@ -377,9 +399,9 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
 
 jobs:
   lint-and-test:
@@ -413,57 +435,33 @@ jobs:
           cd backend && npm test
           cd ../frontend && npm test
 
-  build-and-deploy-staging:
-    needs: lint-and-test
-    if: github.ref == 'refs/heads/develop'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Deploy to staging
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          script: |
-            cd /opt/pwe
-            git pull origin develop
-            docker compose -f docker-compose.test.yml build
-            docker compose -f docker-compose.test.yml up -d
-            docker compose -f docker-compose.test.yml exec -T backend npx prisma migrate deploy
-
-  build-and-deploy-production:
+  build-and-deploy:
     needs: lint-and-test
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Deploy to production
+      - name: Deploy to server
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.PRODUCTION_HOST }}
+          host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
             cd /opt/pwe
             git pull origin main
-            docker compose -f docker-compose.prod.yml build
-            docker compose -f docker-compose.prod.yml up -d
-            docker compose -f docker-compose.prod.yml exec -T backend npx prisma migrate deploy
+            docker compose -f docker-compose.dev.yml build
+            docker compose -f docker-compose.dev.yml up -d
+            docker compose -f docker-compose.dev.yml exec -T backend npx prisma migrate deploy
 ```
 
 ### Branch Strategy
 
 ```
 main ─────────────────────────────────→ Production
-  ↑                                       ↑
-  │ merge PR                              │ merge PR
-  │                                       │
-develop ──────────────────────────────→ Staging
   ↑
-  │ feature branches
+  │ merge PR
   │
 feature/* ──── feat-name
 ```
@@ -575,8 +573,8 @@ docker compose -f docker-compose.prod.yml start backend
 ### Backend Health Endpoint
 
 ```typescript
-// GET /api/v1/health
-app.get('/api/v1/health', async (req, res) => {
+// GET /health
+app.get('/health', async (req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     res.json({ status: 'ok', database: 'connected', timestamp: new Date() });
@@ -589,10 +587,10 @@ app.get('/api/v1/health', async (req, res) => {
 ### Docker Health Check
 
 ```yaml
-# In docker-compose.prod.yml
+# In docker-compose.dev.yml
 backend:
   healthcheck:
-    test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/health"]
+    test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
     interval: 30s
     timeout: 10s
     retries: 3

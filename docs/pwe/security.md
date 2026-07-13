@@ -247,12 +247,9 @@ app.use('/api/v1/auth/login', authLimiter);
 ## CORS Policy
 
 ```typescript
+// Single origin from environment variable
 app.use(cors({
-  origin: [
-    'http://localhost:5173',              // Local dev
-    'https://pwe.example.com',            // Production
-    'https://test.pwe.example.com',       // Staging
-  ],
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true,                       // Allow cookies
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],

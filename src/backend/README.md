@@ -7,7 +7,7 @@ Backend API for the PWE Event Management System built with Express.js, TypeScrip
 - **Runtime**: Node.js
 - **Framework**: Express.js
 - **Language**: TypeScript
-- **ORM**: Prisma
+- **ORM**: Prisma 6
 - **Database**: PostgreSQL 16
 - **Auth**: JWT (access + refresh tokens)
 
