@@ -26,14 +26,24 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-brand-100/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-violet-100/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+
+      <div className="w-full max-w-md relative">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-indigo-600">PWE</h1>
-          <p className="text-gray-500 mt-2">Sign in to your workspace</p>
+          <Link to="/" className="inline-flex items-center gap-2 mb-6">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
+              <span className="text-white font-bold">P</span>
+            </div>
+            <span className="text-2xl font-bold text-gray-900">PWE</span>
+          </Link>
+          <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
+          <p className="text-gray-500 mt-1">Sign in to your workspace</p>
         </div>
 
-        <Card className="overflow-visible">
+        <Card className="shadow-medium">
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input
@@ -59,14 +69,16 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-sm text-gray-500 mt-4">
-          Don&apos;t have an organization?{' '}
-          <Link to="/signup" className="text-indigo-600 hover:underline">Create one</Link>
-        </p>
-        <p className="text-center text-sm text-gray-500 mt-2">
-          Not a member yet?{' '}
-          <Link to="/register" className="text-indigo-600 hover:underline">Register</Link>
-        </p>
+        <div className="mt-6 space-y-2 text-center text-sm text-gray-500">
+          <p>
+            Don&apos;t have an organization?{' '}
+            <Link to="/signup" className="text-brand-600 hover:text-brand-700 font-medium hover:underline">Create one</Link>
+          </p>
+          <p>
+            Not a member yet?{' '}
+            <Link to="/register" className="text-brand-600 hover:text-brand-700 font-medium hover:underline">Register</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

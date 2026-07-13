@@ -10,8 +10,8 @@ export default function Pagination({ meta, onPageChange }: PaginationProps) {
   if (meta.pages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-      <p className="text-sm text-gray-600">
+    <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+      <p className="text-sm text-gray-500">
         Showing {(meta.page - 1) * meta.limit + 1} to{' '}
         {Math.min(meta.page * meta.limit, meta.total)} of {meta.total}
       </p>
