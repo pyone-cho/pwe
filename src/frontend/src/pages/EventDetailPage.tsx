@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getEvent, updateEventStatus } from '@/services/events';
-import { listRegistrations, cancelRegistration, registerForMember } from '@/services/registrations';
+import { listRegistrations, cancelRegistration, registerForMember, getMyRegistration, cancelMyRegistration } from '@/services/registrations';
 import { listAttendance, bulkCheckIn, undoCheckIn } from '@/services/attendance';
 import { listPayments, getPaymentSummary } from '@/services/payments';
 import { Button, Badge, Spinner, Card, CardContent, Input, PageHeader, Section, EmptyState } from '@/components/ui';
@@ -36,12 +36,22 @@ export default function EventDetailPage() {
   // Search
   const [search, setSearch] = useState('');
 
+  // Registration status for current member
+  const [myRegistration, setMyRegistration] = useState<Registration | null>(null);
+
   useEffect(() => {
     if (!id) return;
     getEvent(id)
       .then((e) => { setEvent(e); setIsLoading(false); })
       .catch(() => { toast('Event not found', 'error'); setIsLoading(false); });
-  }, [id]);
+
+    // Check if current member is registered (for members only)
+    if (!canManageEvents) {
+      getMyRegistration(id)
+        .then((reg) => setMyRegistration(reg))
+        .catch(() => setMyRegistration(null));
+    }
+  }, [id, canManageEvents]);
 
   const loadTab = async (t: Tab) => {
     if (!id) return;
@@ -116,12 +126,27 @@ export default function EventDetailPage() {
   const handleRegister = async () => {
     if (!id) return;
     try {
-      await registerForMember(id);
+      const reg = await registerForMember(id);
       toast('Successfully registered for event', 'success');
+      setMyRegistration(reg);
       const updated = await getEvent(id);
       setEvent(updated);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to register';
+      toast(message, 'error');
+    }
+  };
+
+  const handleCancelMyRegistration = async () => {
+    if (!id) return;
+    try {
+      await cancelMyRegistration(id);
+      toast('Registration cancelled', 'success');
+      setMyRegistration(null);
+      const updated = await getEvent(id);
+      setEvent(updated);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to cancel registration';
       toast(message, 'error');
     }
   };
@@ -160,7 +185,11 @@ export default function EventDetailPage() {
         </div>
         <div className="flex gap-2">
           {event.status === 'published' && !canManageEvents && (
-            <Button onClick={handleRegister}>Register</Button>
+            myRegistration ? (
+              <Button variant="danger" onClick={handleCancelMyRegistration}>Cancel Registration</Button>
+            ) : (
+              <Button onClick={handleRegister}>Register</Button>
+            )
           )}
           {canManageEvents && (
             <>

@@ -108,6 +108,28 @@ export class RegistrationService {
     return this.create(orgId, eventId, { memberId: member.id });
   }
 
+  async getMyRegistration(orgId: string, eventId: string, userId: string) {
+    // Find the member record for this user
+    const member = await prisma.member.findFirst({
+      where: { userId, orgId },
+    });
+
+    if (!member) {
+      return null;
+    }
+
+    // Find the registration for this member and event
+    const registration = await prisma.registration.findFirst({
+      where: {
+        eventId,
+        memberId: member.id,
+        status: { not: "cancelled" },
+      },
+    });
+
+    return registration;
+  }
+
   async cancel(orgId: string, id: string) {
     const registration = await prisma.registration.findFirst({
       where: { id, orgId },
@@ -148,6 +170,33 @@ export class RegistrationService {
     }
 
     return updated;
+  }
+
+  async cancelMyRegistration(orgId: string, eventId: string, userId: string) {
+    // Find the member record for this user
+    const member = await prisma.member.findFirst({
+      where: { userId, orgId },
+    });
+
+    if (!member) {
+      throw new AppError(404, "Member profile not found");
+    }
+
+    // Find the registration for this member and event
+    const registration = await prisma.registration.findFirst({
+      where: {
+        eventId,
+        memberId: member.id,
+        status: { not: "cancelled" },
+      },
+    });
+
+    if (!registration) {
+      throw new AppError(404, "Registration not found");
+    }
+
+    // Use the existing cancel method
+    return this.cancel(orgId, registration.id);
   }
 }
 

@@ -20,6 +20,15 @@ export async function registerForMember(eventId: string): Promise<Registration> 
   return res.data.data;
 }
 
+export async function getMyRegistration(eventId: string): Promise<Registration | null> {
+  const res = await api.get(`/events/${eventId}/register/member`);
+  return res.data.data;
+}
+
+export async function cancelMyRegistration(eventId: string): Promise<void> {
+  await api.delete(`/events/${eventId}/register/member`);
+}
+
 export async function listRegistrations(
   eventId: string,
   filters: PaginationParams & { status?: string; type?: string } = {}

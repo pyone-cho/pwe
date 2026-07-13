@@ -41,9 +41,35 @@ export class RegistrationController {
     }
   }
 
+  async getMyRegistration(req: Request, res: Response, next: NextFunction) {
+    try {
+      const registration = await registrationService.getMyRegistration(
+        req.orgId!,
+        req.params.eventId,
+        req.user!.userId
+      );
+      res.json({ success: true, data: registration });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async cancel(req: Request, res: Response, next: NextFunction) {
     try {
       const registration = await registrationService.cancel(req.orgId!, req.params.id);
+      res.json({ success: true, data: registration });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async cancelMyRegistration(req: Request, res: Response, next: NextFunction) {
+    try {
+      const registration = await registrationService.cancelMyRegistration(
+        req.orgId!,
+        req.params.eventId,
+        req.user!.userId
+      );
       res.json({ success: true, data: registration });
     } catch (error) {
       next(error);

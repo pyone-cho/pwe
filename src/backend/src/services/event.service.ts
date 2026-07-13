@@ -44,7 +44,11 @@ export class EventService {
         orderBy: { startDate: "desc" },
         include: {
           _count: {
-            select: { registrations: true },
+            select: {
+              registrations: {
+                where: { status: { not: "cancelled" } },
+              },
+            },
           },
         },
       }),
@@ -166,7 +170,11 @@ export class EventService {
       orderBy: { startDate: "asc" },
       include: {
         _count: {
-          select: { registrations: true },
+          select: {
+            registrations: {
+              where: { status: { not: "cancelled" } },
+            },
+          },
         },
       },
     });
@@ -181,7 +189,11 @@ export class EventService {
       },
       include: {
         _count: {
-          select: { registrations: true },
+          select: {
+            registrations: {
+              where: { status: { not: "cancelled" } },
+            },
+          },
         },
       },
     });
