@@ -38,14 +38,24 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-green-100/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-100/40 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+
+      <div className="w-full max-w-md relative">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-indigo-600">PWE</h1>
-          <p className="text-gray-500 mt-2">Join your organization</p>
+          <Link to="/" className="inline-flex items-center gap-2 mb-6">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
+              <span className="text-white font-bold">P</span>
+            </div>
+            <span className="text-2xl font-bold text-gray-900">PWE</span>
+          </Link>
+          <h1 className="text-2xl font-bold text-gray-900">Join your organization</h1>
+          <p className="text-gray-500 mt-1">Register as a member to get started</p>
         </div>
 
-        <Card className="overflow-visible">
+        <Card className="shadow-medium">
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input
@@ -100,9 +110,9 @@ export default function RegisterPage() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-sm text-gray-500 mt-4">
+        <p className="text-center text-sm text-gray-500 mt-6">
           Already have an account?{' '}
-          <Link to="/login" className="text-indigo-600 hover:underline">Sign in</Link>
+          <Link to="/login" className="text-brand-600 hover:text-brand-700 font-medium hover:underline">Sign in</Link>
         </p>
       </div>
     </div>

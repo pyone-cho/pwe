@@ -44,8 +44,8 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" role="presentation">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center animate-fade-in" role="presentation">
+      <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={onClose} />
 
       <div
         ref={dialogRef}
@@ -53,16 +53,18 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
         aria-modal="true"
         tabIndex={-1}
         className={cn(
-          'relative bg-white rounded-xl shadow-xl w-full mx-4 max-h-[90vh] overflow-y-auto focus:outline-none',
+          'relative bg-white rounded-2xl shadow-xl w-full mx-4 max-h-[90vh] overflow-y-auto',
+          'animate-slide-up focus:outline-none',
+          'border border-gray-100',
           sizeClasses[size]
         )}
       >
         {title && (
-          <div className="flex items-center justify-between border-b px-6 py-4">
+          <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
             <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-lg hover:bg-gray-100"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

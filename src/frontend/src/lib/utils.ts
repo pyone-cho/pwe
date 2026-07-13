@@ -51,22 +51,22 @@ export function generateSlug(name: string): string {
 
 export function statusColor(status: string): string {
   const map: Record<string, string> = {
-    active: 'bg-green-100 text-green-800',
-    inactive: 'bg-gray-100 text-gray-800',
-    suspended: 'bg-red-100 text-red-800',
-    published: 'bg-blue-100 text-blue-800',
-    draft: 'bg-yellow-100 text-yellow-800',
-    cancelled: 'bg-red-100 text-red-800',
-    completed: 'bg-green-100 text-green-800',
-    paid: 'bg-green-100 text-green-800',
-    pending: 'bg-yellow-100 text-yellow-800',
-    refunded: 'bg-purple-100 text-purple-800',
-    registered: 'bg-green-100 text-green-800',
-    waitlisted: 'bg-orange-100 text-orange-800',
-    low: 'bg-gray-100 text-gray-600',
-    normal: 'bg-blue-100 text-blue-800',
-    high: 'bg-orange-100 text-orange-800',
-    urgent: 'bg-red-100 text-red-800',
+    active: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+    inactive: 'bg-gray-50 text-gray-600 ring-1 ring-gray-200',
+    suspended: 'bg-red-50 text-red-700 ring-1 ring-red-200',
+    published: 'bg-brand-50 text-brand-700 ring-1 ring-brand-200',
+    draft: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
+    cancelled: 'bg-red-50 text-red-700 ring-1 ring-red-200',
+    completed: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+    paid: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+    pending: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
+    refunded: 'bg-violet-50 text-violet-700 ring-1 ring-violet-200',
+    registered: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+    waitlisted: 'bg-orange-50 text-orange-700 ring-1 ring-orange-200',
+    low: 'bg-gray-50 text-gray-600 ring-1 ring-gray-200',
+    normal: 'bg-brand-50 text-brand-700 ring-1 ring-brand-200',
+    high: 'bg-orange-50 text-orange-700 ring-1 ring-orange-200',
+    urgent: 'bg-red-50 text-red-700 ring-1 ring-red-200',
   };
-  return map[status] || 'bg-gray-100 text-gray-600';
+  return map[status] || 'bg-gray-50 text-gray-600 ring-1 ring-gray-200';
 }
