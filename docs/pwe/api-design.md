@@ -728,6 +728,8 @@ Payment status report.
 
 ## 10. Users (Internal — Admin Management)
 
+> **Note:** User management endpoints are planned but not yet implemented.
+
 ### GET /api/v1/users
 List staff users in the organization.
 

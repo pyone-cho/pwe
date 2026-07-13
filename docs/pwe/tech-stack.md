@@ -6,13 +6,13 @@
 
 | Layer | Technology | Version |
 |-------|-----------|---------|
-| Runtime | Node.js | 24 LTS |
+| Runtime | Node.js | 20 LTS |
 | Backend Framework | Express.js + TypeScript | 4.x / 5.x |
 | Frontend Framework | React | 19.x |
-| Build Tool | Vite | 5.x |
+| Build Tool | Vite | 8.x |
 | CSS | Tailwind CSS | 3.x |
 | Database | PostgreSQL | 16 |
-| ORM | Prisma | 5.x |
+| ORM | Prisma | 6.x |
 | Auth | JWT + bcrypt | — |
 | HTTP Client | Axios | 1.x |
 | Forms | Formik + Zod | — |
@@ -47,7 +47,7 @@
 
 ## Frontend
 
-### Framework: React 18 + Vite
+### Framework: React 19 + Vite
 - **Why**: Largest ecosystem, team familiarity, Vite gives fast HMR and build times.
 - **Alternatives considered**:
   - *Next.js* — SSR/SSG not needed for this SPA, adds complexity.
@@ -113,7 +113,7 @@
 ### CI/CD: GitHub Actions
 - **Why**: Free for public repos, tight GitHub integration, good Docker support.
 - **Pipeline**: Lint → Test → Build → Deploy
-- **Branch strategy**: `main` → production, `develop` → staging/test
+- **Branch strategy**: `main` → production, feature branches → PR to `main`
 
 
 ### Reverse Proxy: Nginx

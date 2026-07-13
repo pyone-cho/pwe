@@ -2,7 +2,7 @@
 
 Multi-tenant SaaS for managing organizations, members, events, registrations, attendance, and payments in Myanmar.
 
-**Current status**: Documentation phase. Project specs are in `docs/pwe/` (at the repo root). This directory contains Claude agent/skill configs. Application code has not been scaffolded yet — use the scaffold skills in `.claude/skills/` to generate it.
+**Current status**: MVP implementation complete. All 7 core features are implemented and running. Documentation and CI/CD pipeline are pending.
 
 ## Current Structure
 
@@ -25,37 +25,36 @@ src/
         └── project-workflow.md # Workflow rules (read specs before impl, update docs after)
 ```
 
-### Target Application Structure (to be scaffolded)
+### Target Application Structure
 
 ```
 src/
 ├── backend/          # Express.js + TypeScript API
 │   ├── src/
-│   │   ├── config/       # env, database, auth config
-│   │   ├── middleware/    # auth, error, tenant, validation
-│   │   ├── modules/      # feature modules (org, member, event, etc.)
-│   │   │   └── <feature>/
-│   │   │       ├── <feature>.routes.ts
-│   │   │       ├── <feature>.controller.ts
-│   │   │       ├── <feature>.service.ts
-│   │   │       ├── <feature>.validation.ts
-│   │   │       └── __tests__/
-│   │   ├── prisma/       # client instance, middleware
-│   │   ├── utils/        # shared helpers
-│   │   └── index.ts      # entry point
+│   │   ├── controllers/    # Request handlers
+│   │   ├── middleware/      # auth, error, tenant, validation, rbac, rateLimit
+│   │   ├── routes/         # Express route definitions
+│   │   ├── services/       # Business logic
+│   │   ├── prisma/         # Prisma client singleton
+│   │   ├── swagger/        # OpenAPI docs
+│   │   ├── types/          # TypeScript types
+│   │   ├── utils/          # jwt, email, export helpers
+│   │   ├── app.ts          # Express app setup
+│   │   └── server.ts       # Entry point
 │   ├── prisma/
 │   │   ├── schema.prisma
-│   │   └── seed.ts
+│   │   ├── seed.ts
+│   │   └── migrations/
 │   ├── Dockerfile
 │   └── docker-compose.yml  # Basic dev (backend + db only)
 ├── frontend/         # React 19 + Vite + Tailwind
 │   ├── src/
-│   │   ├── components/   # shared UI components
-│   │   ├── features/     # feature-specific components/hooks
-│   │   │   └── <feature>/
-│   │   ├── hooks/        # shared custom hooks
-│   │   ├── lib/          # axios instance, utils
-│   │   ├── pages/        # route-level components
+│   │   ├── components/     # shared UI components (ui/ + layout/)
+│   │   ├── hooks/          # custom React hooks
+│   │   ├── lib/            # axios instance, utils
+│   │   ├── pages/          # route-level page components
+│   │   ├── services/       # API client modules
+│   │   ├── types/          # TypeScript type definitions
 │   │   ├── App.tsx
 │   │   └── main.tsx
 │   ├── tailwind.config.js
@@ -66,17 +65,18 @@ src/
 │   ├── nginx.conf
 │   ├── .env.example
 │   ├── .dockerignore
-│   ├── setup-server.sh
+│   ├── generate-certs.sh  # SSL certificate generation
+│   ├── setup-server.sh    # Server provisioning
 │   └── README.md
 └── .gitignore
 ```
 
 ## Tech Stack (Canonical)
 
-- **Runtime**: Node.js 24 LTS
+- **Runtime**: Node.js 20 LTS
 - **Backend**: Express.js 4.x + TypeScript
-- **Frontend**: React 19 + Vite 5 + Tailwind CSS 3
-- **Database**: PostgreSQL 16 + Prisma 5
+- **Frontend**: React 19 + Vite 8 + Tailwind CSS 3
+- **Database**: PostgreSQL 16 + Prisma 6
 - **Auth**: JWT (15min access + 7d refresh in httpOnly cookies) + bcrypt
 - **Validation**: Zod (shared schemas frontend + backend)
 - **HTTP Client**: Axios
@@ -103,7 +103,6 @@ src/
 
 ### Frontend (React)
 - Functional components only, no class components
-- Co-locate feature-specific code in `features/<feature>/`
 - Use custom hooks for reusable logic (data fetching, form handling)
 - Tailwind utility classes — no CSS modules or inline styles
 - Forms use Formik + Zod schemas (shared with backend where possible)

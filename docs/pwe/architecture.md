@@ -185,20 +185,21 @@ This avoids provisioning two separate DB servers while keeping data fully isolat
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── ui/              # Base components (Button, Input, Table, etc.)
-│   ├── layout/          # Sidebar, Header, PageWrapper
-│   └── features/        # Feature-specific components
+│   ├── ui/              # Base components (Button, Input, Modal, etc.)
+│   └── layout/          # Sidebar, Header, Layout
 ├── pages/               # Route-level page components
-│   ├── auth/            # Login, Register
-│   ├── dashboard/       # Admin dashboard
-│   ├── members/         # Member management
-│   ├── events/          # Event management
-│   ├── reports/         # Reports & analytics
-│   └── settings/        # Org settings
+│   ├── LoginPage.tsx
+│   ├── SignupPage.tsx
+│   ├── DashboardPage.tsx
+│   ├── MembersPage.tsx
+│   ├── EventsPage.tsx
+│   ├── EventDetailPage.tsx
+│   ├── AnnouncementsPage.tsx
+│   ├── ReportsPage.tsx
+│   └── SettingsPage.tsx
 ├── hooks/               # Custom React hooks
+├── lib/                 # Axios instance, utilities
 ├── services/            # API client functions (Axios)
-├── stores/              # State management (Zustand or Context)
-├── utils/               # Helpers, formatters
 ├── types/               # TypeScript type definitions
 ├── App.tsx              # Router setup
 └── main.tsx             # Entry point
@@ -230,9 +231,7 @@ src/
 │   ├── validate.middleware.ts   # Zod validation
 │   └── rateLimit.middleware.ts  # Rate limiting
 ├── prisma/              # Database
-│   ├── client.ts        # Prisma client singleton
-│   ├── middleware.ts     # Tenant isolation middleware
-│   └── migrations/      # Migration files
+│   └── client.ts        # Prisma client singleton
 ├── utils/               # Helpers
 │   ├── jwt.ts           # Token generation/verification
 │   ├── email.ts         # Email sending (future)

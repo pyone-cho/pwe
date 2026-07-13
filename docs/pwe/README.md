@@ -41,13 +41,13 @@ See [tech-stack.md](tech-stack.md) for detailed rationale and alternatives.
 
 | # | Feature | Description | Status |
 |---|---------|-------------|--------|
-| 1 | Organization Workspace | Private multi-tenant workspaces with data isolation | 🔲 Not started |
-| 2 | Member Management | CRUD, search, filter, CSV import/export | 🔲 Not started |
-| 3 | Event Management | Create events with registration modes and custom fields | 🔲 Not started |
-| 4 | Registration Forms | Public and member registration flows | 🔲 Not started |
-| 5 | Attendance Tracking | Check-in lists with real-time counters | 🔲 Not started |
-| 6 | Payment Tracking | Manual payment recording with status management | 🔲 Not started |
-| 7 | Announcements & Reports | Organization announcements and basic analytics | 🔲 Not started |
+| 1 | Organization Workspace | Private multi-tenant workspaces with data isolation | ✅ Implemented |
+| 2 | Member Management | CRUD, search, filter, CSV import/export | ✅ Implemented |
+| 3 | Event Management | Create events with registration modes and custom fields | ✅ Implemented |
+| 4 | Registration Forms | Public and member registration flows | ✅ Implemented |
+| 5 | Attendance Tracking | Check-in lists with real-time counters | ✅ Implemented |
+| 6 | Payment Tracking | Manual payment recording with status management | ✅ Implemented |
+| 7 | Announcements & Reports | Organization announcements and basic analytics | ✅ Implemented |
 
 See [Feature-spec.md](Feature-spec.md) for detailed user stories and acceptance criteria.
 
@@ -147,6 +147,7 @@ docker compose -f docker-compose.dev.yml exec backend npx prisma db seed
 - Frontend: http://localhost (via nginx)
 - Backend API: http://localhost/api/v1
 - Prisma Studio: http://localhost:5555
+- Swagger UI: http://localhost/api/v1/docs
 
 See [dev-deployment/README.md](../../src/dev-deployment/README.md) for full setup guide and [deployment.md](deployment.md) for production deployment.
 
@@ -156,21 +157,31 @@ See [dev-deployment/README.md](../../src/dev-deployment/README.md) for full setu
 
 ```
 src/
+├── .claude/              # AI agent/skill configs (Claude Code)
+│   ├── agents/           # Specialized subagents
+│   ├── skills/           # Scaffolding skills
+│   └── rules/            # Workflow rules
+├── CLAUDE.md             # Project conventions and tech stack
 ├── backend/              # Express API server
 │   ├── src/
 │   │   ├── routes/       # API route definitions
 │   │   ├── controllers/  # Request handlers
 │   │   ├── services/     # Business logic
 │   │   ├── middleware/    # Auth, tenant, RBAC
-│   │   └── prisma/       # DB client and migrations
+│   │   ├── prisma/       # Prisma client singleton
+│   │   ├── swagger/      # OpenAPI docs
+│   │   ├── types/        # TypeScript types
+│   │   └── utils/        # JWT, email, export helpers
+│   ├── prisma/           # Schema and migrations
 │   ├── Dockerfile
 │   └── package.json
 ├── frontend/             # React SPA
 │   ├── src/
-│   │   ├── components/   # Reusable UI components
-│   │   ├── pages/        # Route-level pages
+│   │   ├── components/   # Reusable UI components (ui/ + layout/)
 │   │   ├── hooks/        # Custom React hooks
-│   │   ├── services/     # API client
+│   │   ├── lib/          # Axios instance, utils
+│   │   ├── pages/        # Route-level pages
+│   │   ├── services/     # API client modules
 │   │   └── types/        # TypeScript types
 │   ├── Dockerfile.dev
 │   └── package.json
@@ -179,7 +190,8 @@ src/
 │   ├── nginx.conf
 │   ├── .env.example
 │   ├── .dockerignore
-│   ├── setup-server.sh
+│   ├── generate-certs.sh # SSL certificate generation
+│   ├── setup-server.sh   # Server provisioning
 │   └── README.md
 └── backend/docker-compose.yml  # Basic dev compose (backend + db only)
 ```
@@ -248,14 +260,15 @@ See [dev-deployment/README.md](../../src/dev-deployment/README.md) for DigitalOc
 ### MVP (2 Weeks)
 
 - [x] Documentation and planning
-- [ ] Organization workspace + auth
-- [ ] Member management
-- [ ] Event management
-- [ ] Registration forms
-- [ ] Attendance tracking
-- [ ] Payment tracking
-- [ ] Announcements & reports
+- [x] Organization workspace + auth
+- [x] Member management
+- [x] Event management
+- [x] Registration forms
+- [x] Attendance tracking
+- [x] Payment tracking
+- [x] Announcements & reports
 - [ ] Testing and deployment
+- [ ] CI/CD pipeline setup
 
 ### Post-MVP
 
@@ -285,14 +298,14 @@ See [security.md](security.md) for full details.
 
 ## Contributing
 
-1. Create a feature branch from `develop`
+1. Create a feature branch from `main`
 2. Make your changes
 3. Run linting and tests: `npm run lint && npm test`
-4. Submit a pull request to `develop`
-5. After review and CI passes, merge to `develop`
+4. Submit a pull request to `main`
+5. After review and CI passes, merge to `main`
 
 ---
 
 ## License
 
-Private — All rights reserved.
+MIT — Copyright 2026 pyone-cho
