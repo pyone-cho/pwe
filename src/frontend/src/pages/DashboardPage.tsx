@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Card, CardContent, Spinner } from '@/components/ui';
+import { Card, CardContent, Spinner, PageHeader, Section } from '@/components/ui';
 import { getMemberReport } from '@/services/reports';
 import { listEvents } from '@/services/events';
 import { listAnnouncements } from '@/services/announcements';
@@ -39,14 +39,11 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          Welcome back, {user?.profile?.firstName}
-        </h1>
-        <p className="text-gray-500">{organization?.name}</p>
-      </div>
+      <PageHeader
+        title={`Welcome back, ${user?.profile?.firstName ?? 'there'}`}
+        description={organization?.name}
+      />
 
-      {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((s) => (
           <Card key={s.label}>
@@ -63,59 +60,53 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Upcoming Events */}
-        <Card>
-          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h3 className="font-semibold text-gray-900">Upcoming Events</h3>
-            <Link to="/events" className="text-sm text-indigo-600 hover:underline">View all</Link>
-          </div>
-          <CardContent>
-            {events.length === 0 ? (
-              <p className="text-sm text-gray-500 py-4">No upcoming events</p>
-            ) : (
-              <div className="space-y-3">
-                {events.map((e) => (
-                  <div key={e.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{e.title}</p>
-                      <p className="text-xs text-gray-500">{formatDate(e.startDate)}</p>
-                    </div>
-                    <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">
-                      {e.registeredCount}/{e.capacity || '∞'}
-                    </span>
+        <Section
+          title="Upcoming Events"
+          description="A quick view of the next events in your organization"
+          action={<Link to="/events" className="text-sm text-indigo-600 hover:underline">View all</Link>}
+        >
+          {events.length === 0 ? (
+            <p className="text-sm text-gray-500 py-4">No upcoming events</p>
+          ) : (
+            <div className="space-y-3">
+              {events.map((e) => (
+                <div key={e.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{e.title}</p>
+                    <p className="text-xs text-gray-500">{formatDate(e.startDate)}</p>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">
+                    {e.registeredCount}/{e.capacity || '∞'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
 
-        {/* Recent Announcements */}
-        <Card>
-          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h3 className="font-semibold text-gray-900">Announcements</h3>
-            <Link to="/announcements" className="text-sm text-indigo-600 hover:underline">View all</Link>
-          </div>
-          <CardContent>
-            {announcements.length === 0 ? (
-              <p className="text-sm text-gray-500 py-4">No announcements</p>
-            ) : (
-              <div className="space-y-3">
-                {announcements.map((a) => (
-                  <div key={a.id} className="py-2 border-b border-gray-100 last:border-0">
-                    <div className="flex items-center gap-2">
-                      {a.priority === 'urgent' && (
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-red-100 text-red-700">Urgent</span>
-                      )}
-                      <p className="text-sm font-medium text-gray-900">{a.title}</p>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">{a.content}</p>
+        <Section
+          title="Announcements"
+          description="Recent updates shared with your community"
+          action={<Link to="/announcements" className="text-sm text-indigo-600 hover:underline">View all</Link>}
+        >
+          {announcements.length === 0 ? (
+            <p className="text-sm text-gray-500 py-4">No announcements</p>
+          ) : (
+            <div className="space-y-3">
+              {announcements.map((a) => (
+                <div key={a.id} className="py-2 border-b border-gray-100 last:border-0">
+                  <div className="flex items-center gap-2">
+                    {a.priority === 'urgent' && (
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-red-100 text-red-700">Urgent</span>
+                    )}
+                    <p className="text-sm font-medium text-gray-900">{a.title}</p>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  <p className="text-xs text-gray-500 mt-1 line-clamp-2">{a.content}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
       </div>
     </div>
   );

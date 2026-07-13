@@ -8,4 +8,6 @@ export { Card, CardHeader, CardContent } from './Card';
 export { default as EmptyState } from './EmptyState';
 export { default as Pagination } from './Pagination';
 export { default as Spinner } from './Spinner';
+export { default as PageHeader } from './PageHeader';
+export { default as Section } from './Section';
 export { ToastProvider, useToast } from './Toast';
