@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getMemberReport, getEventReport } from '@/services/reports';
-import { Card, CardContent, Spinner } from '@/components/ui';
+import { Card, CardContent, Spinner, PageHeader, Section } from '@/components/ui';
 import { formatMMK } from '@/lib/utils';
 import type { MemberReport, EventReport } from '@/types';
 
@@ -29,9 +29,8 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
+      <PageHeader title="Reports" />
 
-      {/* Tabs */}
       <div className="flex gap-1 border-b border-gray-200">
         {(['members', 'events'] as const).map((t) => (
           <button
@@ -73,53 +72,42 @@ export default function ReportsPage() {
           </div>
 
           {/* Membership Type Distribution */}
-          <Card>
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-900">Membership Types</h3>
-            </div>
-            <CardContent>
-              <div className="space-y-3">
-                {memberReport.byType.map((item) => (
-                  <div key={item.type} className="flex items-center gap-3">
-                    <span className="text-sm text-gray-700 capitalize w-24">{item.type || 'unknown'}</span>
-                    <div className="flex-1 bg-gray-100 rounded-full h-4">
-                      <div
-                        className="bg-indigo-500 h-4 rounded-full transition-all"
-                        style={{
-                          width: `${memberReport.total ? (item.count / memberReport.total) * 100 : 0}%`,
-                        }}
-                      />
-                    </div>
-                    <span className="text-sm font-medium text-gray-900 w-12 text-right">{item.count}</span>
+          <Section title="Membership Types">
+            <div className="space-y-3">
+              {memberReport.byType.map((item) => (
+                <div key={item.type} className="flex items-center gap-3">
+                  <span className="text-sm text-gray-700 capitalize w-24">{item.type || 'unknown'}</span>
+                  <div className="flex-1 bg-gray-100 rounded-full h-4">
+                    <div
+                      className="bg-indigo-500 h-4 rounded-full transition-all"
+                      style={{
+                        width: `${memberReport.total ? (item.count / memberReport.total) * 100 : 0}%`,
+                      }}
+                    />
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Monthly New Members */}
-          <Card>
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-900">New Members by Month</h3>
+                  <span className="text-sm font-medium text-gray-900 w-12 text-right">{item.count}</span>
+                </div>
+              ))}
             </div>
-            <CardContent>
-              <div className="flex items-end gap-2 h-40">
-                {memberReport.monthly.map((m) => {
-                  const maxCount = Math.max(...memberReport.monthly.map((x) => x.count), 1);
-                  return (
-                    <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
-                      <span className="text-xs text-gray-500">{m.count}</span>
-                      <div
-                        className="w-full bg-indigo-400 rounded-t"
-                        style={{ height: `${(m.count / maxCount) * 100}%`, minHeight: 4 }}
-                      />
-                      <span className="text-xs text-gray-400">{m.month.slice(5, 7)}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
+          </Section>
+
+          <Section title="New Members by Month">
+            <div className="flex items-end gap-2 h-40">
+              {memberReport.monthly.map((m) => {
+                const maxCount = Math.max(...memberReport.monthly.map((x) => x.count), 1);
+                return (
+                  <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
+                    <span className="text-xs text-gray-500">{m.count}</span>
+                    <div
+                      className="w-full bg-indigo-400 rounded-t"
+                      style={{ height: `${(m.count / maxCount) * 100}%`, minHeight: 4 }}
+                    />
+                    <span className="text-xs text-gray-400">{m.month.slice(5, 7)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </Section>
         </div>
       ) : tab === 'events' && eventReport ? (
         <div className="space-y-6">
@@ -140,7 +128,7 @@ export default function ReportsPage() {
           </div>
 
           {/* Event Table */}
-          <Card>
+          <Section title="Event Performance">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -171,7 +159,7 @@ export default function ReportsPage() {
                 </tbody>
               </table>
             </div>
-          </Card>
+          </Section>
         </div>
       ) : null}
     </div>

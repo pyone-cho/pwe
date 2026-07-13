@@ -4,7 +4,7 @@ import { getEvent, updateEventStatus } from '@/services/events';
 import { listRegistrations, cancelRegistration } from '@/services/registrations';
 import { listAttendance, bulkCheckIn, undoCheckIn } from '@/services/attendance';
 import { listPayments, getPaymentSummary } from '@/services/payments';
-import { Button, Badge, Spinner, Card, CardContent, Input } from '@/components/ui';
+import { Button, Badge, Spinner, Card, CardContent, Input, PageHeader, Section } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { formatDate, formatMMK } from '@/lib/utils';
 import type { Event, Registration, AttendanceRecord, AttendanceStats, Payment, PaymentSummary } from '@/types';
@@ -123,11 +123,10 @@ export default function EventDetailPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <Link to="/events" className="text-sm text-indigo-600 hover:underline">← Back to Events</Link>
-          <h1 className="text-2xl font-bold text-gray-900 mt-2">{event.title}</h1>
+          <PageHeader title={event.title} className="mt-2" />
           <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-gray-500">
             <Badge variant="status" value={event.status}>{event.status}</Badge>
             {event.location && <span>📍 {event.location}</span>}
@@ -188,19 +187,17 @@ export default function EventDetailPage() {
 
       {/* Tab Content */}
       {tab === 'overview' && (
-        <Card>
-          <CardContent>
-            <p className="text-gray-700 whitespace-pre-wrap">{event.description || 'No description'}</p>
-            {event.requiresPayment && (
-              <p className="mt-4 text-sm text-gray-600">Payment: {formatMMK(event.paymentAmount || 0)}</p>
-            )}
-          </CardContent>
-        </Card>
+        <Section title="Event Overview">
+          <p className="text-gray-700 whitespace-pre-wrap">{event.description || 'No description'}</p>
+          {event.requiresPayment && (
+            <p className="mt-4 text-sm text-gray-600">Payment: {formatMMK(event.paymentAmount || 0)}</p>
+          )}
+        </Section>
       )}
 
       {tab === 'registrations' && (
-        <Card>
-          <div className="px-6 py-3 border-b">
+        <Section title="Registrations">
+          <div className="px-6 py-3 border-b -mx-6 -mt-4 mb-4">
             <Input
               placeholder="Search registrations..."
               value={search}
@@ -239,12 +236,12 @@ export default function EventDetailPage() {
               </tbody>
             </table>
           </div>
-        </Card>
+        </Section>
       )}
 
       {tab === 'attendance' && (
-        <Card>
-          <div className="px-6 py-3 border-b flex items-center justify-between gap-4">
+        <Section title="Attendance">
+          <div className="px-6 py-3 border-b -mx-6 -mt-4 mb-4 flex items-center justify-between gap-4">
             <Input
               placeholder="Search..."
               value={search}
@@ -256,7 +253,7 @@ export default function EventDetailPage() {
               </Button>
             )}
           </div>
-          <div className="px-6 py-3 bg-gray-50 text-sm text-gray-600">
+          <div className="px-6 py-3 bg-gray-50 text-sm text-gray-600 -mx-6 mb-4">
             {attendanceStats && (
               <span>{attendanceStats.checkedIn} / {attendanceStats.total} checked in</span>
             )}
@@ -271,7 +268,6 @@ export default function EventDetailPage() {
                       className="h-4 w-4 rounded"
                       onChange={(e) => {
                         if (e.target.checked) {
-                          // Select all not-yet-checked-in
                           const unchecked = filteredAttendance
                             .filter((a) => !attendance.find((att) => att.registrationId === a.id))
                             .map((a) => a.id);
@@ -318,7 +314,7 @@ export default function EventDetailPage() {
               </tbody>
             </table>
           </div>
-        </Card>
+        </Section>
       )}
 
       {tab === 'payments' && (
@@ -339,7 +335,7 @@ export default function EventDetailPage() {
               </CardContent></Card>
             </div>
           )}
-          <Card>
+          <Section title="Payments">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -364,7 +360,7 @@ export default function EventDetailPage() {
                 </tbody>
               </table>
             </div>
-          </Card>
+          </Section>
         </div>
       )}
     </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getOrganization, updateOrganization } from '@/services/organization';
-import { Button, Input, Textarea, Card, CardContent, Spinner } from '@/components/ui';
+import { Button, Input, Textarea, Card, CardContent, Spinner, PageHeader, Section } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/hooks/useAuth';
 import type { Organization } from '@/types';
@@ -53,45 +53,43 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Organization Settings</h1>
+      <PageHeader title="Organization Settings" />
 
-      <Card>
-        <CardContent>
-          <form onSubmit={handleSave} className="space-y-4">
-            <Input
-              label="Organization Name"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              required
-            />
-            <Textarea
-              label="Description"
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              rows={3}
-            />
-            <Input
-              label="Phone"
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-            />
+      <Section>
+        <form onSubmit={handleSave} className="space-y-4">
+          <Input
+            label="Organization Name"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            required
+          />
+          <Textarea
+            label="Description"
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            rows={3}
+          />
+          <Input
+            label="Phone"
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+          />
 
-            {org && (
-              <div className="pt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-500">
-                  Slug: <code className="bg-gray-100 px-1.5 py-0.5 rounded">{org.slug}</code>
-                </p>
-              </div>
-            )}
-
-            <div className="flex justify-end pt-4">
-              <Button type="submit" isLoading={isSaving}>
-                Save Changes
-              </Button>
+          {org && (
+            <div className="pt-4 border-t border-gray-200">
+              <p className="text-sm text-gray-500">
+                Slug: <code className="bg-gray-100 px-1.5 py-0.5 rounded">{org.slug}</code>
+              </p>
             </div>
-          </form>
-        </CardContent>
-      </Card>
+          )}
+
+          <div className="flex justify-end pt-4">
+            <Button type="submit" isLoading={isSaving}>
+              Save Changes
+            </Button>
+          </div>
+        </form>
+      </Section>
     </div>
   );
 }
