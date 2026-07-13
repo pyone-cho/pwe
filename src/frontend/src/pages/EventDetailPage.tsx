@@ -6,6 +6,7 @@ import { listAttendance, bulkCheckIn, undoCheckIn } from '@/services/attendance'
 import { listPayments, getPaymentSummary } from '@/services/payments';
 import { Button, Badge, Spinner, Card, CardContent, Input, PageHeader, Section, EmptyState } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
+import { useAuth } from '@/hooks/useAuth';
 import { formatDate, formatMMK } from '@/lib/utils';
 import type { Event, Registration, AttendanceRecord, AttendanceStats, Payment, PaymentSummary } from '@/types';
 
@@ -14,9 +15,11 @@ type Tab = 'overview' | 'registrations' | 'attendance' | 'payments';
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [event, setEvent] = useState<Event | null>(null);
   const [tab, setTab] = useState<Tab>('overview');
   const [isLoading, setIsLoading] = useState(true);
+  const canManageEvents = user?.role === 'admin' || user?.role === 'staff';
 
   // Registrations
   const [registrations, setRegistrations] = useState<Registration[]>([]);
@@ -143,13 +146,17 @@ export default function EventDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          {event.status === 'draft' && (
-            <Button onClick={() => handleStatusChange('published')}>Publish</Button>
-          )}
-          {event.status === 'published' && (
+          {canManageEvents && (
             <>
-              <Button variant="secondary" onClick={() => handleStatusChange('completed')}>Complete</Button>
-              <Button variant="danger" onClick={() => handleStatusChange('cancelled')}>Cancel</Button>
+              {event.status === 'draft' && (
+                <Button onClick={() => handleStatusChange('published')}>Publish</Button>
+              )}
+              {event.status === 'published' && (
+                <>
+                  <Button variant="secondary" onClick={() => handleStatusChange('completed')}>Complete</Button>
+                  <Button variant="danger" onClick={() => handleStatusChange('cancelled')}>Cancel</Button>
+                </>
+              )}
             </>
           )}
         </div>
@@ -179,7 +186,7 @@ export default function EventDetailPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-gray-200">
-        {(['overview', 'registrations', 'attendance', 'payments'] as const).map((t) => (
+        {(canManageEvents ? ['overview', 'registrations', 'attendance', 'payments'] : ['overview'] as const).map((t) => (
           <button
             key={t}
             onClick={() => loadTab(t)}

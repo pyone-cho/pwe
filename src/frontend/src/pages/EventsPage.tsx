@@ -4,15 +4,18 @@ import { listEvents, createEvent, updateEventStatus } from '@/services/events';
 import { Button, Modal, Input, Textarea, Select, Badge, Pagination, EmptyState, Spinner, Card, PageHeader, Section } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { usePagination } from '@/hooks/usePagination';
+import { useAuth } from '@/hooks/useAuth';
 import { formatDate } from '@/lib/utils';
 import type { Event, EventStatus } from '@/types';
 
 export default function EventsPage() {
   const { toast } = useToast();
   const { page, limit, meta, setMeta, goToPage } = usePagination();
+  const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [tab, setTab] = useState<'upcoming' | 'past' | 'drafts'>('upcoming');
+  const canManageEvents = user?.role === 'admin' || user?.role === 'staff';
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
@@ -51,6 +54,11 @@ export default function EventsPage() {
 
   const handleCreate = async (publish: boolean) => {
     try {
+      console.log('Creating event with data:', {
+        ...form,
+        capacity: form.capacity ? Number(form.capacity) : undefined,
+        paymentAmount: form.paymentAmount ? Number(form.paymentAmount) : undefined,
+      });
       await createEvent({
         ...form,
         capacity: form.capacity ? Number(form.capacity) : undefined,
@@ -66,7 +74,8 @@ export default function EventsPage() {
       setStep(1);
       setForm({ title: '', description: '', location: '', startDate: '', endDate: '', capacity: '', registrationMode: 'member', requiresPayment: false, paymentAmount: '' });
       fetchEvents();
-    } catch {
+    } catch (error) {
+      console.error('Event creation failed:', error);
       toast('Failed to create event', 'error');
     }
   };
@@ -85,11 +94,11 @@ export default function EventsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Events"
-        actions={<Button onClick={() => setShowCreateModal(true)}>+ Create Event</Button>}
+        actions={canManageEvents && <Button onClick={() => setShowCreateModal(true)}>+ Create Event</Button>}
       />
 
       <div className="flex gap-1 border-b border-gray-200">
-        {(['upcoming', 'past', 'drafts'] as const).map((t) => (
+        {(canManageEvents ? ['upcoming', 'past', 'drafts'] : ['upcoming', 'past'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -126,23 +135,25 @@ export default function EventsPage() {
                     <span className="text-sm text-gray-600">
                       {e.registeredCount}/{e.capacity || '∞'} registered
                     </span>
-                    <div className="flex gap-1">
-                      {e.status === 'draft' && (
-                        <Button size="sm" onClick={() => handleStatusChange(e.id, 'published')}>
-                          Publish
-                        </Button>
-                      )}
-                      {e.status === 'published' && (
-                        <>
-                          <Button size="sm" variant="secondary" onClick={() => handleStatusChange(e.id, 'completed')}>
-                            Complete
+                    {canManageEvents && (
+                      <div className="flex gap-1">
+                        {e.status === 'draft' && (
+                          <Button size="sm" onClick={() => handleStatusChange(e.id, 'published')}>
+                            Publish
                           </Button>
-                          <Button size="sm" variant="danger" onClick={() => handleStatusChange(e.id, 'cancelled')}>
-                            Cancel
-                          </Button>
-                        </>
-                      )}
-                    </div>
+                        )}
+                        {e.status === 'published' && (
+                          <>
+                            <Button size="sm" variant="secondary" onClick={() => handleStatusChange(e.id, 'completed')}>
+                              Complete
+                            </Button>
+                            <Button size="sm" variant="danger" onClick={() => handleStatusChange(e.id, 'cancelled')}>
+                              Cancel
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </Card>

@@ -18,9 +18,9 @@ router.post("/:eventId/register", optionalAuth, tenantIsolation, validate(regist
 // Protected routes
 router.use(authenticate, tenantIsolation);
 
-router.get("/", requireMinRole("staff"), eventController.list);
+router.get("/", requireMinRole("member"), eventController.list);
 router.post("/", requireMinRole("staff"), validate(eventSchemas.create), eventController.create);
-router.get("/:id", requireMinRole("staff"), eventController.getById);
+router.get("/:id", requireMinRole("member"), eventController.getById);
 router.put("/:id", requireMinRole("staff"), validate(eventSchemas.update), eventController.update);
 router.patch("/:id/status", requireMinRole("staff"), eventController.updateStatus);
 
