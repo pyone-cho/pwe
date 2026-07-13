@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getEvent, updateEventStatus } from '@/services/events';
-import { listRegistrations, cancelRegistration } from '@/services/registrations';
+import { listRegistrations, cancelRegistration, registerForMember } from '@/services/registrations';
 import { listAttendance, bulkCheckIn, undoCheckIn } from '@/services/attendance';
 import { listPayments, getPaymentSummary } from '@/services/payments';
 import { Button, Badge, Spinner, Card, CardContent, Input, PageHeader, Section, EmptyState } from '@/components/ui';
@@ -113,6 +113,19 @@ export default function EventDetailPage() {
     }
   };
 
+  const handleRegister = async () => {
+    if (!id) return;
+    try {
+      await registerForMember(id);
+      toast('Successfully registered for event', 'success');
+      const updated = await getEvent(id);
+      setEvent(updated);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to register';
+      toast(message, 'error');
+    }
+  };
+
   if (isLoading) return <Spinner size="lg" className="mt-12" />;
   if (!event) {
     return (
@@ -146,6 +159,9 @@ export default function EventDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
+          {event.status === 'published' && !canManageEvents && (
+            <Button onClick={handleRegister}>Register</Button>
+          )}
           {canManageEvents && (
             <>
               {event.status === 'draft' && (

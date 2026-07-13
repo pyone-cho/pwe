@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { listEvents, createEvent, updateEventStatus } from '@/services/events';
+import { registerForMember } from '@/services/registrations';
 import { Button, Modal, Input, Textarea, Select, Badge, Pagination, EmptyState, Spinner, Card, PageHeader, Section } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { usePagination } from '@/hooks/usePagination';
@@ -90,6 +91,17 @@ export default function EventsPage() {
     }
   };
 
+  const handleRegister = async (eventId: string) => {
+    try {
+      await registerForMember(eventId);
+      toast('Successfully registered for event', 'success');
+      fetchEvents();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to register';
+      toast(message, 'error');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -135,25 +147,32 @@ export default function EventsPage() {
                     <span className="text-sm text-gray-600">
                       {e.registeredCount}/{e.capacity || '∞'} registered
                     </span>
-                    {canManageEvents && (
-                      <div className="flex gap-1">
-                        {e.status === 'draft' && (
-                          <Button size="sm" onClick={() => handleStatusChange(e.id, 'published')}>
-                            Publish
-                          </Button>
-                        )}
-                        {e.status === 'published' && (
-                          <>
-                            <Button size="sm" variant="secondary" onClick={() => handleStatusChange(e.id, 'completed')}>
-                              Complete
+                    <div className="flex gap-1">
+                      {e.status === 'published' && !canManageEvents && (
+                        <Button size="sm" onClick={() => handleRegister(e.id)}>
+                          Register
+                        </Button>
+                      )}
+                      {canManageEvents && (
+                        <>
+                          {e.status === 'draft' && (
+                            <Button size="sm" onClick={() => handleStatusChange(e.id, 'published')}>
+                              Publish
                             </Button>
-                            <Button size="sm" variant="danger" onClick={() => handleStatusChange(e.id, 'cancelled')}>
-                              Cancel
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    )}
+                          )}
+                          {e.status === 'published' && (
+                            <>
+                              <Button size="sm" variant="secondary" onClick={() => handleStatusChange(e.id, 'completed')}>
+                                Complete
+                              </Button>
+                              <Button size="sm" variant="danger" onClick={() => handleStatusChange(e.id, 'cancelled')}>
+                                Cancel
+                              </Button>
+                            </>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Card>

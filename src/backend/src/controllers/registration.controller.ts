@@ -28,6 +28,19 @@ export class RegistrationController {
     }
   }
 
+  async registerForMember(req: Request, res: Response, next: NextFunction) {
+    try {
+      const registration = await registrationService.registerForMember(
+        req.orgId!,
+        req.params.eventId,
+        req.user!.userId
+      );
+      res.status(201).json({ success: true, data: registration });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async cancel(req: Request, res: Response, next: NextFunction) {
     try {
       const registration = await registrationService.cancel(req.orgId!, req.params.id);

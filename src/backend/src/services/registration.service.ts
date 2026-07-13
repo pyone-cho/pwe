@@ -94,6 +94,20 @@ export class RegistrationService {
     });
   }
 
+  async registerForMember(orgId: string, eventId: string, userId: string) {
+    // Find the member record for this user
+    const member = await prisma.member.findFirst({
+      where: { userId, orgId },
+    });
+
+    if (!member) {
+      throw new AppError(404, "Member profile not found");
+    }
+
+    // Use the existing create method with the memberId
+    return this.create(orgId, eventId, { memberId: member.id });
+  }
+
   async cancel(orgId: string, id: string) {
     const registration = await prisma.registration.findFirst({
       where: { id, orgId },

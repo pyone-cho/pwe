@@ -15,6 +15,11 @@ export async function registerForEvent(
   return res.data.data;
 }
 
+export async function registerForMember(eventId: string): Promise<Registration> {
+  const res = await api.post(`/events/${eventId}/register/member`);
+  return res.data.data;
+}
+
 export async function listRegistrations(
   eventId: string,
   filters: PaginationParams & { status?: string; type?: string } = {}

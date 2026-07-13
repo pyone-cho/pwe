@@ -18,6 +18,9 @@ router.post("/:eventId/register", optionalAuth, tenantIsolation, validate(regist
 // Protected routes
 router.use(authenticate, tenantIsolation);
 
+// Member self-registration (authenticated members can register for events)
+router.post("/:eventId/register/member", requireMinRole("member"), registrationController.registerForMember);
+
 router.get("/", requireMinRole("member"), eventController.list);
 router.post("/", requireMinRole("staff"), validate(eventSchemas.create), eventController.create);
 router.get("/:id", requireMinRole("member"), eventController.getById);
