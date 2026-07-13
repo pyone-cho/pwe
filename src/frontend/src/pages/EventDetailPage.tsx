@@ -4,7 +4,7 @@ import { getEvent, updateEventStatus } from '@/services/events';
 import { listRegistrations, cancelRegistration } from '@/services/registrations';
 import { listAttendance, bulkCheckIn, undoCheckIn } from '@/services/attendance';
 import { listPayments, getPaymentSummary } from '@/services/payments';
-import { Button, Badge, Spinner, Card, CardContent, Input, PageHeader, Section } from '@/components/ui';
+import { Button, Badge, Spinner, Card, CardContent, Input, PageHeader, Section, EmptyState } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { formatDate, formatMMK } from '@/lib/utils';
 import type { Event, Registration, AttendanceRecord, AttendanceStats, Payment, PaymentSummary } from '@/types';
@@ -111,7 +111,16 @@ export default function EventDetailPage() {
   };
 
   if (isLoading) return <Spinner size="lg" className="mt-12" />;
-  if (!event) return <div className="text-center py-12 text-gray-500">Event not found</div>;
+  if (!event) {
+    return (
+      <EmptyState
+        variant="error"
+        title="Event not found"
+        description="The event you’re looking for may have been removed or is unavailable."
+        action={<Link to="/events" className="text-sm font-medium text-indigo-600 hover:underline">Back to events</Link>}
+      />
+    );
+  }
 
   const filteredRegistrations = registrations.filter((r) =>
     search ? (r.guestName || r.member?.firstName || '').toLowerCase().includes(search.toLowerCase()) : true

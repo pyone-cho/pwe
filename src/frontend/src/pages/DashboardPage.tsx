@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Card, CardContent, Spinner, PageHeader, Section } from '@/components/ui';
+import { Card, CardContent, Spinner, PageHeader, Section, EmptyState } from '@/components/ui';
 import { getMemberReport } from '@/services/reports';
 import { listEvents } from '@/services/events';
 import { listAnnouncements } from '@/services/announcements';
@@ -66,7 +66,12 @@ export default function DashboardPage() {
           action={<Link to="/events" className="text-sm text-indigo-600 hover:underline">View all</Link>}
         >
           {events.length === 0 ? (
-            <p className="text-sm text-gray-500 py-4">No upcoming events</p>
+            <EmptyState
+              title="No upcoming events"
+              description="Create your next event to keep the community engaged."
+              variant="info"
+              action={<Link to="/events" className="text-sm font-medium text-indigo-600 hover:underline">Create one</Link>}
+            />
           ) : (
             <div className="space-y-3">
               {events.map((e) => (
@@ -90,7 +95,11 @@ export default function DashboardPage() {
           action={<Link to="/announcements" className="text-sm text-indigo-600 hover:underline">View all</Link>}
         >
           {announcements.length === 0 ? (
-            <p className="text-sm text-gray-500 py-4">No announcements</p>
+            <EmptyState
+              title="No announcements yet"
+              description="Updates shared with your organization will appear here."
+              variant="empty"
+            />
           ) : (
             <div className="space-y-3">
               {announcements.map((a) => (
