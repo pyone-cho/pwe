@@ -67,6 +67,12 @@ if [ ! -f "$APP_DIR/src/dev-deployment/.env" ]; then
     echo ""
 fi
 
+# 9. Generate SSL certificates
+echo "[9/9] Generating SSL certificates..."
+cd "$APP_DIR/src/dev-deployment"
+chmod +x generate-certs.sh
+./generate-certs.sh
+
 echo ""
 echo "=== Setup Complete ==="
 echo ""
@@ -77,6 +83,6 @@ echo "  3. Run migrations:   cd $APP_DIR/src/dev-deployment && docker compose -f
 echo "  4. Seed database:    cd $APP_DIR/src/dev-deployment && docker compose -f docker-compose.dev.yml exec backend npx prisma db seed"
 echo ""
 echo "Services will be available at:"
-echo "  - Frontend: http://YOUR_DOMAIN"
-echo "  - API:      http://YOUR_DOMAIN/api/v1"
+echo "  - Frontend: https://dev.pwe-mm.site"
+echo "  - API:      https://dev.pwe-mm.site/api/v1"
 echo ""
