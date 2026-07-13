@@ -32,6 +32,6 @@ export async function logout(): Promise<void> {
 }
 
 export async function getMe(): Promise<{ user: User }> {
-  const res = await api.get('/auth/me');
+  const res = await api.get('/auth/profile');
   return res.data.data;
 }
