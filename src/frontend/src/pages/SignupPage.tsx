@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Button, Input } from '@/components/ui';
+import { Button, Card, CardContent, Input } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { generateSlug } from '@/lib/utils';
 
@@ -50,57 +50,61 @@ export default function SignupPage() {
           <p className="text-gray-500 mt-2">Create your organization</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
-          <Input
-            label="Organization Name"
-            placeholder="Yangon Sports Club"
-            value={form.orgName}
-            onChange={(e) => handleNameChange(e.target.value)}
-            required
-          />
-          <Input
-            label="Slug"
-            placeholder="yangon-sports"
-            value={form.slug}
-            onChange={(e) => setForm({ ...form, slug: e.target.value })}
-            required
-          />
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="First Name"
-              placeholder="Ko"
-              value={form.firstName}
-              onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-              required
-            />
-            <Input
-              label="Last Name"
-              placeholder="Thant"
-              value={form.lastName}
-              onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-              required
-            />
-          </div>
-          <Input
-            label="Admin Email"
-            type="email"
-            placeholder="admin@example.com"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            required
-          />
-          <Input
-            label="Password"
-            type="password"
-            placeholder="••••••••"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            required
-          />
-          <Button type="submit" isLoading={isLoading} className="w-full">
-            Create Organization
-          </Button>
-        </form>
+        <Card className="overflow-visible">
+          <CardContent className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input
+                label="Organization Name"
+                placeholder="Yangon Sports Club"
+                value={form.orgName}
+                onChange={(e) => handleNameChange(e.target.value)}
+                required
+              />
+              <Input
+                label="Slug"
+                placeholder="yangon-sports"
+                value={form.slug}
+                onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                required
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="First Name"
+                  placeholder="Ko"
+                  value={form.firstName}
+                  onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                  required
+                />
+                <Input
+                  label="Last Name"
+                  placeholder="Thant"
+                  value={form.lastName}
+                  onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                  required
+                />
+              </div>
+              <Input
+                label="Admin Email"
+                type="email"
+                placeholder="admin@example.com"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                required
+              />
+              <Input
+                label="Password"
+                type="password"
+                placeholder="••••••••"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                required
+              />
+              <Button type="submit" isLoading={isLoading} className="w-full">
+                Create Organization
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
 
         <p className="text-center text-sm text-gray-500 mt-4">
           Already have an organization?{' '}

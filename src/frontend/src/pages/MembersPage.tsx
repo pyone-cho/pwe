@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { listMembers, createMember, updateMember, updateMemberStatus } from '@/services/members';
-import { Button, Input, Select, Modal, Badge, Pagination, EmptyState, Spinner, Card } from '@/components/ui';
+import { Button, Input, Select, Modal, Badge, Pagination, EmptyState, Spinner, Card, PageHeader, Section } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { usePagination } from '@/hooks/usePagination';
 import { formatDate } from '@/lib/utils';
@@ -121,16 +121,17 @@ export default function MembersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">Members</h1>
-        <Button onClick={() => { resetForm(); setShowCreateModal(true); }}>
-          + Add Member
-        </Button>
-      </div>
+      <PageHeader
+        title="Members"
+        actions={
+          <Button onClick={() => { resetForm(); setShowCreateModal(true); }}>
+            + Add Member
+          </Button>
+        }
+      />
 
-      {/* Filters */}
-      <Card>
-        <div className="px-6 py-4 flex flex-col sm:flex-row gap-3">
+      <Section>
+        <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1">
             <Input
               placeholder="Search by name, email, or phone..."
@@ -148,10 +149,9 @@ export default function MembersPage() {
           />
           <Button variant="secondary" onClick={handleSearch}>Search</Button>
         </div>
-      </Card>
+      </Section>
 
-      {/* Table */}
-      <Card>
+      <Section>
         {isLoading ? (
           <Spinner className="py-12" />
         ) : members.length === 0 ? (
@@ -205,7 +205,7 @@ export default function MembersPage() {
             {meta && <Pagination meta={meta} onPageChange={goToPage} />}
           </>
         )}
-      </Card>
+      </Section>
 
       {/* Create/Edit Modal */}
       <Modal

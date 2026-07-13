@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { listAnnouncements, createAnnouncement, updateAnnouncementStatus } from '@/services/announcements';
-import { Button, Modal, Input, Textarea, Select, Badge, Pagination, EmptyState, Spinner, Card, CardContent } from '@/components/ui';
+import { Button, Modal, Input, Textarea, Select, Badge, Pagination, EmptyState, Spinner, Card, CardContent, PageHeader, Section } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { usePagination } from '@/hooks/usePagination';
 import { formatDateTime } from '@/lib/utils';
@@ -66,12 +66,10 @@ export default function AnnouncementsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">Announcements</h1>
-        {isAdmin && (
-          <Button onClick={() => setShowCreateModal(true)}>+ New Announcement</Button>
-        )}
-      </div>
+      <PageHeader
+        title="Announcements"
+        actions={isAdmin ? <Button onClick={() => setShowCreateModal(true)}>+ New Announcement</Button> : undefined}
+      />
 
       {isLoading ? (
         <Spinner className="py-12" />
@@ -79,52 +77,54 @@ export default function AnnouncementsPage() {
         <EmptyState title="No announcements" description="Check back later for updates" />
       ) : (
         <>
-          <div className="space-y-3">
-            {sorted.map((a) => (
-              <Card
-                key={a.id}
-                className={`cursor-pointer transition-shadow hover:shadow-md ${
-                  a.priority === 'urgent' ? 'border-red-300 bg-red-50' : ''
-                }`}
-                onClick={() => setExpandedId(expandedId === a.id ? null : a.id)}
-              >
-                <CardContent>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="status" value={a.priority}>{a.priority}</Badge>
-                        <h3 className="font-semibold text-gray-900">{a.title}</h3>
+          <Section>
+            <div className="space-y-3">
+              {sorted.map((a) => (
+                <Card
+                  key={a.id}
+                  className={`cursor-pointer transition-shadow hover:shadow-md ${
+                    a.priority === 'urgent' ? 'border-red-300 bg-red-50' : ''
+                  }`}
+                  onClick={() => setExpandedId(expandedId === a.id ? null : a.id)}
+                >
+                  <CardContent>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="status" value={a.priority}>{a.priority}</Badge>
+                          <h3 className="font-semibold text-gray-900">{a.title}</h3>
+                        </div>
+                        {expandedId === a.id ? (
+                          <p className="mt-3 text-sm text-gray-700 whitespace-pre-wrap">{a.content}</p>
+                        ) : (
+                          <p className="mt-1 text-sm text-gray-500 line-clamp-2">{a.content}</p>
+                        )}
                       </div>
-                      {expandedId === a.id ? (
-                        <p className="mt-3 text-sm text-gray-700 whitespace-pre-wrap">{a.content}</p>
-                      ) : (
-                        <p className="mt-1 text-sm text-gray-500 line-clamp-2">{a.content}</p>
-                      )}
+                      <span className="text-xs text-gray-400 whitespace-nowrap ml-4">
+                        {formatDateTime(a.createdAt)}
+                      </span>
                     </div>
-                    <span className="text-xs text-gray-400 whitespace-nowrap ml-4">
-                      {formatDateTime(a.createdAt)}
-                    </span>
-                  </div>
-                  {expandedId === a.id && (
-                    <div className="mt-3 flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          updateAnnouncementStatus(a.id, 'archived')
-                            .then(() => { toast('Archived', 'success'); fetchAnnouncements(); })
-                            .catch(() => toast('Failed', 'error'));
-                        }}
-                      >
-                        Archive
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    {expandedId === a.id && (
+                      <div className="mt-3 flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updateAnnouncementStatus(a.id, 'archived')
+                              .then(() => { toast('Archived', 'success'); fetchAnnouncements(); })
+                              .catch(() => toast('Failed', 'error'));
+                          }}
+                        >
+                          Archive
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </Section>
           {meta && <Pagination meta={meta} onPageChange={goToPage} />}
         </>
       )}

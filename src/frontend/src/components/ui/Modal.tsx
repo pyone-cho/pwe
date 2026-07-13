@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 interface ModalProps {
@@ -16,26 +16,42 @@ const sizeClasses = {
 };
 
 export default function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
+    if (!isOpen) return;
+
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', handleKeyDown);
+    dialogRef.current?.focus();
+
+    return () => {
       document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
-  }, [isOpen]);
+      document.removeEventListener('keydown', handleKeyDown);
+      previouslyFocused?.focus();
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center" role="presentation">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
-      {/* Content */}
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        tabIndex={-1}
         className={cn(
-          'relative bg-white rounded-xl shadow-xl w-full mx-4 max-h-[90vh] overflow-y-auto',
+          'relative bg-white rounded-xl shadow-xl w-full mx-4 max-h-[90vh] overflow-y-auto focus:outline-none',
           sizeClasses[size]
         )}
       >

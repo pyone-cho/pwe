@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { listEvents, createEvent, updateEventStatus } from '@/services/events';
-import { Button, Modal, Input, Textarea, Select, Badge, Pagination, EmptyState, Spinner, Card } from '@/components/ui';
+import { Button, Modal, Input, Textarea, Select, Badge, Pagination, EmptyState, Spinner, Card, PageHeader, Section } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { usePagination } from '@/hooks/usePagination';
 import { formatDate } from '@/lib/utils';
@@ -83,12 +83,11 @@ export default function EventsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">Events</h1>
-        <Button onClick={() => setShowCreateModal(true)}>+ Create Event</Button>
-      </div>
+      <PageHeader
+        title="Events"
+        actions={<Button onClick={() => setShowCreateModal(true)}>+ Create Event</Button>}
+      />
 
-      {/* Tabs */}
       <div className="flex gap-1 border-b border-gray-200">
         {(['upcoming', 'past', 'drafts'] as const).map((t) => (
           <button
@@ -105,7 +104,6 @@ export default function EventsPage() {
         ))}
       </div>
 
-      {/* Event List */}
       {isLoading ? (
         <Spinner className="py-12" />
       ) : events.length === 0 ? (
