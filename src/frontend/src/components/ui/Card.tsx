@@ -9,7 +9,10 @@ interface CardProps {
 
 export function Card({ children, className, onClick }: CardProps) {
   return (
-    <div onClick={onClick} className={cn('bg-white rounded-xl border border-gray-200 shadow-sm', className)}>
+    <div
+      onClick={onClick}
+      className={cn('overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow', className)}
+    >
       {children}
     </div>
   );
