@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getEvent, updateEventStatus } from '@/services/events';
-import { listRegistrations, cancelRegistration } from '@/services/registrations';
+import { listRegistrations, cancelRegistration, registerForMember, getMyRegistration, cancelMyRegistration } from '@/services/registrations';
 import { listAttendance, bulkCheckIn, undoCheckIn } from '@/services/attendance';
 import { listPayments, getPaymentSummary } from '@/services/payments';
 import { Button, Badge, Spinner, Card, CardContent, Input, PageHeader, Section, EmptyState } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
+import { useAuth } from '@/hooks/useAuth';
 import { formatDate, formatMMK } from '@/lib/utils';
 import type { Event, Registration, AttendanceRecord, AttendanceStats, Payment, PaymentSummary } from '@/types';
 
@@ -14,9 +15,11 @@ type Tab = 'overview' | 'registrations' | 'attendance' | 'payments';
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [event, setEvent] = useState<Event | null>(null);
   const [tab, setTab] = useState<Tab>('overview');
   const [isLoading, setIsLoading] = useState(true);
+  const canManageEvents = user?.role === 'admin' || user?.role === 'staff';
 
   // Registrations
   const [registrations, setRegistrations] = useState<Registration[]>([]);
@@ -33,12 +36,22 @@ export default function EventDetailPage() {
   // Search
   const [search, setSearch] = useState('');
 
+  // Registration status for current member
+  const [myRegistration, setMyRegistration] = useState<Registration | null>(null);
+
   useEffect(() => {
     if (!id) return;
     getEvent(id)
       .then((e) => { setEvent(e); setIsLoading(false); })
       .catch(() => { toast('Event not found', 'error'); setIsLoading(false); });
-  }, [id]);
+
+    // Check if current member is registered (for members only)
+    if (!canManageEvents) {
+      getMyRegistration(id)
+        .then((reg) => setMyRegistration(reg))
+        .catch(() => setMyRegistration(null));
+    }
+  }, [id, canManageEvents]);
 
   const loadTab = async (t: Tab) => {
     if (!id) return;
@@ -110,6 +123,34 @@ export default function EventDetailPage() {
     }
   };
 
+  const handleRegister = async () => {
+    if (!id) return;
+    try {
+      const reg = await registerForMember(id);
+      toast('Successfully registered for event', 'success');
+      setMyRegistration(reg);
+      const updated = await getEvent(id);
+      setEvent(updated);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to register';
+      toast(message, 'error');
+    }
+  };
+
+  const handleCancelMyRegistration = async () => {
+    if (!id) return;
+    try {
+      await cancelMyRegistration(id);
+      toast('Registration cancelled', 'success');
+      setMyRegistration(null);
+      const updated = await getEvent(id);
+      setEvent(updated);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to cancel registration';
+      toast(message, 'error');
+    }
+  };
+
   if (isLoading) return <Spinner size="lg" className="mt-12" />;
   if (!event) {
     return (
@@ -143,13 +184,24 @@ export default function EventDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          {event.status === 'draft' && (
-            <Button onClick={() => handleStatusChange('published')}>Publish</Button>
+          {event.status === 'published' && !canManageEvents && (
+            myRegistration ? (
+              <Button variant="danger" onClick={handleCancelMyRegistration}>Cancel Registration</Button>
+            ) : (
+              <Button onClick={handleRegister}>Register</Button>
+            )
           )}
-          {event.status === 'published' && (
+          {canManageEvents && (
             <>
-              <Button variant="secondary" onClick={() => handleStatusChange('completed')}>Complete</Button>
-              <Button variant="danger" onClick={() => handleStatusChange('cancelled')}>Cancel</Button>
+              {event.status === 'draft' && (
+                <Button onClick={() => handleStatusChange('published')}>Publish</Button>
+              )}
+              {event.status === 'published' && (
+                <>
+                  <Button variant="secondary" onClick={() => handleStatusChange('completed')}>Complete</Button>
+                  <Button variant="danger" onClick={() => handleStatusChange('cancelled')}>Cancel</Button>
+                </>
+              )}
             </>
           )}
         </div>
@@ -179,7 +231,7 @@ export default function EventDetailPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-gray-200">
-        {(['overview', 'registrations', 'attendance', 'payments'] as const).map((t) => (
+        {(canManageEvents ? ['overview', 'registrations', 'attendance', 'payments'] : ['overview'] as const).map((t) => (
           <button
             key={t}
             onClick={() => loadTab(t)}

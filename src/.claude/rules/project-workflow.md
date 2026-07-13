@@ -23,3 +23,9 @@
 ## Frontend Review
 
 - Use the `ui-ux-pro-max` agent to review all frontend components for accessibility, responsive design, and UX quality.
+
+## Browser Automation
+
+- Do NOT use Playwright for any browser automation tasks.
+- Use `chrome-devtools-mcp` exclusively for: browser automation, screenshots, DOM inspection, network monitoring, performance analysis, and all browser-related tasks.
+- The MCP server is configured in `.claude/settings.json` and provides tools like `take_screenshot`, `navigate`, `execute_javascript`, `get_network_requests`, etc.

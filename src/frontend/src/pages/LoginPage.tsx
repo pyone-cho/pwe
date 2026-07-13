@@ -63,6 +63,10 @@ export default function LoginPage() {
           Don&apos;t have an organization?{' '}
           <Link to="/signup" className="text-indigo-600 hover:underline">Create one</Link>
         </p>
+        <p className="text-center text-sm text-gray-500 mt-2">
+          Not a member yet?{' '}
+          <Link to="/register" className="text-indigo-600 hover:underline">Register</Link>
+        </p>
       </div>
     </div>
   );

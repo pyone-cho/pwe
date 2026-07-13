@@ -16,6 +16,14 @@ interface AuthContextType {
     firstName: string;
     lastName: string;
   }) => Promise<void>;
+  register: (data: {
+    orgSlug: string;
+    firstName: string;
+    lastName?: string;
+    phone: string;
+    email: string;
+    password: string;
+  }) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -72,6 +80,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setOrganization(res.organization);
   }, []);
 
+  const register = useCallback(async (data: {
+    orgSlug: string;
+    firstName: string;
+    lastName?: string;
+    phone: string;
+    email: string;
+    password: string;
+  }) => {
+    const res = await authService.register(data);
+    localStorage.setItem('accessToken', res.accessToken);
+    localStorage.setItem('refreshToken', res.refreshToken);
+    localStorage.setItem('organization', JSON.stringify(res.organization));
+    setUser(res.user);
+    setOrganization(res.organization);
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await authService.logout();
@@ -93,6 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!user,
         login,
         signup,
+        register,
         logout,
       }}
     >

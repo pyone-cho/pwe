@@ -2,11 +2,14 @@ import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 
-const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: '📊' },
-  { to: '/members', label: 'Members', icon: '👥' },
+const memberNavItems = [
   { to: '/events', label: 'Events', icon: '📅' },
   { to: '/announcements', label: 'Announcements', icon: '📢' },
+];
+
+const staffNavItems = [
+  { to: '/dashboard', label: 'Dashboard', icon: '📊' },
+  { to: '/members', label: 'Members', icon: '👥' },
   { to: '/reports', label: 'Reports', icon: '📈' },
 ];
 
@@ -22,6 +25,7 @@ interface SidebarProps {
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user, organization } = useAuth();
   const isAdmin = user?.role === 'admin';
+  const isStaff = user?.role === 'staff' || isAdmin;
 
   return (
     <>
@@ -48,7 +52,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
           {/* Navigation */}
           <nav className="flex-1 px-3 py-4 space-y-1">
-            {navItems.map((item) => (
+            {memberNavItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
@@ -66,6 +70,32 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 {item.label}
               </NavLink>
             ))}
+
+            {isStaff && (
+              <>
+                <div className="pt-4 pb-2">
+                  <p className="px-3 text-xs font-semibold text-gray-400 uppercase">Staff</p>
+                </div>
+                {staffNavItems.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={onClose}
+                    className={({ isActive }) =>
+                      cn(
+                        'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                        isActive
+                          ? 'bg-indigo-50 text-indigo-700'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      )
+                    }
+                  >
+                    <span className="text-lg">{item.icon}</span>
+                    {item.label}
+                  </NavLink>
+                ))}
+              </>
+            )}
 
             {isAdmin && (
               <>

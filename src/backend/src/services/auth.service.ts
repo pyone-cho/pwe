@@ -18,6 +18,15 @@ interface LoginInput {
   password: string;
 }
 
+interface RegisterInput {
+  orgSlug: string;
+  firstName: string;
+  lastName?: string;
+  phone: string;
+  email: string;
+  password: string;
+}
+
 export class AuthService {
   async signup(input: SignupInput) {
     // Check if slug already exists
@@ -103,6 +112,97 @@ export class AuthService {
         id: result.org.id,
         name: result.org.name,
         slug: result.org.slug,
+      },
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    };
+  }
+
+  async register(input: RegisterInput) {
+    // Find organization by slug
+    const org = await prisma.organization.findUnique({
+      where: { slug: input.orgSlug },
+    });
+
+    if (!org) {
+      throw new AppError(404, "Organization not found");
+    }
+
+    // Check if email already exists in this org
+    const existingUser = await prisma.user.findFirst({
+      where: { orgId: org.id, email: input.email },
+    });
+
+    if (existingUser) {
+      throw new AppError(409, "Email already registered in this organization");
+    }
+
+    // Hash password
+    const passwordHash = await bcrypt.hash(input.password, 12);
+
+    // Create user + profile + member in transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          orgId: org.id,
+          email: input.email,
+          passwordHash,
+          role: "member",
+          phone: input.phone,
+          profile: {
+            create: {
+              firstName: input.firstName,
+              lastName: input.lastName,
+            },
+          },
+        },
+        include: { profile: true },
+      });
+
+      const member = await tx.member.create({
+        data: {
+          orgId: org.id,
+          userId: user.id,
+          firstName: input.firstName,
+          lastName: input.lastName,
+          phone: input.phone,
+          email: input.email,
+        },
+      });
+
+      return { user, member };
+    });
+
+    // Generate tokens
+    const tokenPayload: JwtPayload = {
+      userId: result.user.id,
+      orgId: org.id,
+      role: result.user.role,
+      email: result.user.email,
+    };
+
+    const tokens = generateTokenPair(tokenPayload);
+
+    // Store refresh token
+    await prisma.refreshToken.create({
+      data: {
+        userId: result.user.id,
+        tokenHash: tokens.refreshTokenHash,
+        expiresAt: tokens.expiresAt,
+      },
+    });
+
+    return {
+      user: {
+        id: result.user.id,
+        email: result.user.email,
+        role: result.user.role,
+        profile: result.user.profile,
+      },
+      organization: {
+        id: org.id,
+        name: org.name,
+        slug: org.slug,
       },
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,

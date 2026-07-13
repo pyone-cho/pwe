@@ -49,6 +49,16 @@ export const authSchemas = {
       refreshToken: z.string().min(1),
     }),
   }),
+  register: z.object({
+    body: z.object({
+      orgSlug: z.string().min(1),
+      firstName: z.string().min(1).max(100),
+      lastName: z.string().max(100).optional(),
+      phone: z.string().min(1).max(20),
+      email: z.string().email(),
+      password: z.string().min(8),
+    }),
+  }),
 };
 
 export const memberSchemas = {
@@ -84,8 +94,12 @@ export const eventSchemas = {
       title: z.string().min(1).max(255),
       description: z.string().optional(),
       location: z.string().max(255).optional(),
-      startDate: z.string().datetime(),
-      endDate: z.string().datetime().optional(),
+      startDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
+        message: "Invalid date format",
+      }),
+      endDate: z.string().refine((val) => val === "" || !isNaN(Date.parse(val)), {
+        message: "Invalid date format",
+      }).optional(),
       capacity: z.number().int().positive().optional(),
       registrationMode: z.enum(["public", "member", "both"]).optional(),
       requiresPayment: z.boolean().optional(),
@@ -104,8 +118,12 @@ export const eventSchemas = {
       title: z.string().min(1).max(255).optional(),
       description: z.string().optional(),
       location: z.string().max(255).optional(),
-      startDate: z.string().datetime().optional(),
-      endDate: z.string().datetime().optional(),
+      startDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
+        message: "Invalid date format",
+      }).optional(),
+      endDate: z.string().refine((val) => val === "" || !isNaN(Date.parse(val)), {
+        message: "Invalid date format",
+      }).optional(),
       capacity: z.number().int().positive().optional(),
       registrationMode: z.enum(["public", "member", "both"]).optional(),
       status: z.enum(["draft", "published", "cancelled", "completed"]).optional(),

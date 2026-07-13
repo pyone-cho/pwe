@@ -18,6 +18,24 @@ export class EventService {
       ];
     }
 
+    // Status filter
+    if (query.status) {
+      where.status = query.status;
+    }
+
+    // Date filters for upcoming/past
+    if (query.status === "published") {
+      // Upcoming: published events with startDate >= now
+      where.startDate = { gte: new Date() };
+    } else if (query.status === "completed") {
+      // Past: completed events OR published events with startDate < now
+      where.OR = [
+        { status: "completed" },
+        { status: "published", startDate: { lt: new Date() } },
+      ];
+      delete where.status;
+    }
+
     const [events, total] = await Promise.all([
       prisma.event.findMany({
         where,
@@ -26,7 +44,11 @@ export class EventService {
         orderBy: { startDate: "desc" },
         include: {
           _count: {
-            select: { registrations: true },
+            select: {
+              registrations: {
+                where: { status: { not: "cancelled" } },
+              },
+            },
           },
         },
       }),
@@ -68,11 +90,18 @@ export class EventService {
   }
 
   async create(orgId: string, data: any, userId: string) {
+    // Convert date strings to Date objects for Prisma
+    const processedData = {
+      ...data,
+      startDate: new Date(data.startDate),
+      endDate: data.endDate && data.endDate !== "" ? new Date(data.endDate) : undefined,
+    };
+
     return prisma.event.create({
       data: {
         orgId,
         createdById: userId,
-        ...data,
+        ...processedData,
       },
     });
   }
@@ -86,9 +115,21 @@ export class EventService {
       throw new AppError(404, "Event not found");
     }
 
+    // Convert date strings to Date objects for Prisma
+    const processedData = {
+      ...data,
+      startDate: data.startDate && data.startDate !== "" ? new Date(data.startDate) : undefined,
+      endDate: data.endDate && data.endDate !== "" ? new Date(data.endDate) : undefined,
+    };
+
+    // Remove undefined values
+    const cleanData = Object.fromEntries(
+      Object.entries(processedData).filter(([_, v]) => v !== undefined)
+    );
+
     return prisma.event.update({
       where: { id },
-      data,
+      data: cleanData,
     });
   }
 
@@ -129,7 +170,11 @@ export class EventService {
       orderBy: { startDate: "asc" },
       include: {
         _count: {
-          select: { registrations: true },
+          select: {
+            registrations: {
+              where: { status: { not: "cancelled" } },
+            },
+          },
         },
       },
     });
@@ -144,7 +189,11 @@ export class EventService {
       },
       include: {
         _count: {
-          select: { registrations: true },
+          select: {
+            registrations: {
+              where: { status: { not: "cancelled" } },
+            },
+          },
         },
       },
     });
