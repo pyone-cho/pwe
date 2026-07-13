@@ -4,6 +4,7 @@ import { ToastProvider } from '@/components/ui/Toast';
 import Layout from '@/components/layout/Layout';
 import LoginPage from '@/pages/LoginPage';
 import SignupPage from '@/pages/SignupPage';
+import RegisterPage from '@/pages/RegisterPage';
 import DashboardPage from '@/pages/DashboardPage';
 import MembersPage from '@/pages/MembersPage';
 import EventsPage from '@/pages/EventsPage';
@@ -21,6 +22,7 @@ export default function App() {
             {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
             {/* Protected routes */}
             <Route element={<Layout />}>
