@@ -19,6 +19,7 @@ export default function EventsPage() {
   const canManageEvents = user?.role === 'admin' || user?.role === 'staff';
   const [myRegistrations, setMyRegistrations] = useState<Set<string>>(new Set());
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [cancelEventId, setCancelEventId] = useState<string | null>(null);
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     title: '',
@@ -183,7 +184,7 @@ export default function EventsPage() {
                     <div className="flex gap-1">
                       {e.status === 'published' && !canManageEvents && (
                         myRegistrations.has(e.id) ? (
-                          <Button size="sm" variant="danger" onClick={() => handleCancelRegistration(e.id)}>
+                          <Button size="sm" variant="danger" onClick={() => setCancelEventId(e.id)}>
                             Cancel
                           </Button>
                         ) : (
@@ -220,6 +221,38 @@ export default function EventsPage() {
           {meta && <Pagination meta={meta} onPageChange={goToPage} />}
         </>
       )}
+
+      {/* Cancel Registration Confirmation */}
+      <Modal
+        isOpen={!!cancelEventId}
+        onClose={() => setCancelEventId(null)}
+        title="Cancel Registration"
+        size="sm"
+      >
+        <p className="text-sm text-gray-600">
+          Are you sure you want to cancel your registration for this event?
+        </p>
+        <p className="text-sm text-gray-500 mt-2">
+          This action cannot be undone.
+        </p>
+        <div className="flex justify-end gap-2 mt-6">
+          <Button variant="ghost" size="sm" onClick={() => setCancelEventId(null)}>
+            Keep Registration
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => {
+              if (cancelEventId) {
+                handleCancelRegistration(cancelEventId);
+                setCancelEventId(null);
+              }
+            }}
+          >
+            Yes, Cancel
+          </Button>
+        </div>
+      </Modal>
 
       {/* Create Event Wizard */}
       <Modal
