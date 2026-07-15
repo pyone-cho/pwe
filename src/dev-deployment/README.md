@@ -165,13 +165,13 @@ curl http://localhost/api/v1/health
 
 ## SSL/TLS (Let's Encrypt)
 
-After DNS is configured and pointing to your server:
+The `nginx.conf` already includes full SSL configuration. After DNS points to your server:
 
 ```bash
 # 1. Install certbot
 apt install -y certbot python3-certbot-nginx
 
-# 2. Ensure nginx is running (HTTP only)
+# 2. Get certificate (nginx must be running on port 80 for ACME challenge)
 cd /opt/pwe/src/dev-deployment
 docker compose -f docker-compose.dev.yml up -d nginx
 
@@ -182,72 +182,33 @@ mkdir -p /var/www/certbot
 certbot certonly --webroot --webroot-path=/var/www/certbot \
   --email admin@pwe-mm.site --agree-tos -d your-domain.com
 
-# 5. Update nginx.conf with SSL configuration (see below)
+# 5. Copy certs into the ssl/ directory (docker can't follow symlinks)
+rm -f ssl/*
+cp /etc/letsencrypt/live/your-domain.com/fullchain.pem ssl/your-domain.com.crt
+cp /etc/letsencrypt/live/your-domain.com/privkey.pem ssl/your-domain.com.key
+chmod 644 ssl/your-domain.com.crt
+chmod 600 ssl/your-domain.com.key
 
-# 6. Restart nginx
+# 6. Update server_name in nginx.conf to match your domain
+
+# 7. Restart nginx
 docker compose -f docker-compose.dev.yml restart nginx
 ```
 
-**Note:** Certbot auto-renewal is configured via systemd timer (`certbot.timer`). Verify with:
+**Important:** Do NOT symlink certbot files into `ssl/` — Docker volume mounts copy files at mount time, so symlinks break. Always copy the actual cert/key files.
+
+**Note:** Certbot auto-renewal is configured via systemd timer. Verify with:
 
 ```bash
 systemctl status certbot.timer
 ```
 
-### SSL nginx.conf Block
+After renewal, re-copy the certs into `ssl/` and restart nginx:
 
-Add this to your `nginx.conf` for HTTPS support:
-
-```nginx
-# HTTP -> HTTPS redirect
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    location /.well-known/acme-challenge/ {
-        root /var/www/certbot;
-    }
-
-    location / {
-        return 301 https://$host$request_uri;
-    }
-}
-
-# HTTPS server
-server {
-    listen 443 ssl;
-    server_name your-domain.com;
-
-    ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers HIGH:!aNULL:!MD5;
-    ssl_prefer_server_ciphers on;
-
-    # Security headers
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-    add_header X-Content-Type-Options nosniff;
-    add_header X-Frame-Options DENY;
-    add_header X-XSS-Protection "1; mode=block";
-
-    # ... rest of your proxy configs
-}
-```
-
-### Docker Compose Update
-
-Update `docker-compose.dev.yml` to mount host certbot directories:
-
-```yaml
-nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - /var/www/certbot:/var/www/certbot:ro
+```bash
+cp /etc/letsencrypt/live/your-domain.com/fullchain.pem ssl/your-domain.com.crt
+cp /etc/letsencrypt/live/your-domain.com/privkey.pem ssl/your-domain.com.key
+docker compose -f docker-compose.dev.yml restart nginx
 ```
 
 See [deployment.md](../../docs/pwe/deployment.md) for full SSL configuration.
@@ -356,6 +317,32 @@ docker compose -f docker-compose.dev.yml exec db psql -U pwe_dev -d pwe_dev -c "
 docker compose -f docker-compose.dev.yml exec backend npx prisma migrate reset
 ```
 
+### Nginx SSL certificate errors
+
+```bash
+# Error: "cannot load certificate /etc/nginx/ssl/..."
+# Cause: ssl/ directory is empty or has broken symlinks
+
+# Check ssl directory
+ls -la ssl/
+
+# If empty or symlinks, copy actual cert files:
+cp /etc/letsencrypt/live/your-domain.com/fullchain.pem ssl/your-domain.com.crt
+cp /etc/letsencrypt/live/your-domain.com/privkey.pem ssl/your-domain.com.key
+
+# Restart nginx
+docker compose -f docker-compose.dev.yml restart nginx
+```
+
+### Certbot renewal + nginx
+
+```bash
+# After certbot renews, copy new certs and restart nginx:
+cp /etc/letsencrypt/live/your-domain.com/fullchain.pem ssl/your-domain.com.crt
+cp /etc/letsencrypt/live/your-domain.com/privkey.pem ssl/your-domain.com.key
+docker compose -f docker-compose.dev.yml restart nginx
+```
+
 ---
 
 ## File Structure
@@ -363,12 +350,14 @@ docker compose -f docker-compose.dev.yml exec backend npx prisma migrate reset
 ```
 src/dev-deployment/
 ├── docker-compose.dev.yml   # Service orchestration
-├── nginx.conf               # Reverse proxy config
+├── nginx.conf               # Reverse proxy config (SSL + rate limiting)
 ├── .env.example             # Environment template
 ├── .env                     # Active environment config
 ├── .dockerignore            # Build optimization
-├── generate-certs.sh        # SSL certificate generation
+├── generate-certs.sh        # Self-signed cert generation (fallback)
 ├── setup-server.sh          # Droplet provisioning
-├── ssl/                     # SSL certificates
+├── ssl/                     # SSL certs (copy from /etc/letsencrypt)
+│   ├── dev.pwe-mm.site.crt  # fullchain.pem from certbot
+│   └── dev.pwe-mm.site.key  # privkey.pem from certbot
 └── README.md                # This file
 ```
