@@ -18,7 +18,7 @@ services:
 
   backend:
     build:
-      context: ../../backend
+      context: ../backend
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
@@ -34,7 +34,7 @@ services:
       NODE_ENV: development
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
     volumes:
-      - ../../backend/src:/app/src
+      - ../backend/src:/app/src
       - /app/node_modules
     depends_on:
       db:
@@ -42,7 +42,7 @@ services:
 
   frontend:
     build:
-      context: ../../frontend
+      context: ../frontend
       dockerfile: Dockerfile.dev
     restart: unless-stopped
     ports:
@@ -50,7 +50,7 @@ services:
     environment:
       VITE_API_URL: ${VITE_API_URL:-/api/v1}
     volumes:
-      - ../../frontend/src:/app/src
+      - ../frontend/src:/app/src
       - /app/node_modules
 
   nginx:
