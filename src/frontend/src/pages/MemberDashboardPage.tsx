@@ -169,6 +169,18 @@ export default function MemberDashboardPage() {
           <Section title="Quick Actions">
             <div className="space-y-2">
               <Link
+                to="/memberDashboard"
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors group"
+              >
+                <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center">
+                  <span className="text-base">📅</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Member Dashboard</p>
+                  <p className="text-xs text-gray-500">Access your member profile and settings</p>
+                </div>
+              </Link>
+              <Link
                 to="/events"
                 className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors group"
               >
