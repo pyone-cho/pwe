@@ -2,49 +2,37 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, Spinner, PageHeader, Section, EmptyState } from '@/components/ui';
-import { getMemberReport } from '@/services/reports';
+import { getMyMember } from '@/services/members';
 import { listEvents } from '@/services/events';
 import { listAnnouncements } from '@/services/announcements';
-import { formatDate } from '@/lib/utils';
-import type { MemberReport, Event, Announcement } from '@/types';
-import MemberDashboardPage from './MemberDashboardPage';
+import { formatDate, statusColor } from '@/lib/utils';
+import type { Member, Event, Announcement } from '@/types';
 
-export default function DashboardPage() {
+export default function MemberDashboardPage() {
   const { user, organization } = useAuth();
-  const [memberReport, setMemberReport] = useState<MemberReport | null>(null);
+  const [member, setMember] = useState<Member | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Member-role users see a different dashboard; skip admin data fetch
-    if (user?.role === 'member') {
-      setIsLoading(false);
-      return;
-    }
-
     Promise.all([
-      getMemberReport().catch(() => null),
+      getMyMember().catch(() => null),
       listEvents({ limit: 5, sort: 'startDate', order: 'asc' }).catch(() => null),
       listAnnouncements({ status: 'published', limit: 5 }).catch(() => null),
-    ]).then(([members, evts, anns]) => {
-      setMemberReport(members);
+    ]).then(([memberData, evts, anns]) => {
+      setMember(memberData);
       setEvents(evts?.data || []);
       setAnnouncements(anns?.data || []);
       setIsLoading(false);
     });
-  }, [user?.role]);
-
-  // Member-role users see the member-specific dashboard
-  if (user?.role === 'member') {
-    return <MemberDashboardPage />;
-  }
+  }, []);
 
   if (isLoading) return <Spinner size="lg" className="mt-12" />;
 
   const stats = [
-    { label: 'Total Members', value: memberReport?.total ?? 0, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-    { label: 'Active Members', value: memberReport?.active ?? 0, color: 'text-green-600', bg: 'bg-green-50' },
+    { label: 'Membership Status', value: member?.membershipStatus ?? 'N/A', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Membership Type', value: member?.membershipType ?? 'Regular', color: 'text-indigo-600', bg: 'bg-indigo-50' },
     { label: 'Upcoming Events', value: events.length, color: 'text-blue-600', bg: 'bg-blue-50' },
     { label: 'Announcements', value: announcements.length, color: 'text-orange-600', bg: 'bg-orange-50' },
   ];
@@ -71,18 +59,58 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      {/* Membership Info */}
+      {member && (
+        <Section
+          title="My Membership"
+          description="Your membership details"
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <p className="text-sm text-gray-500">Name</p>
+              <p className="text-sm font-medium text-gray-900">{member.firstName} {member.lastName}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-gray-500">Phone</p>
+              <p className="text-sm font-medium text-gray-900">{member.phone}</p>
+            </div>
+            {member.email && (
+              <div className="space-y-1">
+                <p className="text-sm text-gray-500">Email</p>
+                <p className="text-sm font-medium text-gray-900">{member.email}</p>
+              </div>
+            )}
+            <div className="space-y-1">
+              <p className="text-sm text-gray-500">Join Date</p>
+              <p className="text-sm font-medium text-gray-900">{formatDate(member.joinDate)}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-gray-500">Status</p>
+              <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium ${statusColor(member.membershipStatus)}`}>
+                {member.membershipStatus}
+              </span>
+            </div>
+            {member.membershipType && (
+              <div className="space-y-1">
+                <p className="text-sm text-gray-500">Type</p>
+                <p className="text-sm font-medium text-gray-900 capitalize">{member.membershipType}</p>
+              </div>
+            )}
+          </div>
+        </Section>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Section
           title="Upcoming Events"
-          description="A quick view of the next events in your organization"
+          description="Events you can register for"
           action={<Link to="/events" className="text-sm text-indigo-600 hover:underline">View all</Link>}
         >
           {events.length === 0 ? (
             <EmptyState
               title="No upcoming events"
-              description="Create your next event to keep the community engaged."
+              description="Check back later for new events."
               variant="info"
-              action={<Link to="/events" className="text-sm font-medium text-indigo-600 hover:underline">Create one</Link>}
             />
           ) : (
             <div className="space-y-3">
@@ -103,13 +131,13 @@ export default function DashboardPage() {
 
         <Section
           title="Announcements"
-          description="Recent updates shared with your community"
+          description="Recent updates from your organization"
           action={<Link to="/announcements" className="text-sm text-indigo-600 hover:underline">View all</Link>}
         >
           {announcements.length === 0 ? (
             <EmptyState
               title="No announcements yet"
-              description="Updates shared with your organization will appear here."
+              description="Updates from your organization will appear here."
               variant="empty"
             />
           ) : (

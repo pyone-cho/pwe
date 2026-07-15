@@ -3,12 +3,12 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 
 const memberNavItems = [
+  { to: '/dashboard', label: 'Dashboard', icon: '📊' },
   { to: '/events', label: 'Events', icon: '📅' },
   { to: '/announcements', label: 'Announcements', icon: '📢' },
 ];
 
 const staffNavItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: '📊' },
   { to: '/members', label: 'Members', icon: '👥' },
   { to: '/reports', label: 'Reports', icon: '📈' },
 ];

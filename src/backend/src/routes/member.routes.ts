@@ -10,6 +10,7 @@ const router = Router();
 // All routes require authentication and tenant context
 router.use(authenticate, tenantIsolation);
 
+router.get("/me", requireMinRole("member"), memberController.getMe);
 router.get("/", requireMinRole("staff"), memberController.list);
 router.get("/export", requireMinRole("staff"), memberController.exportCsv);
 router.get("/:id", requireMinRole("staff"), memberController.getById);

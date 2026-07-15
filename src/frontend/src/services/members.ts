@@ -13,6 +13,11 @@ function buildParams(filters: MemberFilters): Record<string, string> {
   return params;
 }
 
+export async function getMyMember(): Promise<Member> {
+  const res = await api.get('/members/me');
+  return res.data.data;
+}
+
 export async function listMembers(filters: MemberFilters = {}): Promise<MemberListResponse> {
   const res = await api.get('/members', { params: buildParams(filters) });
   return res.data.data;
