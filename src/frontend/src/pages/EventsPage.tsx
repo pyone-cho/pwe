@@ -72,18 +72,12 @@ export default function EventsPage() {
 
   const handleCreate = async (publish: boolean) => {
     try {
-      console.log('Creating event with data:', {
-        ...form,
-        capacity: form.capacity ? Number(form.capacity) : undefined,
-        paymentAmount: form.paymentAmount ? Number(form.paymentAmount) : undefined,
-      });
       await createEvent({
         ...form,
         capacity: form.capacity ? Number(form.capacity) : undefined,
         paymentAmount: form.paymentAmount ? Number(form.paymentAmount) : undefined,
       });
       if (publish) {
-        // Would need event ID from create response — simplified here
         toast('Event created', 'success');
       } else {
         toast('Event saved as draft', 'success');
@@ -136,22 +130,26 @@ export default function EventsPage() {
     }
   };
 
+  const tabs = canManageEvents ? ['upcoming', 'past', 'drafts'] : ['upcoming', 'past'] as const;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-slide-up">
       <PageHeader
         title="Events"
-        actions={canManageEvents && <Button onClick={() => setShowCreateModal(true)}>+ Create Event</Button>}
+        description={canManageEvents ? "Manage your organization's events" : "Browse and register for events"}
+        actions={canManageEvents ? <Button onClick={() => setShowCreateModal(true)}>+ Create Event</Button> : undefined}
       />
 
-      <div className="flex gap-1 border-b border-gray-200">
-        {(canManageEvents ? ['upcoming', 'past', 'drafts'] : ['upcoming', 'past'] as const).map((t) => (
+      {/* Tab Bar */}
+      <div className="flex gap-1 p-1 bg-gray-100 rounded-xl w-fit">
+        {tabs.map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-4 py-2 text-sm font-medium capitalize border-b-2 transition-colors ${
+            className={`px-4 py-2 text-sm font-medium capitalize rounded-lg transition-all duration-200 ${
               tab === t
-                ? 'border-indigo-600 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             {t}
@@ -160,41 +158,131 @@ export default function EventsPage() {
       </div>
 
       {isLoading ? (
-        <Spinner className="py-12" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
+              <div className="h-1 bg-gray-100" />
+              <div className="p-5 space-y-3">
+                <div className="h-5 bg-gray-100 rounded-lg w-3/4 animate-pulse" />
+                <div className="h-4 bg-gray-100 rounded-lg w-1/2 animate-pulse" />
+                <div className="h-4 bg-gray-100 rounded-lg w-2/3 animate-pulse" />
+                <div className="flex justify-between items-center pt-2">
+                  <div className="h-4 bg-gray-100 rounded-lg w-1/4 animate-pulse" />
+                  <div className="h-8 bg-gray-100 rounded-lg w-20 animate-pulse" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : events.length === 0 ? (
-        <EmptyState title="No events found" description="Create your first event to get started" />
+        <EmptyState
+          title={tab === 'drafts' ? 'No drafts' : tab === 'past' ? 'No past events' : 'No upcoming events'}
+          description={
+            tab === 'upcoming'
+              ? "There are no upcoming events at the moment. Check back later!"
+              : tab === 'drafts'
+              ? "All your drafts have been published or removed."
+              : "No completed events yet."
+          }
+          variant="info"
+        />
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {events.map((e) => (
-              <Card key={e.id} className="hover:shadow-md transition-shadow">
-                <div className="p-5">
-                  <div className="flex items-start justify-between">
-                    <Link to={`/events/${e.id}`} className="text-lg font-semibold text-gray-900 hover:text-indigo-600">
-                      {e.title}
-                    </Link>
-                    <Badge variant="status" value={e.status}>{e.status}</Badge>
-                  </div>
-                  {e.location && <p className="text-sm text-gray-500 mt-1">📍 {e.location}</p>}
-                  <p className="text-sm text-gray-500 mt-1">📅 {formatDate(e.startDate)}</p>
-                  <div className="flex items-center justify-between mt-4">
-                    <span className="text-sm text-gray-600">
-                      {e.registeredCount}/{e.capacity || '∞'} registered
-                    </span>
-                    <div className="flex gap-1">
+            {events.map((e) => {
+              const isRegistered = myRegistrations.has(e.id);
+              const capacityPct = e.capacity ? Math.round((e.registeredCount / e.capacity) * 100) : null;
+              const isAlmostFull = capacityPct !== null && capacityPct >= 80;
+              const isFull = capacityPct !== null && capacityPct >= 100;
+
+              return (
+                <Card key={e.id} hover className="group">
+                  {/* Gradient accent bar */}
+                  <div className={`h-1 ${
+                    e.status === 'draft' ? 'bg-gradient-to-r from-gray-400 to-gray-500' :
+                    e.status === 'cancelled' ? 'bg-gradient-to-r from-red-400 to-red-500' :
+                    isFull ? 'bg-gradient-to-r from-red-400 to-orange-500' :
+                    'bg-gradient-to-r from-brand-500 to-violet-500'
+                  }`} />
+
+                  <div className="p-5">
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-2 mb-3">
+                      <Link
+                        to={`/events/${e.id}`}
+                        className="text-base font-semibold text-gray-900 group-hover:text-brand-700 transition-colors line-clamp-2"
+                      >
+                        {e.title}
+                      </Link>
+                      <Badge variant="status" value={e.status}>
+                        {e.status}
+                      </Badge>
+                    </div>
+
+                    {/* Meta info */}
+                    <div className="space-y-1.5 mb-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <span className="h-5 w-5 rounded bg-blue-50 flex items-center justify-center text-xs">📅</span>
+                        <span>{formatDate(e.startDate)}</span>
+                      </div>
+                      {e.location && (
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <span className="h-5 w-5 rounded bg-emerald-50 flex items-center justify-center text-xs">📍</span>
+                          <span className="truncate">{e.location}</span>
+                        </div>
+                      )}
+                      {e.requiresPayment && (
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <span className="h-5 w-5 rounded bg-amber-50 flex items-center justify-center text-xs">💰</span>
+                          <span>{e.paymentAmount?.toLocaleString()} MMK</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Capacity bar */}
+                    {capacityPct !== null && (
+                      <div className="mb-4">
+                        <div className="flex items-center justify-between text-xs text-gray-500 mb-1.5">
+                          <span>{e.registeredCount} / {e.capacity} registered</span>
+                          <span className={`font-medium ${isFull ? 'text-red-600' : isAlmostFull ? 'text-orange-600' : 'text-gray-600'}`}>
+                            {capacityPct}%
+                          </span>
+                        </div>
+                        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              isFull ? 'bg-red-500' : isAlmostFull ? 'bg-orange-500' : 'bg-brand-500'
+                            }`}
+                            style={{ width: `${Math.min(capacityPct, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                       {e.status === 'published' && !canManageEvents && (
-                        myRegistrations.has(e.id) ? (
-                          <Button size="sm" variant="danger" onClick={() => setCancelEventId(e.id)}>
-                            Cancel
+                        isRegistered ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setCancelEventId(e.id)}
+                            className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                          >
+                            <span className="mr-1">✓</span> Registered
                           </Button>
                         ) : (
-                          <Button size="sm" onClick={() => handleRegister(e.id)}>
-                            Register
+                          <Button
+                            size="sm"
+                            onClick={() => handleRegister(e.id)}
+                            disabled={isFull}
+                          >
+                            {isFull ? 'Full' : 'Register'}
                           </Button>
                         )
                       )}
                       {canManageEvents && (
-                        <>
+                        <div className="flex gap-1.5">
                           {e.status === 'draft' && (
                             <Button size="sm" onClick={() => handleStatusChange(e.id, 'published')}>
                               Publish
@@ -210,13 +298,19 @@ export default function EventsPage() {
                               </Button>
                             </>
                           )}
-                        </>
+                        </div>
                       )}
+                      <Link
+                        to={`/events/${e.id}`}
+                        className="text-sm text-brand-600 hover:text-brand-700 font-medium hover:underline ml-auto"
+                      >
+                        View details →
+                      </Link>
                     </div>
                   </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </div>
           {meta && <Pagination meta={meta} onPageChange={goToPage} />}
         </>
@@ -264,7 +358,7 @@ export default function EventsPage() {
         {/* Step indicator */}
         <div className="flex items-center gap-2 mb-6">
           {[1, 2, 3, 4].map((s) => (
-            <div key={s} className={`h-2 flex-1 rounded-full ${s <= step ? 'bg-indigo-600' : 'bg-gray-200'}`} />
+            <div key={s} className={`h-2 flex-1 rounded-full transition-colors duration-300 ${s <= step ? 'bg-indigo-600' : 'bg-gray-200'}`} />
           ))}
         </div>
 
