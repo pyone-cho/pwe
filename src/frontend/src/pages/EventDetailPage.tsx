@@ -205,28 +205,26 @@ export default function EventDetailPage() {
       </Link>
 
       {/* Event Hero */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 via-brand-700 to-indigo-800 p-6 sm:p-8 text-white">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4 blur-3xl" />
+      <div className="rounded-xl bg-brand-500 p-6 sm:p-8 text-white">
         <div className="relative">
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <Badge variant="status" value={event.status}>{event.status}</Badge>
-            {isFull && <span className="px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-100 text-xs font-semibold border border-red-400/30">Full</span>}
+            {isFull && <span className="px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-100 text-xs font-medium">Full</span>}
             {event.requiresPayment && (
-              <span className="px-2.5 py-0.5 rounded-full bg-white/10 text-white/90 text-xs font-medium border border-white/20">
+              <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-white text-xs font-medium">
                 💰 {formatMMK(event.paymentAmount || 0)}
               </span>
             )}
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{event.title}</h1>
-          <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-brand-200/80">
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">{event.title}</h1>
+          <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-brand-100">
             <span className="flex items-center gap-1.5">
-              <span className="h-5 w-5 rounded bg-white/10 flex items-center justify-center text-xs">📅</span>
+              <span className="h-5 w-5 rounded bg-white/20 flex items-center justify-center text-xs">📅</span>
               {formatDate(event.startDate)}
             </span>
             {event.location && (
               <span className="flex items-center gap-1.5">
-                <span className="h-5 w-5 rounded bg-white/10 flex items-center justify-center text-xs">📍</span>
+                <span className="h-5 w-5 rounded bg-white/20 flex items-center justify-center text-xs">📍</span>
                 {event.location}
               </span>
             )}
@@ -361,12 +359,12 @@ export default function EventDetailPage() {
                 {event.registeredCount} / {event.capacity} ({capacityPct}%)
               </span>
             </div>
-            <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-700 ease-out ${
-                  isFull ? 'bg-gradient-to-r from-red-500 to-red-600' :
-                  isAlmostFull ? 'bg-gradient-to-r from-orange-400 to-orange-500' :
-                  'bg-gradient-to-r from-brand-500 to-violet-500'
+                className={`h-full rounded-full transition-all duration-500 ${
+                  isFull ? 'bg-red-500' :
+                  isAlmostFull ? 'bg-orange-500' :
+                  'bg-brand-500'
                 }`}
                 style={{ width: `${Math.min(capacityPct, 100)}%` }}
               />

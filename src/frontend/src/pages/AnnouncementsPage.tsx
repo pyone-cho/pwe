@@ -156,15 +156,14 @@ export default function AnnouncementsPage() {
                   <Card
                     hover
                     className={`overflow-hidden ${
-                      isUrgent ? 'border-red-200 bg-red-50/30' :
-                      isHigh ? 'border-orange-200 bg-orange-50/20' : ''
+                      isUrgent ? 'border-red-200 bg-red-50' :
+                      isHigh ? 'border-orange-200 bg-orange-50' : ''
                     }`}
                   >
-                    {/* Priority accent bar */}
                     <div className={`h-1 ${
-                      isUrgent ? 'bg-gradient-to-r from-red-500 to-red-600' :
-                      isHigh ? 'bg-gradient-to-r from-orange-400 to-orange-500' :
-                      'bg-gradient-to-r from-brand-400 to-brand-500'
+                      isUrgent ? 'bg-red-500' :
+                      isHigh ? 'bg-orange-500' :
+                      'bg-brand-500'
                     }`} />
 
                     <CardContent className="p-0">

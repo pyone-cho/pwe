@@ -52,8 +52,11 @@ export default function SettingsPage() {
   if (isLoading) return <Spinner size="lg" className="mt-12" />;
 
   return (
-    <div className="max-w-2xl space-y-6">
-      <PageHeader title="Organization Settings" />
+    <div className="max-w-2xl space-y-6 animate-slide-up">
+      <PageHeader
+        title="Organization Settings"
+        description="Manage your organization's profile and preferences"
+      />
 
       <Section>
         <form onSubmit={handleSave} className="space-y-4">
