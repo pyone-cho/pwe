@@ -42,6 +42,27 @@ export class MemberService {
     };
   }
 
+  async getMe(orgId: string, userId: string) {
+    const member = await prisma.member.findFirst({
+      where: { orgId, userId },
+      include: {
+        registrations: {
+          include: {
+            event: true,
+          },
+          orderBy: { registeredAt: "desc" },
+          take: 10,
+        },
+      },
+    });
+
+    if (!member) {
+      throw new AppError(404, "Member profile not found");
+    }
+
+    return member;
+  }
+
   async getById(orgId: string, id: string) {
     const member = await prisma.member.findFirst({
       where: { id, orgId },
