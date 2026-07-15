@@ -197,12 +197,11 @@ export default function EventsPage() {
 
               return (
                 <Card key={e.id} hover className="group">
-                  {/* Gradient accent bar */}
                   <div className={`h-1 ${
-                    e.status === 'draft' ? 'bg-gradient-to-r from-gray-400 to-gray-500' :
-                    e.status === 'cancelled' ? 'bg-gradient-to-r from-red-400 to-red-500' :
-                    isFull ? 'bg-gradient-to-r from-red-400 to-orange-500' :
-                    'bg-gradient-to-r from-brand-500 to-violet-500'
+                    e.status === 'draft' ? 'bg-gray-400' :
+                    e.status === 'cancelled' ? 'bg-red-400' :
+                    isFull ? 'bg-red-400' :
+                    'bg-brand-500'
                   }`} />
 
                   <div className="p-5">

@@ -39,22 +39,13 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50 relative overflow-hidden">
+    <div className="min-h-screen flex bg-white relative">
       {/* Left panel — Branding */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-emerald-600 via-brand-700 to-indigo-800 items-center justify-center p-12">
-        {/* Decorative orbs */}
-        <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-emerald-400/20 rounded-full blur-3xl animate-float-delayed" />
-
-        {/* Grid pattern */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-        }} />
-
+      <div className="hidden lg:flex lg:w-1/2 relative bg-brand-500 items-center justify-center p-12">
         <div className="relative z-10 max-w-md text-white">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-10">
-            <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/20">
+            <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
               <span className="text-white font-bold text-xl">P</span>
             </div>
             <span className="text-3xl font-bold">PWE</span>
@@ -62,9 +53,9 @@ export default function RegisterPage() {
 
           <h2 className="text-4xl font-bold leading-tight mb-4">
             Join your<br />
-            <span className="text-emerald-200">organization</span>
+            <span className="text-blue-100">organization</span>
           </h2>
-          <p className="text-emerald-200/80 text-lg leading-relaxed">
+          <p className="text-blue-100/80 text-lg leading-relaxed">
             Register as a member to access events, announcements, and connect with your community.
           </p>
 
@@ -76,12 +67,12 @@ export default function RegisterPage() {
               { icon: '🤝', title: 'Community', desc: 'Connect with fellow members' },
             ].map((b) => (
               <div key={b.title} className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center text-lg border border-white/20">
+                <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center text-lg">
                   {b.icon}
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-white">{b.title}</p>
-                  <p className="text-xs text-emerald-200/70">{b.desc}</p>
+                  <p className="text-xs text-blue-100/70">{b.desc}</p>
                 </div>
               </div>
             ))}
@@ -91,15 +82,11 @@ export default function RegisterPage() {
 
       {/* Right panel — Form */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-12 relative">
-        {/* Mobile background orbs */}
-        <div className="lg:hidden absolute top-0 right-0 w-96 h-96 bg-green-100/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="lg:hidden absolute bottom-0 left-0 w-96 h-96 bg-brand-100/40 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-
         <div className="w-full max-w-md relative animate-slide-up">
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-8">
             <Link to="/" className="inline-flex items-center gap-2 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-glow">
+              <div className="h-10 w-10 rounded-xl bg-brand-500 flex items-center justify-center">
                 <span className="text-white font-bold">P</span>
               </div>
               <span className="text-2xl font-bold text-gray-900">PWE</span>
@@ -113,7 +100,7 @@ export default function RegisterPage() {
           </div>
 
           {/* Form card */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-medium p-6 sm:p-8">
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8">
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Org Slug */}
               <div className="space-y-1.5">
@@ -130,7 +117,7 @@ export default function RegisterPage() {
                     value={form.orgSlug}
                     onChange={(e) => setForm({ ...form, orgSlug: e.target.value })}
                     required
-                    className="block w-full rounded-xl border border-gray-200 bg-white pl-11 pr-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:shadow-glow hover:border-gray-300 transition-all duration-200"
+                    className="block w-full rounded-xl border border-gray-200 bg-white pl-11 pr-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20  transition-all duration-200"
                   />
                 </div>
               </div>
@@ -145,7 +132,7 @@ export default function RegisterPage() {
                     value={form.firstName}
                     onChange={(e) => setForm({ ...form, firstName: e.target.value })}
                     required
-                    className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:shadow-glow hover:border-gray-300 transition-all duration-200"
+                    className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20  transition-all duration-200"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -155,7 +142,7 @@ export default function RegisterPage() {
                     placeholder="Thant"
                     value={form.lastName}
                     onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                    className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:shadow-glow hover:border-gray-300 transition-all duration-200"
+                    className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20  transition-all duration-200"
                   />
                 </div>
               </div>
@@ -175,7 +162,7 @@ export default function RegisterPage() {
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
                     required
-                    className="block w-full rounded-xl border border-gray-200 bg-white pl-11 pr-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:shadow-glow hover:border-gray-300 transition-all duration-200"
+                    className="block w-full rounded-xl border border-gray-200 bg-white pl-11 pr-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20  transition-all duration-200"
                   />
                 </div>
               </div>
@@ -195,7 +182,7 @@ export default function RegisterPage() {
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     required
-                    className="block w-full rounded-xl border border-gray-200 bg-white pl-11 pr-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:shadow-glow hover:border-gray-300 transition-all duration-200"
+                    className="block w-full rounded-xl border border-gray-200 bg-white pl-11 pr-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20  transition-all duration-200"
                   />
                 </div>
               </div>
@@ -215,7 +202,7 @@ export default function RegisterPage() {
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                     required
-                    className="block w-full rounded-xl border border-gray-200 bg-white pl-11 pr-11 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:shadow-glow hover:border-gray-300 transition-all duration-200"
+                    className="block w-full rounded-xl border border-gray-200 bg-white pl-11 pr-11 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20  transition-all duration-200"
                   />
                   <button
                     type="button"

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { listMembers, createMember, updateMember, updateMemberStatus } from '@/services/members';
-import { Button, Input, Select, Modal, Badge, Pagination, EmptyState, Spinner, Card, PageHeader, Section } from '@/components/ui';
+import { Button, Input, Select, Modal, Badge, Pagination, EmptyState, Card, PageHeader, Section } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { usePagination } from '@/hooks/usePagination';
 import { formatDate } from '@/lib/utils';
@@ -120,9 +120,10 @@ export default function MembersPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-slide-up">
       <PageHeader
         title="Members"
+        description="Manage your organization's members"
         actions={
           <Button onClick={() => { resetForm(); setShowCreateModal(true); }}>
             + Add Member
@@ -153,7 +154,20 @@ export default function MembersPage() {
 
       <Section>
         {isLoading ? (
-          <Spinner className="py-12" />
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center gap-4 py-4 border-b border-gray-100">
+                <div className="h-8 w-8 rounded-full bg-gray-100 animate-pulse" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-100 rounded-lg w-1/4 animate-pulse" />
+                  <div className="h-3 bg-gray-100 rounded-lg w-1/6 animate-pulse" />
+                </div>
+                <div className="h-6 w-16 bg-gray-100 rounded-full animate-pulse" />
+                <div className="h-4 w-20 bg-gray-100 rounded-lg animate-pulse" />
+                <div className="h-8 w-16 bg-gray-100 rounded-lg animate-pulse" />
+              </div>
+            ))}
+          </div>
         ) : members.length === 0 ? (
           <EmptyState title="No members found" description="Add your first member to get started" />
         ) : (

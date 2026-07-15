@@ -13,23 +13,23 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variants: Record<Variant, string> = {
   primary:
-    'bg-gradient-to-r from-brand-600 to-brand-500 text-white hover:from-brand-700 hover:to-brand-600 focus:ring-brand-500 shadow-soft hover:shadow-glow hover:-translate-y-0.5 active:translate-y-0',
+    'bg-brand-500 text-white hover:bg-brand-600 focus:ring-brand-500 shadow-soft',
   secondary:
-    'bg-gray-100 text-gray-900 hover:bg-gray-200/80 focus:ring-gray-400 hover:shadow-soft',
+    'bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-400',
   danger:
-    'bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-700 hover:to-red-600 focus:ring-red-500 shadow-soft hover:shadow-md hover:-translate-y-0.5 active:translate-y-0',
+    'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500 shadow-soft',
   ghost:
-    'text-gray-700 hover:bg-gray-100/80 focus:ring-gray-400 hover:shadow-sm',
+    'text-gray-600 hover:bg-gray-100 focus:ring-gray-400',
   outline:
-    'border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 focus:ring-brand-500 hover:shadow-soft',
+    'border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 focus:ring-brand-500',
   glow:
-    'bg-gradient-to-r from-brand-500 to-violet-500 text-white hover:from-brand-600 hover:to-violet-600 focus:ring-brand-500 shadow-glow hover:shadow-glow-lg hover:-translate-y-0.5 active:translate-y-0',
+    'bg-brand-500 text-white hover:bg-brand-600 focus:ring-brand-500 shadow-soft',
 };
 
 const sizes: Record<Size, string> = {
-  sm: 'px-3.5 py-1.5 text-sm rounded-lg',
-  md: 'px-4 py-2 text-sm rounded-xl',
-  lg: 'px-6 py-3 text-base rounded-xl',
+  sm: 'px-3 py-1.5 text-sm rounded-lg',
+  md: 'px-4 py-2 text-sm rounded-lg',
+  lg: 'px-5 py-2.5 text-base rounded-lg',
 };
 
 export default function Button({
@@ -44,9 +44,9 @@ export default function Button({
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200',
+        'inline-flex items-center justify-center gap-2 font-medium transition-colors duration-150',
         'focus:outline-none focus:ring-2 focus:ring-offset-2',
-        'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none',
+        'disabled:opacity-40 disabled:cursor-not-allowed',
         variants[variant],
         sizes[size],
         className

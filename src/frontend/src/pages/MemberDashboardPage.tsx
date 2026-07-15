@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Card, CardContent, Spinner, Section, EmptyState, Badge } from '@/components/ui';
+import { Card, CardContent, Section, EmptyState, Badge } from '@/components/ui';
 import { getMyMember } from '@/services/members';
 import { listEvents } from '@/services/events';
 import { listAnnouncements } from '@/services/announcements';
-import { formatDate, statusColor } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
 import type { Member, Event, Announcement } from '@/types';
 
 export default function MemberDashboardPage() {
@@ -32,15 +32,15 @@ export default function MemberDashboardPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="h-40 rounded-2xl bg-gray-100 animate-pulse" />
+        <div className="h-32 rounded-xl bg-gray-100 animate-pulse" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-24 rounded-2xl bg-gray-100 animate-pulse" />
+            <div key={i} className="h-24 rounded-xl bg-gray-100 animate-pulse" />
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="h-64 rounded-2xl bg-gray-100 animate-pulse" />
-          <div className="h-64 rounded-2xl bg-gray-100 animate-pulse" />
+          <div className="h-64 rounded-xl bg-gray-100 animate-pulse" />
+          <div className="h-64 rounded-xl bg-gray-100 animate-pulse" />
         </div>
       </div>
     );
@@ -56,20 +56,18 @@ export default function MemberDashboardPage() {
   return (
     <div className="space-y-6 animate-slide-up">
       {/* Welcome Hero */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 via-brand-700 to-indigo-800 p-6 sm:p-8 text-white">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4 blur-3xl" />
+      <div className="rounded-xl bg-brand-500 p-6 sm:p-8 text-white">
         <div className="relative">
           <div className="flex items-center gap-2 mb-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-xs font-medium">
-              <span className={`h-1.5 w-1.5 rounded-full ${member?.membershipStatus === 'active' ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`} />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 text-xs font-medium">
+              <span className={`h-1.5 w-1.5 rounded-full ${member?.membershipStatus === 'active' ? 'bg-green-300' : 'bg-gray-300'}`} />
               {member?.membershipStatus === 'active' ? 'Active Member' : member?.membershipStatus || 'Member'}
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
             Welcome back, {firstName}
           </h1>
-          <p className="mt-1 text-brand-200/80 text-sm sm:text-base">{organization?.name}</p>
+          <p className="mt-1 text-brand-100 text-sm sm:text-base">{organization?.name}</p>
         </div>
       </div>
 
@@ -77,48 +75,48 @@ export default function MemberDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card hover>
           <CardContent className="flex items-center gap-4">
-            <div className="h-11 w-11 rounded-xl bg-emerald-50 flex items-center justify-center">
-              <span className="text-lg">✅</span>
+            <div className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center">
+              <span className="text-base">✅</span>
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Status</p>
-              <p className="text-lg font-bold text-gray-900 capitalize">{member?.membershipStatus ?? 'N/A'}</p>
+              <p className="text-xs text-gray-500 font-medium">Status</p>
+              <p className="text-lg font-semibold text-gray-900 capitalize">{member?.membershipStatus ?? 'N/A'}</p>
             </div>
           </CardContent>
         </Card>
 
         <Card hover>
           <CardContent className="flex items-center gap-4">
-            <div className="h-11 w-11 rounded-xl bg-indigo-50 flex items-center justify-center">
-              <span className="text-lg">🏷️</span>
+            <div className="h-10 w-10 rounded-lg bg-brand-50 flex items-center justify-center">
+              <span className="text-base">🏷️</span>
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Type</p>
-              <p className="text-lg font-bold text-gray-900 capitalize">{member?.membershipType ?? 'Regular'}</p>
+              <p className="text-xs text-gray-500 font-medium">Type</p>
+              <p className="text-lg font-semibold text-gray-900 capitalize">{member?.membershipType ?? 'Regular'}</p>
             </div>
           </CardContent>
         </Card>
 
         <Card hover>
           <CardContent className="flex items-center gap-4">
-            <div className="h-11 w-11 rounded-xl bg-blue-50 flex items-center justify-center">
-              <span className="text-lg">📅</span>
+            <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center">
+              <span className="text-base">📅</span>
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Events</p>
-              <p className="text-lg font-bold text-gray-900">{events.length}</p>
+              <p className="text-xs text-gray-500 font-medium">Events</p>
+              <p className="text-lg font-semibold text-gray-900">{events.length}</p>
             </div>
           </CardContent>
         </Card>
 
         <Card hover>
           <CardContent className="flex items-center gap-4">
-            <div className="h-11 w-11 rounded-xl bg-orange-50 flex items-center justify-center">
-              <span className="text-lg">📢</span>
+            <div className="h-10 w-10 rounded-lg bg-orange-50 flex items-center justify-center">
+              <span className="text-base">📢</span>
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Alerts</p>
-              <p className="text-lg font-bold text-gray-900">{announcements.length}</p>
+              <p className="text-xs text-gray-500 font-medium">Alerts</p>
+              <p className="text-lg font-semibold text-gray-900">{announcements.length}</p>
             </div>
           </CardContent>
         </Card>
@@ -127,43 +125,40 @@ export default function MemberDashboardPage() {
       {/* Membership Info + Quick Actions */}
       {member && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Membership Card */}
           <Section title="My Membership" description="Your membership details" className="lg:col-span-2">
             <div className="flex items-start gap-5">
-              {/* Avatar */}
-              <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-xl font-bold text-white shadow-glow shrink-0">
+              <div className="h-14 w-14 rounded-xl bg-brand-500 flex items-center justify-center text-lg font-semibold text-white shrink-0">
                 {member.firstName?.[0]}{member.lastName?.[0] || ''}
               </div>
 
-              {/* Info Grid */}
               <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
                 <div className="space-y-1">
-                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Full Name</p>
-                  <p className="text-sm font-semibold text-gray-900">{member.firstName} {member.lastName}</p>
+                  <p className="text-xs text-gray-500 font-medium">Full Name</p>
+                  <p className="text-sm font-medium text-gray-900">{member.firstName} {member.lastName}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Status</p>
+                  <p className="text-xs text-gray-500 font-medium">Status</p>
                   <Badge variant="status" value={member.membershipStatus}>
                     {member.membershipStatus}
                   </Badge>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Phone</p>
+                  <p className="text-xs text-gray-500 font-medium">Phone</p>
                   <p className="text-sm font-medium text-gray-900">{member.phone}</p>
                 </div>
                 {member.email && (
                   <div className="space-y-1">
-                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Email</p>
+                    <p className="text-xs text-gray-500 font-medium">Email</p>
                     <p className="text-sm font-medium text-gray-900">{member.email}</p>
                   </div>
                 )}
                 <div className="space-y-1">
-                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Member Since</p>
+                  <p className="text-xs text-gray-500 font-medium">Member Since</p>
                   <p className="text-sm font-medium text-gray-900">{formatDate(member.joinDate)}</p>
                 </div>
                 {member.membershipType && (
                   <div className="space-y-1">
-                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Membership Type</p>
+                    <p className="text-xs text-gray-500 font-medium">Membership Type</p>
                     <p className="text-sm font-medium text-gray-900 capitalize">{member.membershipType}</p>
                   </div>
                 )}
@@ -171,14 +166,13 @@ export default function MemberDashboardPage() {
             </div>
           </Section>
 
-          {/* Quick Actions */}
           <Section title="Quick Actions">
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Link
                 to="/events"
-                className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-brand-50 hover:border-brand-200 border border-transparent transition-all duration-200 group"
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors group"
               >
-                <div className="h-9 w-9 rounded-lg bg-blue-50 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
+                <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center">
                   <span className="text-base">📅</span>
                 </div>
                 <div>
@@ -188,9 +182,9 @@ export default function MemberDashboardPage() {
               </Link>
               <Link
                 to="/announcements"
-                className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-brand-50 hover:border-brand-200 border border-transparent transition-all duration-200 group"
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors group"
               >
-                <div className="h-9 w-9 rounded-lg bg-orange-50 group-hover:bg-orange-100 flex items-center justify-center transition-colors">
+                <div className="h-9 w-9 rounded-lg bg-orange-50 flex items-center justify-center">
                   <span className="text-base">📢</span>
                 </div>
                 <div>
@@ -205,11 +199,10 @@ export default function MemberDashboardPage() {
 
       {/* Events + Announcements */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Upcoming Events */}
         <Section
           title="Upcoming Events"
           description="Events you can register for"
-          action={<Link to="/events" className="text-sm text-brand-600 hover:text-brand-700 font-medium hover:underline">View all</Link>}
+          action={<Link to="/events" className="text-sm text-brand-600 hover:text-brand-700 font-medium">View all</Link>}
         >
           {events.length === 0 ? (
             <EmptyState
@@ -218,24 +211,22 @@ export default function MemberDashboardPage() {
               variant="info"
             />
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {events.map((e) => {
                 const capacityPct = e.capacity ? Math.round((e.registeredCount / e.capacity) * 100) : null;
                 return (
                   <Link
                     key={e.id}
                     to={`/events/${e.id}`}
-                    className="block rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden group"
+                    className="block rounded-lg border border-gray-200 hover:border-gray-300 transition-colors overflow-hidden group"
                   >
-                    {/* Gradient accent bar */}
-                    <div className="h-1 bg-gradient-to-r from-brand-500 to-violet-500" />
                     <div className="p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-gray-900 group-hover:text-brand-700 transition-colors truncate">
+                          <p className="text-sm font-medium text-gray-900 group-hover:text-brand-600 transition-colors truncate">
                             {e.title}
                           </p>
-                          <div className="flex items-center gap-3 mt-1.5">
+                          <div className="flex items-center gap-3 mt-1">
                             <span className="flex items-center gap-1 text-xs text-gray-500">
                               <span>📅</span> {formatDate(e.startDate)}
                             </span>
@@ -250,7 +241,6 @@ export default function MemberDashboardPage() {
                           {e.registeredCount}/{e.capacity || '∞'}
                         </Badge>
                       </div>
-                      {/* Capacity progress bar */}
                       {capacityPct !== null && (
                         <div className="mt-3">
                           <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
@@ -275,11 +265,10 @@ export default function MemberDashboardPage() {
           )}
         </Section>
 
-        {/* Announcements */}
         <Section
           title="Announcements"
           description="Recent updates from your organization"
-          action={<Link to="/announcements" className="text-sm text-brand-600 hover:text-brand-700 font-medium hover:underline">View all</Link>}
+          action={<Link to="/announcements" className="text-sm text-brand-600 hover:text-brand-700 font-medium">View all</Link>}
         >
           {sortedAnnouncements.length === 0 ? (
             <EmptyState
@@ -288,17 +277,17 @@ export default function MemberDashboardPage() {
               variant="empty"
             />
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {sortedAnnouncements.map((a) => {
                 const isExpanded = expandedAnnouncement === a.id;
                 const isUrgent = a.priority === 'urgent';
                 return (
                   <div
                     key={a.id}
-                    className={`rounded-xl border transition-all duration-200 overflow-hidden ${
+                    className={`rounded-lg border transition-colors overflow-hidden ${
                       isUrgent
-                        ? 'border-red-200 bg-red-50/50 hover:border-red-300'
-                        : 'border-gray-100 hover:border-gray-200 hover:shadow-sm'
+                        ? 'border-red-200 bg-red-50 hover:border-red-300'
+                        : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <button
@@ -311,10 +300,10 @@ export default function MemberDashboardPage() {
                           <Badge variant="status" value={a.priority}>
                             {a.priority}
                           </Badge>
-                          <p className="text-sm font-semibold text-gray-900 truncate">{a.title}</p>
+                          <p className="text-sm font-medium text-gray-900 truncate">{a.title}</p>
                         </div>
                         <svg
-                          className={`h-4 w-4 text-gray-400 shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                          className={`h-4 w-4 text-gray-400 shrink-0 transition-transform duration-150 ${isExpanded ? 'rotate-180' : ''}`}
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"

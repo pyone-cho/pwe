@@ -10,12 +10,12 @@ export default function Header({ onMenuClick, title }: HeaderProps) {
   const { logout } = useAuth();
 
   return (
-    <header className="sticky top-0 z-30 glass-strong border-b border-gray-100">
+    <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-200">
       <div className="flex items-center justify-between px-4 py-3 sm:px-6">
         <div className="flex items-center gap-3">
           <button
             onClick={onMenuClick}
-            className="lg:hidden p-2 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+            className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
