@@ -165,13 +165,13 @@ curl http://localhost/api/v1/health
 
 ## SSL/TLS (Let's Encrypt)
 
-The `nginx.conf` already includes full SSL configuration. After DNS points to your server:
+The `nginx.conf` includes full SSL configuration. After DNS points to your server:
 
 ```bash
 # 1. Install certbot
 apt install -y certbot python3-certbot-nginx
 
-# 2. Get certificate (nginx must be running on port 80 for ACME challenge)
+# 2. Start nginx (needed for ACME challenge)
 cd /opt/pwe/src/dev-deployment
 docker compose -f docker-compose.dev.yml up -d nginx
 
@@ -180,35 +180,59 @@ mkdir -p /var/www/certbot
 
 # 4. Get certificate
 certbot certonly --webroot --webroot-path=/var/www/certbot \
-  --email admin@pwe-mm.site --agree-tos -d your-domain.com
+  --email admin@pwe-mm.site --agree-tos -d dev.pwe-mm.site
 
-# 5. Copy certs into the ssl/ directory (docker can't follow symlinks)
-rm -f ssl/*
-cp /etc/letsencrypt/live/your-domain.com/fullchain.pem ssl/your-domain.com.crt
-cp /etc/letsencrypt/live/your-domain.com/privkey.pem ssl/your-domain.com.key
-chmod 644 ssl/your-domain.com.crt
-chmod 600 ssl/your-domain.com.key
+# 5. Copy certs into the ssl/ directory
+cp /etc/letsencrypt/live/dev.pwe-mm.site/fullchain.pem ssl/dev.pwe-mm.site.crt
+cp /etc/letsencrypt/live/dev.pwe-mm.site/privkey.pem ssl/dev.pwe-mm.site.key
+chmod 644 ssl/dev.pwe-mm.site.crt
+chmod 600 ssl/dev.pwe-mm.site.key
 
-# 6. Update server_name in nginx.conf to match your domain
-
-# 7. Restart nginx
+# 6. Restart nginx
 docker compose -f docker-compose.dev.yml restart nginx
 ```
 
 **Important:** Do NOT symlink certbot files into `ssl/` — Docker volume mounts copy files at mount time, so symlinks break. Always copy the actual cert/key files.
 
-**Note:** Certbot auto-renewal is configured via systemd timer. Verify with:
+### Quick SSL Fix
+
+If SSL is broken (site not loading), use the fix script:
 
 ```bash
-systemctl status certbot.timer
+cd /opt/pwe/src/dev-deployment
+./fix-ssl.sh
 ```
 
-After renewal, re-copy the certs into `ssl/` and restart nginx:
+This script will:
+- Check current SSL state
+- Copy Let's Encrypt certs if available
+- Generate self-signed certs as fallback
+- Test nginx config
+- Restart nginx
+
+### Automated Renewal (Recommended)
+
+To automatically copy renewed certs to Docker and restart nginx:
 
 ```bash
-cp /etc/letsencrypt/live/your-domain.com/fullchain.pem ssl/your-domain.com.crt
-cp /etc/letsencrypt/live/your-domain.com/privkey.pem ssl/your-domain.com.key
-docker compose -f docker-compose.dev.yml restart nginx
+# 1. Install the post-renewal hook
+chmod +x /opt/pwe/src/dev-deployment/certbot-renew-hook.sh
+ln -sf /opt/pwe/src/dev-deployment/certbot-renew-hook.sh /etc/letsencrypt/renewal-hooks/deploy/pwe-renew.sh
+
+# 2. Verify certbot timer is active
+systemctl status certbot.timer
+
+# 3. Test renewal manually
+certbot renew --dry-run
+```
+
+### Manual Renewal
+
+If automated renewal isn't set up, run after certbot renews:
+
+```bash
+cd /opt/pwe/src/dev-deployment
+./renew-ssl.sh
 ```
 
 See [deployment.md](../../docs/pwe/deployment.md) for full SSL configuration.
@@ -251,6 +275,42 @@ docker compose -f docker-compose.dev.yml down -v
 docker compose -f docker-compose.dev.yml up -d
 docker compose -f docker-compose.dev.yml exec backend npx prisma migrate deploy
 docker compose -f docker-compose.dev.yml exec backend npx prisma db seed
+
+# Fix SSL issues
+./fix-ssl.sh
+
+# Renew SSL certificate manually
+./renew-ssl.sh
+```
+
+---
+
+## Server Quick Reference
+
+### First-time setup
+```bash
+ssh root@167.99.66.139
+cd /opt/pwe/src/dev-deployment
+./fix-ssl.sh
+docker compose -f docker-compose.dev.yml up -d
+docker compose -f docker-compose.dev.yml exec backend npx prisma migrate deploy
+docker compose -f docker-compose.dev.yml exec backend npx prisma db seed
+```
+
+### Fix site not loading
+```bash
+ssh root@167.99.66.139
+cd /opt/pwe/src/dev-deployment
+./fix-ssl.sh
+```
+
+### Update deployment after git pull
+```bash
+ssh root@167.99.66.139
+cd /opt/pwe
+git pull
+cd src/dev-deployment
+docker compose -f docker-compose.dev.yml up -d --build
 ```
 
 ---
@@ -275,6 +335,38 @@ docker compose -f docker-compose.dev.yml exec backend npx prisma db seed
 ---
 
 ## Troubleshooting
+
+### Site not loading (SSL errors)
+
+**Quick fix:**
+```bash
+cd /opt/pwe/src/dev-deployment
+./fix-ssl.sh
+```
+
+**Manual diagnosis:**
+```bash
+# Check if containers are running
+docker compose -f docker-compose.dev.yml ps
+
+# Check nginx logs
+docker compose -f docker-compose.dev.yml logs nginx --tail=50
+
+# Check if SSL certs exist
+ls -la ssl/
+
+# Test nginx config
+docker compose -f docker-compose.dev.yml exec nginx nginx -t
+```
+
+**Common SSL errors:**
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `cannot load certificate` | SSL files missing | `./fix-ssl.sh` |
+| `SSL_do_handshake() failed` | Cert/key mismatch or expired | Re-copy from certbot |
+| `no suitable peer certificate` | Self-signed cert in browser | Use Let's Encrypt or accept warning |
+| Empty reply from server | nginx not running | `docker compose -f docker-compose.dev.yml up -d nginx` |
 
 ### Container won't start
 
@@ -317,30 +409,33 @@ docker compose -f docker-compose.dev.yml exec db psql -U pwe_dev -d pwe_dev -c "
 docker compose -f docker-compose.dev.yml exec backend npx prisma migrate reset
 ```
 
-### Nginx SSL certificate errors
+### SSL certificate expired or not trusted
 
 ```bash
-# Error: "cannot load certificate /etc/nginx/ssl/..."
-# Cause: ssl/ directory is empty or has broken symlinks
+# Check certificate expiry
+openssl x509 -enddate -noout -in ssl/dev.pwe-mm.site.crt
 
-# Check ssl directory
-ls -la ssl/
+# If expired, renew with certbot
+certbot renew
 
-# If empty or symlinks, copy actual cert files:
-cp /etc/letsencrypt/live/your-domain.com/fullchain.pem ssl/your-domain.com.crt
-cp /etc/letsencrypt/live/your-domain.com/privkey.pem ssl/your-domain.com.key
+# Copy new certs
+cp /etc/letsencrypt/live/dev.pwe-mm.site/fullchain.pem ssl/dev.pwe-mm.site.crt
+cp /etc/letsencrypt/live/dev.pwe-mm.site/privkey.pem ssl/dev.pwe-mm.site.key
 
 # Restart nginx
 docker compose -f docker-compose.dev.yml restart nginx
 ```
 
-### Certbot renewal + nginx
+### Nginx config syntax error
 
 ```bash
-# After certbot renews, copy new certs and restart nginx:
-cp /etc/letsencrypt/live/your-domain.com/fullchain.pem ssl/your-domain.com.crt
-cp /etc/letsencrypt/live/your-domain.com/privkey.pem ssl/your-domain.com.key
-docker compose -f docker-compose.dev.yml restart nginx
+# Test config before restarting
+docker compose -f docker-compose.dev.yml exec nginx nginx -t
+
+# If error, check nginx.conf for:
+# - Missing semicolons
+# - Unclosed braces
+# - Invalid paths
 ```
 
 ---
@@ -356,6 +451,9 @@ src/dev-deployment/
 ├── .dockerignore            # Build optimization
 ├── generate-certs.sh        # Self-signed cert generation (fallback)
 ├── setup-server.sh          # Droplet provisioning
+├── fix-ssl.sh               # Quick SSL fix script (recommended)
+├── renew-ssl.sh             # Manual SSL renewal script
+├── certbot-renew-hook.sh    # Auto-renewal hook for certbot
 ├── ssl/                     # SSL certs (copy from /etc/letsencrypt)
 │   ├── dev.pwe-mm.site.crt  # fullchain.pem from certbot
 │   └── dev.pwe-mm.site.key  # privkey.pem from certbot
