@@ -1,0 +1,34 @@
+- generic [ref=e5]:
+  - link "P PWE" [ref=e7] [cursor=pointer]:
+    - /url: /
+    - generic [ref=e8]: P
+    - generic [ref=e10]: PWE
+  - generic [ref=e12]:
+    - generic [ref=e13]:
+      - generic [ref=e14]: Organization Name
+      - textbox "Yangon Sports Club" [ref=e16]
+    - generic [ref=e17]:
+      - generic [ref=e18]: Workspace Slug
+      - generic [ref=e19]:
+        - generic: "#"
+        - textbox "yangon-sports" [ref=e20]
+    - generic [ref=e21]:
+      - generic [ref=e22]:
+        - generic [ref=e23]: First Name
+        - textbox "Ko" [ref=e24]
+      - generic [ref=e25]:
+        - generic [ref=e26]: Last Name
+        - textbox "Thant" [ref=e27]
+    - generic [ref=e28]:
+      - generic [ref=e29]: Admin Email
+      - textbox "admin@example.com" [ref=e31]
+    - generic [ref=e32]:
+      - generic [ref=e33]: Password
+      - generic [ref=e34]:
+        - textbox "••••••••" [ref=e35]
+        - button [ref=e36] [cursor=pointer]
+    - button "Create Organization" [ref=e40] [cursor=pointer]
+  - paragraph [ref=e41]:
+    - text: Already have an organization?
+    - link "Sign in" [ref=e42] [cursor=pointer]:
+      - /url: /login

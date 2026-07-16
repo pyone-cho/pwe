@@ -13,16 +13,16 @@
   }
 
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-white text-gray-900;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
   ::selection {
-    @apply bg-brand-200 text-brand-900;
+    @apply bg-brand-100 text-brand-900;
   }
 }
 
-/* ── Scrollbar ── */
+/* ── Scrollbar ─ */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -31,10 +31,10 @@
   @apply bg-transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded-full;
+  @apply bg-gray-200 rounded-full;
 }
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400;
+  @apply bg-gray-300;
 }
 
 @layer utilities {
@@ -53,71 +53,9 @@
   }
 }
 
-/* ── Glass morphism ── */
-@layer utilities {
-  .glass {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-  }
-
-  .glass-strong {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-  }
-
-  .glass-dark {
-    background: rgba(15, 23, 42, 0.75);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-}
-
-/* ── Gradient text ── */
-@layer utilities {
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-400 via-brand-500 to-brand-600;
-  }
-
-  .text-gradient-warm {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-violet-500 via-brand-500 to-indigo-500;
-  }
-}
-
-/* ── Glow effects ── */
-@layer utilities {
-  .glow-brand {
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.25), 0 0 60px rgba(99, 102, 241, 0.1);
-  }
-
-  .glow-brand-lg {
-    box-shadow: 0 0 30px rgba(99, 102, 241, 0.35), 0 0 80px rgba(99, 102, 241, 0.15);
-  }
-}
-
-/* ── Animations ── */
-@keyframes slide-in {
-  from {
-    opacity: 0;
-    transform: translateY(1rem);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-slide-in {
-  animation: slide-in 0.3s ease-out;
-}
-
-/* ── Modern focus ring ── */
+/* ── Modern focus ring ─ */
 @layer base {
   *:focus-visible {
-    @apply outline-none ring-2 ring-brand-500/40 ring-offset-2;
+    @apply outline-none ring-2 ring-brand-500/30 ring-offset-2;
   }
 }

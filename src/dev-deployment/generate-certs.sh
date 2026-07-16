@@ -11,13 +11,6 @@ mkdir -p "$SSL_DIR"
 
 echo "Generating self-signed certificate for $DOMAIN..."
 
-# Temp files for OpenSSL config and extensions
-TMP_EXT=$(mktemp)
-
-cat > "$TMP_EXT" <<EOF
-subjectAltName=DNS:${DOMAIN},DNS:localhost
-EOF
-
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -keyout "$SSL_DIR/$DOMAIN.key" \
     -out "$SSL_DIR/$DOMAIN.crt" \
@@ -39,8 +32,6 @@ CN = $DOMAIN
 subjectAltName = DNS:${DOMAIN},DNS:localhost
 EOCONF
 )
-
-rm -f "$TMP_EXT"
 
 echo ""
 echo "Certificates created in $SSL_DIR/"

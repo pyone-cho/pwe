@@ -2,6 +2,15 @@ import { Request, Response, NextFunction } from "express";
 import { memberService } from "../services/member.service";
 
 export class MemberController {
+  async getMe(req: Request, res: Response, next: NextFunction) {
+    try {
+      const member = await memberService.getMe(req.orgId!, req.user!.userId);
+      res.json({ success: true, data: member });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async list(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await memberService.list(req.orgId!, req.query as any);

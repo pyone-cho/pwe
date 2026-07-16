@@ -13,6 +13,7 @@ import EventDetailPage from '@/pages/EventDetailPage';
 import AnnouncementsPage from '@/pages/AnnouncementsPage';
 import ReportsPage from '@/pages/ReportsPage';
 import SettingsPage from '@/pages/SettingsPage';
+import MemberDashboardPage from './pages/MemberDashboardPage';
 
 export default function App() {
   return (
@@ -35,6 +36,7 @@ export default function App() {
               <Route path="/announcements" element={<AnnouncementsPage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/memberDashboard" element={<MemberDashboardPage />} />
             </Route>
 
             {/* Catch all */}

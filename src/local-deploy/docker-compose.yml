@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-pwe_dev}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password}
     volumes:
-      - pgdata_dev:/var/lib/postgresql/data
+      - pgdata_local:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pwe_dev} -d ${POSTGRES_DB:-pwe_dev}"]
       interval: 5s
@@ -32,7 +32,7 @@ services:
       REFRESH_TOKEN_EXPIRES_IN: ${REFRESH_TOKEN_EXPIRES_IN:-7d}
       PORT: ${PORT:-3000}
       NODE_ENV: development
-      FRONTEND_URL: ${FRONTEND_URL:-https://dev.pwe-mm.site}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
     volumes:
       - ../backend/src:/app/src
       - /app/node_modules
@@ -48,8 +48,7 @@ services:
     ports:
       - "5173:5173"
     environment:
-      VITE_API_URL: ${VITE_API_URL:-https://dev.pwe-mm.site/api/v1}
-      VITE_ORG_SLUG: ${VITE_ORG_SLUG:-eventhub}
+      VITE_API_URL: ${VITE_API_URL:-/api/v1}
     volumes:
       - ../frontend/src:/app/src
       - /app/node_modules
@@ -59,15 +58,11 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
-      - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
-      - certbot-www:/var/www/certbot:ro
     depends_on:
       - backend
       - frontend
 
 volumes:
-  pgdata_dev:
-  certbot-www:
+  pgdata_local:
