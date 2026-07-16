@@ -1,136 +1,34 @@
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { listEvents, createEvent, updateEventStatus } from '@/services/events';
-import { registerForMember, getMyRegistration, cancelMyRegistration } from '@/services/registrations';
-import { Button, Modal, Input, Textarea, Select, Badge, Pagination, EmptyState, Spinner, Card, PageHeader, Section } from '@/components/ui';
-import { useToast } from '@/components/ui/Toast';
+import { Button, Modal, Input, Textarea, Select, Badge, Pagination, EmptyState, Card, PageHeader } from '@/components/ui';
 import { usePagination } from '@/hooks/usePagination';
 import { useAuth } from '@/hooks/useAuth';
+import { useEventsPage } from '@/hooks/useEventsPage';
 import { formatDate } from '@/lib/utils';
-import type { Event, EventStatus } from '@/types';
 
 export default function EventsPage() {
-  const { toast } = useToast();
   const { page, limit, meta, setMeta, goToPage } = usePagination();
   const { user } = useAuth();
-  const [events, setEvents] = useState<Event[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [tab, setTab] = useState<'upcoming' | 'past' | 'drafts'>('upcoming');
-  const canManageEvents = user?.role === 'admin' || user?.role === 'staff';
-  const [myRegistrations, setMyRegistrations] = useState<Set<string>>(new Set());
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [cancelEventId, setCancelEventId] = useState<string | null>(null);
-  const [step, setStep] = useState(1);
-  const [form, setForm] = useState({
-    title: '',
-    description: '',
-    location: '',
-    startDate: '',
-    endDate: '',
-    capacity: '',
-    registrationMode: 'member',
-    requiresPayment: false,
-    paymentAmount: '',
-  });
-
-  const fetchEvents = async () => {
-    setIsLoading(true);
-    try {
-      const statusMap = { upcoming: 'published', past: 'completed', drafts: 'draft' };
-      const res = await listEvents({
-        page,
-        limit,
-        status: statusMap[tab] as EventStatus,
-      });
-      // Map _count.registrations to registeredCount
-      const eventsWithCount = res.data.map((e: any) => ({
-        ...e,
-        registeredCount: e._count?.registrations ?? 0,
-      }));
-      setEvents(eventsWithCount);
-      setMeta(res.meta);
-
-      // Check registration status for each event (for members only)
-      if (!canManageEvents) {
-        const registrationPromises = eventsWithCount.map((e: Event) =>
-          getMyRegistration(e.id).then((reg) => ({ eventId: e.id, registered: !!reg }))
-        );
-        const results = await Promise.all(registrationPromises);
-        const registeredIds = new Set(results.filter((r) => r.registered).map((r) => r.eventId));
-        setMyRegistrations(registeredIds);
-      }
-    } catch {
-      toast('Failed to load events', 'error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchEvents();
-  }, [page, tab]);
-
-  const handleCreate = async (publish: boolean) => {
-    try {
-      await createEvent({
-        ...form,
-        capacity: form.capacity ? Number(form.capacity) : undefined,
-        paymentAmount: form.paymentAmount ? Number(form.paymentAmount) : undefined,
-      });
-      if (publish) {
-        toast('Event created', 'success');
-      } else {
-        toast('Event saved as draft', 'success');
-      }
-      setShowCreateModal(false);
-      setStep(1);
-      setForm({ title: '', description: '', location: '', startDate: '', endDate: '', capacity: '', registrationMode: 'member', requiresPayment: false, paymentAmount: '' });
-      fetchEvents();
-    } catch (error) {
-      console.error('Event creation failed:', error);
-      toast('Failed to create event', 'error');
-    }
-  };
-
-  const handleStatusChange = async (eventId: string, status: string) => {
-    try {
-      await updateEventStatus(eventId, status);
-      toast(`Event ${status}`, 'success');
-      fetchEvents();
-    } catch {
-      toast('Failed to update status', 'error');
-    }
-  };
-
-  const handleRegister = async (eventId: string) => {
-    try {
-      await registerForMember(eventId);
-      toast('Successfully registered for event', 'success');
-      setMyRegistrations((prev) => new Set([...prev, eventId]));
-      fetchEvents();
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to register';
-      toast(message, 'error');
-    }
-  };
-
-  const handleCancelRegistration = async (eventId: string) => {
-    try {
-      await cancelMyRegistration(eventId);
-      toast('Registration cancelled', 'success');
-      setMyRegistrations((prev) => {
-        const next = new Set(prev);
-        next.delete(eventId);
-        return next;
-      });
-      fetchEvents();
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to cancel registration';
-      toast(message, 'error');
-    }
-  };
-
-  const tabs = canManageEvents ? ['upcoming', 'past', 'drafts'] : ['upcoming', 'past'] as const;
+  const {
+    events,
+    isLoading,
+    tab,
+    setTab,
+    myRegistrations,
+    showCreateModal,
+    setShowCreateModal,
+    cancelEventId,
+    setCancelEventId,
+    step,
+    setStep,
+    form,
+    setForm,
+    canManageEvents,
+    tabs,
+    handleCreate,
+    handleStatusChange,
+    handleRegister,
+    handleCancelRegistration,
+  } = useEventsPage(user?.role, page, limit, setMeta);
 
   return (
     <div className="space-y-6 animate-slide-up">

@@ -1,155 +1,35 @@
-import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getEvent, updateEventStatus } from '@/services/events';
-import { listRegistrations, cancelRegistration, registerForMember, getMyRegistration, cancelMyRegistration } from '@/services/registrations';
-import { listAttendance, bulkCheckIn, undoCheckIn } from '@/services/attendance';
-import { listPayments, getPaymentSummary } from '@/services/payments';
-import { Button, Badge, Spinner, Card, CardContent, Input, PageHeader, Section, EmptyState } from '@/components/ui';
-import { useToast } from '@/components/ui/Toast';
+import { Button, Badge, Card, CardContent, Input, Section, EmptyState } from '@/components/ui';
 import { useAuth } from '@/hooks/useAuth';
+import { useEventDetailPage } from '@/hooks/useEventDetailPage';
 import { formatDate, formatMMK } from '@/lib/utils';
-import type { Event, Registration, AttendanceRecord, AttendanceStats, Payment, PaymentSummary } from '@/types';
-
-type Tab = 'overview' | 'registrations' | 'attendance' | 'payments';
 
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { toast } = useToast();
   const { user } = useAuth();
-  const [event, setEvent] = useState<Event | null>(null);
-  const [tab, setTab] = useState<Tab>('overview');
-  const [isLoading, setIsLoading] = useState(true);
-  const canManageEvents = user?.role === 'admin' || user?.role === 'staff';
-
-  // Registrations
-  const [registrations, setRegistrations] = useState<Registration[]>([]);
-
-  // Attendance
-  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
-  const [attendanceStats, setAttendanceStats] = useState<AttendanceStats | null>(null);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-
-  // Payments
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [paymentSummary, setPaymentSummary] = useState<PaymentSummary | null>(null);
-
-  // Search
-  const [search, setSearch] = useState('');
-
-  // Registration status for current member
-  const [myRegistration, setMyRegistration] = useState<Registration | null>(null);
-
-  useEffect(() => {
-    if (!id) return;
-    getEvent(id)
-      .then((e) => { setEvent(e); setIsLoading(false); })
-      .catch(() => { toast('Event not found', 'error'); setIsLoading(false); });
-
-    // Check if current member is registered (for members only)
-    if (!canManageEvents) {
-      getMyRegistration(id)
-        .then((reg) => setMyRegistration(reg))
-        .catch(() => setMyRegistration(null));
-    }
-  }, [id, canManageEvents]);
-
-  const loadTab = async (t: Tab) => {
-    if (!id) return;
-    setTab(t);
-    setSearch('');
-    setSelectedIds([]);
-    try {
-      if (t === 'registrations') {
-        const res = await listRegistrations(id);
-        setRegistrations(res.data);
-      } else if (t === 'attendance') {
-        const res = await listAttendance(id);
-        setAttendance(res.data);
-        setAttendanceStats(res.stats);
-      } else if (t === 'payments') {
-        const [payRes, sumRes] = await Promise.all([
-          listPayments({ eventId: id }),
-          getPaymentSummary(id),
-        ]);
-        setPayments(payRes.data);
-        setPaymentSummary(sumRes);
-      }
-    } catch {
-      toast('Failed to load data', 'error');
-    }
-  };
-
-  const handleBulkCheckIn = async () => {
-    if (!id || selectedIds.length === 0) return;
-    try {
-      await bulkCheckIn(id, { registrationIds: selectedIds });
-      toast(`${selectedIds.length} checked in`, 'success');
-      setSelectedIds([]);
-      loadTab('attendance');
-    } catch {
-      toast('Bulk check-in failed', 'error');
-    }
-  };
-
-  const handleUndo = async (attendanceId: string) => {
-    try {
-      await undoCheckIn(attendanceId);
-      toast('Check-in undone', 'success');
-      loadTab('attendance');
-    } catch {
-      toast('Failed to undo', 'error');
-    }
-  };
-
-  const handleCancelReg = async (regId: string) => {
-    try {
-      await cancelRegistration(regId);
-      toast('Registration cancelled', 'success');
-      loadTab('registrations');
-    } catch {
-      toast('Failed to cancel', 'error');
-    }
-  };
-
-  const handleStatusChange = async (status: string) => {
-    if (!id) return;
-    try {
-      await updateEventStatus(id, status);
-      toast(`Event ${status}`, 'success');
-      const updated = await getEvent(id);
-      setEvent(updated);
-    } catch {
-      toast('Failed to update status', 'error');
-    }
-  };
-
-  const handleRegister = async () => {
-    if (!id) return;
-    try {
-      const reg = await registerForMember(id);
-      toast('Successfully registered for event', 'success');
-      setMyRegistration(reg);
-      const updated = await getEvent(id);
-      setEvent(updated);
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to register';
-      toast(message, 'error');
-    }
-  };
-
-  const handleCancelMyRegistration = async () => {
-    if (!id) return;
-    try {
-      await cancelMyRegistration(id);
-      toast('Registration cancelled', 'success');
-      setMyRegistration(null);
-      const updated = await getEvent(id);
-      setEvent(updated);
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to cancel registration';
-      toast(message, 'error');
-    }
-  };
+  const {
+    event,
+    tab,
+    isLoading,
+    canManageEvents,
+    registrations,
+    attendance,
+    attendanceStats,
+    selectedIds,
+    payments,
+    paymentSummary,
+    search,
+    myRegistration,
+    setSearch,
+    setSelectedIds,
+    loadTab,
+    handleBulkCheckIn,
+    handleUndo,
+    handleCancelReg,
+    handleStatusChange,
+    handleRegister,
+    handleCancelMyRegistration,
+  } = useEventDetailPage(id, user?.role);
 
   // Loading skeleton
   if (isLoading) {
@@ -189,7 +69,7 @@ export default function EventDetailPage() {
   const isAlmostFull = capacityPct !== null && capacityPct >= 80;
   const isFull = capacityPct !== null && capacityPct >= 100;
 
-  const tabs = canManageEvents ? ['overview', 'registrations', 'attendance', 'payments'] : ['overview'] as const;
+  const tabs = canManageEvents ? ['overview', 'registrations', 'attendance', 'payments'] as const : ['overview'] as const;
 
   return (
     <div className="space-y-6 animate-slide-up">
