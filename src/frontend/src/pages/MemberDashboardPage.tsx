@@ -30,8 +30,7 @@ export default function MemberDashboardPage() {
   const [editErrors, setEditErrors] = useState<Record<string, string>>({});
   const [isEditSaving, setIsEditSaving] = useState(false);
 
-  // Password change modal state
-  const [isPasswordOpen, setIsPasswordOpen] = useState(false);
+  // Password change fields (inside edit profile modal)
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
@@ -64,6 +63,8 @@ export default function MemberDashboardPage() {
         notes: member.notes || '',
       });
       setEditErrors({});
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setPasswordErrors({});
       setIsEditOpen(true);
     }
   };
@@ -121,8 +122,8 @@ export default function MemberDashboardPage() {
         currentPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword,
       });
-      setIsPasswordOpen(false);
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setPasswordErrors({});
     } catch (err: any) {
       const msg = err?.response?.data?.error || 'Failed to change password';
       setPasswordErrors({ general: msg });
@@ -288,23 +289,7 @@ export default function MemberDashboardPage() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-900">Edit Profile</p>
-                  <p className="text-xs text-gray-500">Update your personal information</p>
-                </div>
-              </button>
-              <button
-                onClick={() => {
-                  setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-                  setPasswordErrors({});
-                  setIsPasswordOpen(true);
-                }}
-                className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors group text-left"
-              >
-                <div className="h-9 w-9 rounded-lg bg-orange-50 flex items-center justify-center">
-                  <span className="text-base">🔒</span>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Change Password</p>
-                  <p className="text-xs text-gray-500">Update your account password</p>
+                  <p className="text-xs text-gray-500">Update your personal information and password</p>
                 </div>
               </button>
               <Link
@@ -529,44 +514,44 @@ export default function MemberDashboardPage() {
             <Button variant="ghost" onClick={() => setIsEditOpen(false)}>Cancel</Button>
             <Button variant="primary" onClick={handleEditSave} isLoading={isEditSaving}>Save Changes</Button>
           </div>
-        </div>
-      </Modal>
 
-      {/* Change Password Modal */}
-      <Modal isOpen={isPasswordOpen} onClose={() => setIsPasswordOpen(false)} title="Change Password" size="sm">
-        <div className="space-y-4">
-          {passwordErrors.general && (
-            <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
-              {passwordErrors.general}
+          {/* Password Change Section */}
+          <div className="border-t border-gray-200 pt-4 mt-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Change Password</h3>
+            {passwordErrors.general && (
+              <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700 mb-3">
+                {passwordErrors.general}
+              </div>
+            )}
+            <div className="space-y-3">
+              <Input
+                label="Current Password"
+                type="password"
+                value={passwordForm.currentPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                error={passwordErrors.currentPassword}
+                placeholder="Enter current password"
+              />
+              <Input
+                label="New Password"
+                type="password"
+                value={passwordForm.newPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                error={passwordErrors.newPassword}
+                placeholder="Enter new password (min 8 characters)"
+              />
+              <Input
+                label="Confirm New Password"
+                type="password"
+                value={passwordForm.confirmPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                error={passwordErrors.confirmPassword}
+                placeholder="Confirm new password"
+              />
             </div>
-          )}
-          <Input
-            label="Current Password"
-            type="password"
-            value={passwordForm.currentPassword}
-            onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-            error={passwordErrors.currentPassword}
-            placeholder="Enter current password"
-          />
-          <Input
-            label="New Password"
-            type="password"
-            value={passwordForm.newPassword}
-            onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-            error={passwordErrors.newPassword}
-            placeholder="Enter new password (min 8 characters)"
-          />
-          <Input
-            label="Confirm New Password"
-            type="password"
-            value={passwordForm.confirmPassword}
-            onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-            error={passwordErrors.confirmPassword}
-            placeholder="Confirm new password"
-          />
-          <div className="flex justify-end gap-3 pt-2">
-            <Button variant="ghost" onClick={() => setIsPasswordOpen(false)}>Cancel</Button>
-            <Button variant="primary" onClick={handlePasswordChange} isLoading={isPasswordSaving}>Change Password</Button>
+            <div className="flex justify-end gap-3 pt-3">
+              <Button variant="outline" size="sm" onClick={handlePasswordChange} isLoading={isPasswordSaving}>Change Password</Button>
+            </div>
           </div>
         </div>
       </Modal>
