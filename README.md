@@ -59,6 +59,7 @@ See [Feature-spec.md](Feature-spec.md) for detailed user stories and acceptance 
 - **Refresh Instance**: Token refresh uses configured `api` instance instead of raw `axios` for consistent headers and baseURL
 - **Phone Validation**: Organization Settings phone field validates input format (digits and symbols only)
 - **Members Filter & Search**: Status filter and search box on Members page now correctly refetch data
+- **Signup Validation**: Organization creation form shows inline field errors and descriptive backend error messages
 
 See [docs/fix-issue/](docs/fix-issue/) for detailed fix documentation.
 
