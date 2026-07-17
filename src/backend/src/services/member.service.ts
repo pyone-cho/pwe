@@ -65,6 +65,21 @@ export class MemberService {
     return member;
   }
 
+  async updateMe(orgId: string, userId: string, data: any) {
+    const member = await prisma.member.findFirst({
+      where: { orgId, userId },
+    });
+
+    if (!member) {
+      throw new AppError(404, "Member profile not found");
+    }
+
+    return prisma.member.update({
+      where: { id: member.id },
+      data,
+    });
+  }
+
   async getById(orgId: string, id: string) {
     const member = await prisma.member.findFirst({
       where: { id, orgId },

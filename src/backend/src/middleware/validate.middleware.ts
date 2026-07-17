@@ -59,6 +59,12 @@ export const authSchemas = {
       password: z.string().min(8),
     }),
   }),
+  changePassword: z.object({
+    body: z.object({
+      currentPassword: z.string().min(1),
+      newPassword: z.string().min(8),
+    }),
+  }),
 };
 
 export const memberSchemas = {
@@ -82,6 +88,16 @@ export const memberSchemas = {
       email: z.string().email().optional(),
       membershipType: z.enum(["regular", "premium", "student", "honorary", "lifetime"]).optional(),
       membershipStatus: z.enum(["active", "inactive", "suspended"]).optional(),
+      emergencyContact: z.string().max(255).optional(),
+      notes: z.string().optional(),
+    }),
+  }),
+  updateMe: z.object({
+    body: z.object({
+      firstName: z.string().min(1).max(100).optional(),
+      lastName: z.string().max(100).optional(),
+      phone: z.string().min(1).max(20).optional(),
+      email: z.string().email().optional(),
       emergencyContact: z.string().max(255).optional(),
       notes: z.string().optional(),
     }),

@@ -439,6 +439,7 @@ src/dev-deployment/
 
 | Date | Change | Details |
 |------|--------|---------|
+| 2026-07-17 | Member Self-Service Profile Edit | Added `PUT /api/v1/members/me` and `PATCH /api/v1/auth/change-password` endpoints with edit profile and password change modals on member dashboard |
 | 2026-07-17 | JWT Security Fix | Removed weak fallback secrets; `JWT_SECRET` and `REFRESH_TOKEN_SECRET` are now required |
 | 2026-07-17 | SSL Certbot Support | Added `setup-ssl.sh`, `renew-ssl.sh`, `certbot-renew-hook.sh`, and `fix-ssl.sh` |
 | 2026-07-17 | Nginx Config | Updated for SSL termination, rate limiting, and security headers |

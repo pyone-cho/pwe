@@ -11,6 +11,15 @@ export class MemberController {
     }
   }
 
+  async updateMe(req: Request, res: Response, next: NextFunction) {
+    try {
+      const member = await memberService.updateMe(req.orgId!, req.user!.userId, req.body);
+      res.json({ success: true, data: member });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async list(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await memberService.list(req.orgId!, req.query as any);

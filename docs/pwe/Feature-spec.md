@@ -114,9 +114,32 @@
 - [ ] Member's existing refresh tokens are revoked (forced re-login)
 - [ ] Error shown if member has no linked user account
 
+**US-2.6: Member Self-Service Profile Edit**
+> As a **member**, I want to **edit my own profile** so that **my information stays up to date**.
+
+**Acceptance Criteria:**
+- [ ] "Edit Profile" button on member dashboard opens edit modal
+- [ ] Form fields: first name, last name, phone, email, emergency contact, notes
+- [ ] Members cannot change membership type or status (admin-controlled)
+- [ ] Validation: first name and phone required, email format validated
+- [ ] On save: updates member record, refreshes dashboard, shows success
+- [ ] Error shown if update fails
+
+**US-2.7: Member Self-Service Password Change**
+> As a **member**, I want to **change my own password** so that **I can keep my account secure**.
+
+**Acceptance Criteria:**
+- [ ] "Change Password" button on member dashboard opens password change modal
+- [ ] Form fields: current password, new password, confirm new password
+- [ ] Validates: current password correct, new password min 8 chars, passwords match
+- [ ] On success: shows success message, revokes all refresh tokens (forces re-login)
+- [ ] Error shown if current password is incorrect
+
 ### API Endpoints
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
+| GET | /api/v1/members/me | member+ | Get own profile |
+| PUT | /api/v1/members/me | member+ | Update own profile |
 | GET | /api/v1/members | admin, staff | List with search/filter/pagination |
 | GET | /api/v1/members/:id | admin, staff | Get member detail |
 | POST | /api/v1/members | admin, staff | Create member |
@@ -125,10 +148,14 @@
 | PATCH | /api/v1/members/:id/reset-password | admin | Reset member password |
 | POST | /api/v1/members/import | admin | Bulk import CSV |
 | GET | /api/v1/members/export | admin, staff | Export as CSV/Excel |
+| PATCH | /api/v1/auth/change-password | authenticated | Change own password |
 
 ### UI Screens
 - **Member List Page**: Table with avatar placeholder, name, phone, status badge, join date. Top bar has search + filter dropdown + "Add Member" button + "Import" button.
 - **Member Detail Page**: Profile card with all fields, edit button, status toggle, event history tab.
+- **Member Dashboard**: Welcome hero, stats cards, membership info with "Edit Profile" button, quick actions (Edit Profile, Change Password, Browse Events, Announcements), upcoming events, announcements.
+- **Edit Profile Modal**: Form with first name, last name, phone, email, emergency contact, notes. Cancel/Save buttons with validation.
+- **Change Password Modal**: Form with current password, new password, confirm password. Cancel/Change Password buttons with validation.
 - **Import Modal**: File upload area, column mapping table, validation results, import button with progress.
 - **Create/Edit Member Form**: Modal or drawer with form fields, validation, save/cancel.
 

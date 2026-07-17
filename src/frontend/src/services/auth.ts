@@ -47,3 +47,11 @@ export async function register(data: {
   const res = await api.post('/auth/register', data);
   return res.data.data;
 }
+
+export async function changePassword(data: {
+  currentPassword: string;
+  newPassword: string;
+}): Promise<{ message: string }> {
+  const res = await api.patch('/auth/change-password', data);
+  return res.data.data;
+}

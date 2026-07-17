@@ -11,6 +11,7 @@ const router = Router();
 router.use(authenticate, tenantIsolation);
 
 router.get("/me", requireMinRole("member"), memberController.getMe);
+router.put("/me", requireMinRole("member"), validate(memberSchemas.updateMe), memberController.updateMe);
 router.get("/", requireMinRole("staff"), memberController.list);
 router.get("/export", requireMinRole("staff"), memberController.exportCsv);
 router.get("/:id", requireMinRole("staff"), memberController.getById);

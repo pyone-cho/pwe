@@ -18,6 +18,11 @@ export async function getMyMember(): Promise<Member> {
   return res.data.data;
 }
 
+export async function updateMyProfile(data: Partial<Member>): Promise<Member> {
+  const res = await api.put('/members/me', data);
+  return res.data.data;
+}
+
 export async function listMembers(filters: MemberFilters = {}): Promise<MemberListResponse> {
   const res = await api.get('/members', { params: buildParams(filters) });
   return res.data.data;
