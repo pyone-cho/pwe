@@ -82,7 +82,7 @@ See [docs/fix-issue/](docs/fix-issue/) for detailed fix documentation.
    - **Step 1: Basic Info** — Enter title, description, location, start/end dates, and optional capacity. End date must be after start date.
    - **Step 2: Registration** — Set registration mode (public/members/both), enable payment if needed, set amount in MMK.
    - **Step 3: Custom Fields** — Add dynamic fields (text, select, checkbox) for the registration form.
-   - **Step 4: Review** — Review all details, then save as draft or publish immediately.
+   - **Step 4: Review** — Review all details with formatted dates/times, then save as draft or publish immediately.
 2. **Event List** — View events in card or table format. Tabs show Upcoming, Past, and Drafts. Each card shows title, date, location, registration count vs capacity, and status badge.
 3. **Event Detail** — Click an event to see stats (registrations, attendance, revenue), manage registrations, track attendance, and record payments.
 4. **Status Management** — Change event status: Draft → Published → Completed or Cancelled. Cancelled events show a red badge and disable registration.
