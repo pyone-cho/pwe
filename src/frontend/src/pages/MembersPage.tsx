@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { isAxiosError } from 'axios';
 import { listMembers, createMember, updateMember, updateMemberStatus } from '@/services/members';
 import { Button, Input, Select, Modal, Badge, Pagination, EmptyState, Card, PageHeader, Section } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
@@ -31,6 +32,42 @@ export default function MembersPage() {
     emergencyContact: '',
     notes: '',
   });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const validateMember = (): boolean => {
+    const errors: Record<string, string> = {};
+    if (!form.firstName.trim()) errors.firstName = 'First name is required';
+    if (!form.lastName.trim()) errors.lastName = 'Last name is required';
+    if (!form.phone.trim()) errors.phone = 'Phone is required';
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = 'Invalid email format';
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const extractBackendErrors = (err: unknown): string => {
+    if (isAxiosError(err) && err.response?.data) {
+      const data = err.response.data as { error?: string; details?: { field: string; message: string }[] };
+      if (data.details && Array.isArray(data.details)) {
+        const errors: Record<string, string> = {};
+        data.details.forEach((d) => {
+          const field = d.field.replace('body.', '');
+          errors[field] = d.message;
+        });
+        setFieldErrors(errors);
+        return 'Please fix the form errors below';
+      }
+      if (data.error) return data.error;
+    }
+    return 'An unexpected error occurred';
+  };
+
+  const clearFieldError = (field: string) => {
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   const fetchMembers = async () => {
     setIsLoading(true);
@@ -62,18 +99,20 @@ export default function MembersPage() {
   const resetForm = () => {
     setForm({ firstName: '', lastName: '', phone: '', email: '', membershipType: '', emergencyContact: '', notes: '' });
     setEditingMember(null);
+    setFieldErrors({});
   };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateMember()) return;
     try {
       await createMember(form);
       toast('Member created', 'success');
       setShowCreateModal(false);
       resetForm();
       fetchMembers();
-    } catch {
-      toast('Failed to create member', 'error');
+    } catch (err: unknown) {
+      toast(extractBackendErrors(err), 'error');
     }
   };
 
@@ -88,12 +127,14 @@ export default function MembersPage() {
       emergencyContact: member.emergencyContact || '',
       notes: member.notes || '',
     });
+    setFieldErrors({});
     setShowCreateModal(true);
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingMember) return;
+    if (!validateMember()) return;
     try {
       await updateMember(editingMember.id, {
         ...form,
@@ -103,8 +144,8 @@ export default function MembersPage() {
       setShowCreateModal(false);
       resetForm();
       fetchMembers();
-    } catch {
-      toast('Failed to update member', 'error');
+    } catch (err: unknown) {
+      toast(extractBackendErrors(err), 'error');
     }
   };
 
@@ -233,27 +274,31 @@ export default function MembersPage() {
             <Input
               label="First Name"
               value={form.firstName}
-              onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+              onChange={(e) => { setForm({ ...form, firstName: e.target.value }); clearFieldError('firstName'); }}
+              error={fieldErrors.firstName}
               required
             />
             <Input
               label="Last Name"
               value={form.lastName}
-              onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+              onChange={(e) => { setForm({ ...form, lastName: e.target.value }); clearFieldError('lastName'); }}
+              error={fieldErrors.lastName}
               required
             />
           </div>
           <Input
             label="Phone"
             value={form.phone}
-            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            onChange={(e) => { setForm({ ...form, phone: e.target.value }); clearFieldError('phone'); }}
+            error={fieldErrors.phone}
             required
           />
           <Input
             label="Email"
             type="email"
             value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            onChange={(e) => { setForm({ ...form, email: e.target.value }); clearFieldError('email'); }}
+            error={fieldErrors.email}
           />
           <Select
             label="Membership Type"

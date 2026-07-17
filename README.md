@@ -60,6 +60,7 @@ See [Feature-spec.md](Feature-spec.md) for detailed user stories and acceptance 
 - **Phone Validation**: Organization Settings phone field validates input format (digits and symbols only)
 - **Members Filter & Search**: Status filter and search box on Members page now correctly refetch data
 - **Signup Validation**: Organization creation form shows inline field errors and descriptive backend error messages
+- **Member Creation Validation**: Member create/edit forms show inline field errors and descriptive backend error messages
 
 See [docs/fix-issue/](docs/fix-issue/) for detailed fix documentation.
 
