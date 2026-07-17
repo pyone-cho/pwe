@@ -50,6 +50,11 @@ export async function updateMemberStatus(id: string, status: string): Promise<vo
   await api.patch(`/members/${id}/status`, { status });
 }
 
+export async function resetMemberPassword(id: string): Promise<string> {
+  const res = await api.patch(`/members/${id}/reset-password`);
+  return res.data.data.temporaryPassword;
+}
+
 export async function importMembers(file: File): Promise<{
   imported: number;
   skipped: number;

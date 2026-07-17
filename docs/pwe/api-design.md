@@ -253,6 +253,24 @@ Toggle member status (active/inactive/suspended).
 
 ---
 
+### PATCH /api/v1/members/:id/reset-password
+Reset a member's password. Generates a random temporary password, hashes it, updates the user's credentials, and revokes all existing refresh tokens (forcing re-login).
+
+**Response:** `200 OK`
+```json
+{
+  "temporaryPassword": "a3f1b2c4"
+}
+```
+
+**Errors:**
+- `400` — Member has no linked user account
+- `404` — Member not found
+
+**Auth:** admin
+
+---
+
 ### POST /api/v1/members/import
 Bulk import members from CSV.
 

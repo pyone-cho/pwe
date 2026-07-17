@@ -75,6 +75,15 @@ export class MemberController {
       next(error);
     }
   }
+
+  async resetPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await memberService.resetPassword(req.orgId!, req.params.id);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const memberController = new MemberController();

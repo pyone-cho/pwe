@@ -103,6 +103,17 @@
 - [ ] Download starts immediately for small lists (<1000)
 - [ ] Large exports queued and download link shown
 
+**US-2.5: Reset Member Password**
+> As an **admin**, I want to **reset a member's password** so that **I can help members who are locked out of their account**.
+
+**Acceptance Criteria:**
+- [ ] "Reset Password" button on each member row (admin only)
+- [ ] Confirmation dialog shows member name and warns that current password will stop working
+- [ ] On confirm: generates a random temporary password
+- [ ] Shows temporary password with a copy button for admin to share
+- [ ] Member's existing refresh tokens are revoked (forced re-login)
+- [ ] Error shown if member has no linked user account
+
 ### API Endpoints
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
@@ -111,6 +122,7 @@
 | POST | /api/v1/members | admin, staff | Create member |
 | PUT | /api/v1/members/:id | admin, staff | Update member |
 | PATCH | /api/v1/members/:id/status | admin | Toggle status |
+| PATCH | /api/v1/members/:id/reset-password | admin | Reset member password |
 | POST | /api/v1/members/import | admin | Bulk import CSV |
 | GET | /api/v1/members/export | admin, staff | Export as CSV/Excel |
 

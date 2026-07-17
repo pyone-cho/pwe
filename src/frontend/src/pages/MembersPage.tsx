@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { isAxiosError } from 'axios';
-import { listMembers, createMember, updateMember, updateMemberStatus } from '@/services/members';
+import { listMembers, createMember, updateMember, updateMemberStatus, resetMemberPassword } from '@/services/members';
 import { Button, Input, Select, Modal, Badge, Pagination, EmptyState, Card, PageHeader, Section } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { usePagination } from '@/hooks/usePagination';
@@ -33,6 +33,9 @@ export default function MembersPage() {
     notes: '',
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [resetModalMember, setResetModalMember] = useState<Member | null>(null);
+  const [resetPassword, setResetPassword] = useState<string | null>(null);
+  const [isResetting, setIsResetting] = useState(false);
 
   const validateMember = (): boolean => {
     const errors: Record<string, string> = {};
@@ -161,6 +164,20 @@ export default function MembersPage() {
     }
   };
 
+  const handleResetPassword = async () => {
+    if (!resetModalMember) return;
+    setIsResetting(true);
+    try {
+      const password = await resetMemberPassword(resetModalMember.id);
+      setResetPassword(password);
+    } catch {
+      toast('Failed to reset password', 'error');
+      setResetModalMember(null);
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-slide-up">
       <PageHeader
@@ -248,6 +265,9 @@ export default function MembersPage() {
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2">
                           <Button variant="ghost" size="sm" onClick={() => handleEdit(m)}>Edit</Button>
+                          <Button variant="ghost" size="sm" onClick={() => { setResetModalMember(m); setResetPassword(null); }}>
+                            Reset Password
+                          </Button>
                           <Button variant="ghost" size="sm" onClick={() => handleStatusToggle(m)}>
                             {m.membershipStatus === 'active' ? 'Deactivate' : 'Activate'}
                           </Button>
@@ -329,6 +349,68 @@ export default function MembersPage() {
             <Button type="submit">{editingMember ? 'Update' : 'Create'}</Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Reset Password Modal */}
+      <Modal
+        isOpen={!!resetModalMember}
+        onClose={() => { setResetModalMember(null); setResetPassword(null); }}
+        title="Reset Password"
+        size="sm"
+      >
+        {resetPassword ? (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Password has been reset for <strong>{resetModalMember?.firstName} {resetModalMember?.lastName}</strong>.
+            </p>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Temporary Password</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={resetPassword}
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 font-mono text-sm"
+                />
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    navigator.clipboard.writeText(resetPassword);
+                    toast('Copied to clipboard', 'success');
+                  }}
+                >
+                  Copy
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500">
+              Share this password with the member. They will be forced to re-login.
+            </p>
+            <div className="flex justify-end pt-2">
+              <Button onClick={() => { setResetModalMember(null); setResetPassword(null); }}>
+                Done
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Generate a new temporary password for <strong>{resetModalMember?.firstName} {resetModalMember?.lastName}</strong>?
+            </p>
+            <p className="text-xs text-gray-500">
+              Their current password will stop working and they will be forced to re-login.
+            </p>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="ghost" onClick={() => setResetModalMember(null)}>
+                Cancel
+              </Button>
+              <Button variant="danger" onClick={handleResetPassword} disabled={isResetting}>
+                {isResetting ? 'Resetting...' : 'Reset Password'}
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );
