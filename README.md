@@ -63,6 +63,7 @@ See [Feature-spec.md](Feature-spec.md) for detailed user stories and acceptance 
 - **Members Filter & Search** (Issue #42): Status filter and search box on Members page correctly refetch data
 - **Signup Validation** (Issue #43): Organization creation form shows inline field errors and descriptive backend error messages
 - **Member Creation Validation** (Issue #44): Member create/edit forms show inline field errors and descriptive backend error messages
+- **Login Error Handling** (Issue #45): Login page shows inline field errors and no longer reloads on failed login
 
 See [docs/fix-issue/](docs/fix-issue/) for detailed fix documentation.
 
