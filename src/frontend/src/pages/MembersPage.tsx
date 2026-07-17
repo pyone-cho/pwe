@@ -19,6 +19,7 @@ export default function MembersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [searchTrigger, setSearchTrigger] = useState(0);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [form, setForm] = useState({
@@ -51,11 +52,11 @@ export default function MembersPage() {
 
   useEffect(() => {
     fetchMembers();
-  }, [page, statusFilter]);
+  }, [page, statusFilter, search, searchTrigger]);
 
   const handleSearch = () => {
     goToPage(1);
-    fetchMembers();
+    setSearchTrigger((t) => t + 1);
   };
 
   const resetForm = () => {

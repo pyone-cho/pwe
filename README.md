@@ -58,6 +58,7 @@ See [Feature-spec.md](Feature-spec.md) for detailed user stories and acceptance 
 - **Token Refresh**: Axios interceptor correctly unwraps nested response path (`data.data.accessToken`) for token refresh
 - **Refresh Instance**: Token refresh uses configured `api` instance instead of raw `axios` for consistent headers and baseURL
 - **Phone Validation**: Organization Settings phone field validates input format (digits and symbols only)
+- **Members Filter & Search**: Status filter and search box on Members page now correctly refetch data
 
 See [docs/fix-issue/](docs/fix-issue/) for detailed fix documentation.
 
