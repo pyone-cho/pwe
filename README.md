@@ -288,11 +288,15 @@ See [security.md](security.md) for full details.
 
 **Key practices:**
 - JWT with 15-min access tokens + refresh token rotation
+- **Required environment variables**: `JWT_SECRET` and `REFRESH_TOKEN_SECRET` must be set (application fails to start without them)
+- Generate secure secrets: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`
 - bcrypt password hashing (cost factor 12)
 - RBAC roles: Admin → Staff → Member → Guest
 - Tenant isolation on every query
 - Rate limiting on all endpoints
 - TLS everywhere, security headers via nginx
+
+See [docs/fix-issue/issue-25-weak-jwt-secrets.md](docs/fix-issue/issue-25-weak-jwt-secrets.md) for JWT security fix details.
 
 ---
 
