@@ -56,6 +56,7 @@ See [Feature-spec.md](Feature-spec.md) for detailed user stories and acceptance 
 - **Event Dates**: End date/time must be after start date/time (validated on both frontend and backend)
 - **JWT Security**: Required environment variables enforced at startup (no fallback secrets)
 - **Token Refresh**: Axios interceptor correctly unwraps nested response path (`data.data.accessToken`) for token refresh
+- **Refresh Instance**: Token refresh uses configured `api` instance instead of raw `axios` for consistent headers and baseURL
 
 See [docs/fix-issue/](docs/fix-issue/) for detailed fix documentation.
 
