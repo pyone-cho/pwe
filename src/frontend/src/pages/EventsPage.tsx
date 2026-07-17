@@ -3,11 +3,13 @@ import { Button, Modal, Input, Textarea, Select, Badge, Pagination, EmptyState, 
 import { usePagination } from '@/hooks/usePagination';
 import { useAuth } from '@/hooks/useAuth';
 import { useEventsPage } from '@/hooks/useEventsPage';
+import { useToast } from '@/components/ui/Toast';
 import { formatDate } from '@/lib/utils';
 
 export default function EventsPage() {
   const { page, limit, meta, setMeta, goToPage } = usePagination();
   const { user } = useAuth();
+  const { toast } = useToast();
   const {
     events,
     isLoading,
@@ -379,7 +381,18 @@ export default function EventsPage() {
                 </Button>
               </>
             ) : (
-              <Button onClick={() => setStep((s) => s + 1)}>
+              <Button onClick={() => {
+                // Validate dates on step 1
+                if (step === 1 && form.startDate && form.endDate) {
+                  const startDate = new Date(form.startDate);
+                  const endDate = new Date(form.endDate);
+                  if (endDate <= startDate) {
+                    toast('End date must be after start date', 'error');
+                    return;
+                  }
+                }
+                setStep((s) => s + 1);
+              }}>
                 Next
               </Button>
             )}

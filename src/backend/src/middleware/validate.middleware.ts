@@ -111,7 +111,17 @@ export const eventSchemas = {
         required: z.boolean().optional(),
       })).optional(),
     }),
-  }),
+  }).refine(
+    (data) => {
+      const { startDate, endDate } = data.body;
+      if (!endDate || endDate === "") return true;
+      return new Date(endDate) > new Date(startDate);
+    },
+    {
+      message: "End date must be after start date",
+      path: ["body", "endDate"],
+    }
+  ),
   update: z.object({
     params: z.object({ id: z.string().uuid() }),
     body: z.object({
@@ -131,7 +141,17 @@ export const eventSchemas = {
       paymentAmount: z.number().positive().optional(),
       customFields: z.array(z.any()).optional(),
     }),
-  }),
+  }).refine(
+    (data) => {
+      const { startDate, endDate } = data.body;
+      if (!startDate || !endDate || endDate === "") return true;
+      return new Date(endDate) > new Date(startDate);
+    },
+    {
+      message: "End date must be after start date",
+      path: ["body", "endDate"],
+    }
+  ),
 };
 
 export const registrationSchemas = {

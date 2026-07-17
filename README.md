@@ -51,6 +51,13 @@ See [tech-stack.md](tech-stack.md) for detailed rationale and alternatives.
 
 See [Feature-spec.md](Feature-spec.md) for detailed user stories and acceptance criteria.
 
+### Validation
+
+- **Event Dates**: End date/time must be after start date/time (validated on both frontend and backend)
+- **JWT Security**: Required environment variables enforced at startup (no fallback secrets)
+
+See [docs/fix-issue/](docs/fix-issue/) for detailed fix documentation.
+
 ---
 
 ## User Guide
@@ -72,7 +79,7 @@ See [Feature-spec.md](Feature-spec.md) for detailed user stories and acceptance 
 ### Creating Events
 
 1. **Create Event** — Click "Create Event" to open the 4-step wizard:
-   - **Step 1: Basic Info** — Enter title, description, location, start/end dates, and optional capacity.
+   - **Step 1: Basic Info** — Enter title, description, location, start/end dates, and optional capacity. End date must be after start date.
    - **Step 2: Registration** — Set registration mode (public/members/both), enable payment if needed, set amount in MMK.
    - **Step 3: Custom Fields** — Add dynamic fields (text, select, checkbox) for the registration form.
    - **Step 4: Review** — Review all details, then save as draft or publish immediately.
