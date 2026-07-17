@@ -16,6 +16,8 @@ PWE helps sports clubs, university societies, community groups, and NGOs manage 
 | [API Design](api-design.md) | REST API endpoint reference (40+ endpoints) |
 | [Database Schema](database-schema.md) | ER diagram, table definitions, indexes |
 | [Deployment](deployment.md) | Docker setup, CI/CD, server provisioning, backups |
+| [Local Deploy](src/local-deploy/README.md) | Local Docker development environment setup |
+| [Dev Deploy](src/dev-deployment/README.md) | DigitalOcean dev/staging deployment with SSL |
 | [Security](security.md) | Auth flow, RBAC, tenant isolation, security checklist |
 | [Pre-Production](pwe-pre-production.txt) | Original product requirements document |
 
@@ -140,20 +142,20 @@ See [docs/fix-issue/](docs/fix-issue/) for detailed fix documentation.
 
 ```bash
 # Clone
-git clone https://github.com/your-org/pwe.git
-cd pwe/src/dev-deployment
+git clone https://github.com/pyone-cho/pwe.git
+cd pwe/src/local-deploy
 
 # Setup environment
 cp .env.example .env
 
 # Start services
-docker compose -f docker-compose.dev.yml up --build
+make build
 
 # Run migrations
-docker compose -f docker-compose.dev.yml exec backend npx prisma migrate dev
+make migrate
 
 # Seed data (optional)
-docker compose -f docker-compose.dev.yml exec backend npx prisma db seed
+make seed
 ```
 
 **Services:**
@@ -162,7 +164,7 @@ docker compose -f docker-compose.dev.yml exec backend npx prisma db seed
 - Prisma Studio: http://localhost:5555
 - Swagger UI: http://localhost/api/v1/docs
 
-See [dev-deployment/README.md](src/dev-deployment/README.md) for full setup guide and [deployment.md](deployment.md) for production deployment.
+See [local-deploy/README.md](src/local-deploy/README.md) for full setup guide and [dev-deployment/README.md](src/dev-deployment/README.md) for DigitalOcean dev deployment.
 
 ---
 
@@ -256,15 +258,19 @@ See [architecture.md](architecture.md) and [security.md](security.md) for detail
 ### Deploy
 
 ```bash
+# Local development
+cd src/local-deploy
+make build
+
 # Dev deployment (on DigitalOcean droplet)
 cd src/dev-deployment
-docker compose -f docker-compose.dev.yml up -d --build
+make build
 
 # Production (main branch)
 git push origin main
 ```
 
-See [dev-deployment/README.md](src/dev-deployment/README.md) for DigitalOcean setup and [deployment.md](deployment.md) for CI/CD pipeline and backup strategy.
+See [local-deploy/README.md](src/local-deploy/README.md) for local setup, [dev-deployment/README.md](src/dev-deployment/README.md) for DigitalOcean dev deployment, and [deployment.md](deployment.md) for CI/CD pipeline and backup strategy.
 
 ---
 
