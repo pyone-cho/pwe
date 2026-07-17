@@ -51,16 +51,16 @@ See [tech-stack.md](tech-stack.md) for detailed rationale and alternatives.
 
 See [Feature-spec.md](Feature-spec.md) for detailed user stories and acceptance criteria.
 
-### Validation
+### Bug Fixes
 
-- **Event Dates**: End date/time must be after start date/time (validated on both frontend and backend)
-- **JWT Security**: Required environment variables enforced at startup (no fallback secrets)
-- **Token Refresh**: Axios interceptor correctly unwraps nested response path (`data.data.accessToken`) for token refresh
-- **Refresh Instance**: Token refresh uses configured `api` instance instead of raw `axios` for consistent headers and baseURL
-- **Phone Validation**: Organization Settings phone field validates input format (digits and symbols only)
-- **Members Filter & Search**: Status filter and search box on Members page now correctly refetch data
-- **Signup Validation**: Organization creation form shows inline field errors and descriptive backend error messages
-- **Member Creation Validation**: Member create/edit forms show inline field errors and descriptive backend error messages
+- **Event Dates** (Issue #26): End date/time must be after start date/time (validated on both frontend and backend)
+- **JWT Security** (Issue #25): Required environment variables enforced at startup (no fallback secrets)
+- **Token Refresh Path** (Issue #29): Axios interceptor correctly unwraps nested response path (`data.data.accessToken`)
+- **Refresh Instance** (Issue #30): Token refresh uses configured `api` instance instead of raw `axios`
+- **Phone Validation** (Issue #36): Organization Settings phone field validates input format (digits and symbols only)
+- **Members Filter & Search** (Issue #42): Status filter and search box on Members page correctly refetch data
+- **Signup Validation** (Issue #43): Organization creation form shows inline field errors and descriptive backend error messages
+- **Member Creation Validation** (Issue #44): Member create/edit forms show inline field errors and descriptive backend error messages
 
 See [docs/fix-issue/](docs/fix-issue/) for detailed fix documentation.
 

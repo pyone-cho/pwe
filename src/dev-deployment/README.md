@@ -432,3 +432,14 @@ src/dev-deployment/
 │   └── dev.pwe-mm.site.key  # privkey.pem from certbot
 └── README.md                # This file
 ```
+
+---
+
+## Recent Changes
+
+| Date | Change | Details |
+|------|--------|---------|
+| 2026-07-17 | JWT Security Fix | Removed weak fallback secrets; `JWT_SECRET` and `REFRESH_TOKEN_SECRET` are now required |
+| 2026-07-17 | SSL Certbot Support | Added `setup-ssl.sh`, `renew-ssl.sh`, `certbot-renew-hook.sh`, and `fix-ssl.sh` |
+| 2026-07-17 | Nginx Config | Updated for SSL termination, rate limiting, and security headers |
+| 2026-07-17 | Validation Fixes | Phone validation, member filter/search, signup and member creation error feedback |
