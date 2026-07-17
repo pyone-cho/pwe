@@ -13,14 +13,31 @@ function buildParams(filters: EventFilters): Record<string, string> {
   return params;
 }
 
+/** Map backend _count shape to the frontend registeredCount field */
+function mapEvent(e: any): Event {
+  return {
+    ...e,
+    registeredCount: e._count?.registrations ?? e.registeredCount ?? 0,
+  };
+}
+
+function mapEventList(res: any): EventListResponse {
+  const body = res.data ?? res;
+  const events = (body.data ?? []).map(mapEvent);
+  return {
+    data: events,
+    meta: body.pagination ?? body.meta,
+  };
+}
+
 export async function listEvents(filters: EventFilters = {}): Promise<EventListResponse> {
   const res = await api.get('/events', { params: buildParams(filters) });
-  return res.data.data;
+  return mapEventList(res.data);
 }
 
 export async function getEvent(id: string): Promise<Event> {
   const res = await api.get(`/events/${id}`);
-  return res.data.data;
+  return mapEvent(res.data.data);
 }
 
 export async function createEvent(data: {
@@ -50,10 +67,10 @@ export async function updateEventStatus(id: string, status: string): Promise<voi
 
 export async function listPublicEvents(slug: string, page = 1): Promise<EventListResponse> {
   const res = await api.get('/events/public', { params: { slug, page } });
-  return res.data.data;
+  return mapEventList(res.data);
 }
 
 export async function getPublicEvent(id: string): Promise<Event> {
   const res = await api.get(`/events/public/${id}`);
-  return res.data.data;
+  return mapEvent(res.data.data);
 }
