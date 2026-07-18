@@ -296,20 +296,25 @@ make build
 
 ## Environment Variables
 
-| Variable               | Description                    | Default                                       |
-|------------------------|--------------------------------|-----------------------------------------------|
-| `POSTGRES_DB`          | Database name                  | `pwe_dev`                                     |
-| `POSTGRES_USER`        | Database user                  | `pwe_dev`                                     |
-| `POSTGRES_PASSWORD`    | Database password              | `dev_password`                                |
-| `DATABASE_URL`         | PostgreSQL connection string   | `postgresql://pwe_dev:dev_password@db:5432/pwe_dev` |
-| `JWT_SECRET`           | Access token secret            | `dev-jwt-secret-not-for-production`           |
-| `JWT_EXPIRES_IN`       | Access token expiry            | `15m`                                         |
-| `REFRESH_TOKEN_SECRET` | Refresh token secret           | `dev-refresh-secret-not-for-production`       |
-| `REFRESH_TOKEN_EXPIRES_IN` | Refresh token expiry      | `7d`                                          |
-| `PORT`                 | Backend port                   | `3000`                                        |
-| `NODE_ENV`             | Environment                    | `development`                                 |
-| `FRONTEND_URL`         | CORS origin                    | `https://dev.pwe-mm.site`                     |
-| `VITE_API_URL`         | Frontend API base URL          | `https://dev.pwe-mm.site/api/v1`             |
+| Variable               | Description                    | Default                                       | Required |
+|------------------------|--------------------------------|-----------------------------------------------|----------|
+| `POSTGRES_DB`          | Database name                  | `pwe_dev`                                     | Yes      |
+| `POSTGRES_USER`        | Database user                  | `pwe_dev`                                     | Yes      |
+| `POSTGRES_PASSWORD`    | Database password              | `dev_password`                                | Yes      |
+| `DATABASE_URL`         | PostgreSQL connection string   | `postgresql://pwe_dev:dev_password@db:5432/pwe_dev` | Yes |
+| `JWT_SECRET`           | Access token secret            | —                                             | **Yes**  |
+| `JWT_EXPIRES_IN`       | Access token expiry            | `15m`                                         | No       |
+| `REFRESH_TOKEN_SECRET` | Refresh token secret           | —                                             | **Yes**  |
+| `REFRESH_TOKEN_EXPIRES_IN` | Refresh token expiry      | `7d`                                          | No       |
+| `PORT`                 | Backend port                   | `3000`                                        | No       |
+| `NODE_ENV`             | Environment                    | `development`                                 | No       |
+| `FRONTEND_URL`         | CORS origin                    | `https://dev.pwe-mm.site`                     | Yes      |
+| `VITE_API_URL`         | Frontend API base URL          | `https://dev.pwe-mm.site/api/v1`             | Yes      |
+
+> **⚠️ Security**: `JWT_SECRET` and `REFRESH_TOKEN_SECRET` are **required** — no fallback values allowed. The application will fail to start without them. Generate secure secrets with:
+> ```bash
+> openssl rand -base64 64
+> ```
 
 ---
 
@@ -427,3 +432,15 @@ src/dev-deployment/
 │   └── dev.pwe-mm.site.key  # privkey.pem from certbot
 └── README.md                # This file
 ```
+
+---
+
+## Recent Changes
+
+| Date | Change | Details |
+|------|--------|---------|
+| 2026-07-17 | Member Self-Service Profile Edit | Added `PUT /api/v1/members/me` and `PATCH /api/v1/auth/change-password` endpoints with edit profile and password change modals on member dashboard |
+| 2026-07-17 | JWT Security Fix | Removed weak fallback secrets; `JWT_SECRET` and `REFRESH_TOKEN_SECRET` are now required |
+| 2026-07-17 | SSL Certbot Support | Added `setup-ssl.sh`, `renew-ssl.sh`, `certbot-renew-hook.sh`, and `fix-ssl.sh` |
+| 2026-07-17 | Nginx Config | Updated for SSL termination, rate limiting, and security headers |
+| 2026-07-17 | Validation Fixes | Phone validation, member filter/search, signup and member creation error feedback |

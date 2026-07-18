@@ -1,3 +1,5 @@
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import prisma from "../prisma/client";
 import { AppError } from "../middleware/errorHandler";
 import { PaginationQuery, PaginatedResponse } from "../types";
@@ -61,6 +63,21 @@ export class MemberService {
     }
 
     return member;
+  }
+
+  async updateMe(orgId: string, userId: string, data: any) {
+    const member = await prisma.member.findFirst({
+      where: { orgId, userId },
+    });
+
+    if (!member) {
+      throw new AppError(404, "Member profile not found");
+    }
+
+    return prisma.member.update({
+      where: { id: member.id },
+      data,
+    });
   }
 
   async getById(orgId: string, id: string) {
@@ -131,6 +148,39 @@ export class MemberService {
       where: { id },
       data: { membershipStatus: status },
     });
+  }
+
+  async resetPassword(orgId: string, memberId: string) {
+    const member = await prisma.member.findFirst({
+      where: { id: memberId, orgId },
+      include: { user: true },
+    });
+
+    if (!member) {
+      throw new AppError(404, "Member not found");
+    }
+
+    if (!member.user) {
+      throw new AppError(400, "This member has no linked user account");
+    }
+
+    // Generate random 8-character temporary password
+    const temporaryPassword = crypto.randomBytes(4).toString("hex");
+
+    // Hash and update password
+    const passwordHash = await bcrypt.hash(temporaryPassword, 12);
+    await prisma.user.update({
+      where: { id: member.user.id },
+      data: { passwordHash },
+    });
+
+    // Revoke all existing refresh tokens (force re-login)
+    await prisma.refreshToken.updateMany({
+      where: { userId: member.user.id, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+
+    return { temporaryPassword };
   }
 
   async importCsv(orgId: string, records: any[]) {

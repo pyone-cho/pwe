@@ -11,6 +11,15 @@ export class MemberController {
     }
   }
 
+  async updateMe(req: Request, res: Response, next: NextFunction) {
+    try {
+      const member = await memberService.updateMe(req.orgId!, req.user!.userId, req.body);
+      res.json({ success: true, data: member });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async list(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await memberService.list(req.orgId!, req.query as any);
@@ -71,6 +80,15 @@ export class MemberController {
       res.setHeader("Content-Type", "text/csv");
       res.setHeader("Content-Disposition", "attachment; filename=members.csv");
       res.send(csv);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async resetPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await memberService.resetPassword(req.orgId!, req.params.id);
+      res.json({ success: true, data: result });
     } catch (error) {
       next(error);
     }

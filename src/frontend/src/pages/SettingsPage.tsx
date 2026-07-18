@@ -36,8 +36,25 @@ export default function SettingsPage() {
       .finally(() => setIsLoading(false));
   }, [orgFromAuth]);
 
+  const [phoneError, setPhoneError] = useState('');
+
+  const validatePhone = (value: string): boolean => {
+    if (!value) {
+      setPhoneError('');
+      return true;
+    }
+    const phoneRegex = /^[+]?[\d\s\-()]+$/;
+    if (!phoneRegex.test(value)) {
+      setPhoneError('Phone must contain only numbers and symbols (+, -, (, ))');
+      return false;
+    }
+    setPhoneError('');
+    return true;
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validatePhone(form.phone)) return;
     setIsSaving(true);
     try {
       await updateOrganization(form);
@@ -75,8 +92,16 @@ export default function SettingsPage() {
           <Input
             label="Phone"
             value={form.phone}
-            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            onChange={(e) => {
+              setForm({ ...form, phone: e.target.value });
+              validatePhone(e.target.value);
+            }}
+            pattern="[+]?[\d\s\-()]+"
+            title="Phone must contain only numbers and symbols (+, -, (, ))"
           />
+          {phoneError && (
+            <p className="text-sm text-red-500">{phoneError}</p>
+          )}
 
           {org && (
             <div className="pt-4 border-t border-gray-200">

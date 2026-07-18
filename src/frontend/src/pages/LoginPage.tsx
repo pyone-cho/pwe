@@ -1,26 +1,31 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Button, Input } from '@/components/ui';
-import { useToast } from '@/components/ui/Toast';
+import { Button } from '@/components/ui';
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
     setIsLoading(true);
     try {
       await login(form.email, form.password);
       navigate('/dashboard');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Login failed';
-      toast(msg, 'error');
+      // Show inline field errors for credential issues
+      if (msg.toLowerCase().includes('invalid email or password')) {
+        setErrors({ email: 'Invalid email or password', password: 'Invalid email or password' });
+      } else {
+        setErrors({ general: msg });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -86,6 +91,12 @@ export default function LoginPage() {
           {/* Form card */}
           <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8">
             <form onSubmit={handleSubmit} className="space-y-5">
+              {errors.general && (
+                <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+                  {errors.general}
+                </div>
+              )}
+
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-gray-700">Email</label>
                 <div className="relative">
@@ -98,11 +109,16 @@ export default function LoginPage() {
                     type="email"
                     placeholder="admin@example.com"
                     value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    onChange={(e) => { setForm({ ...form, email: e.target.value }); setErrors(prev => ({ ...prev, email: undefined, general: undefined })); }}
                     required
-                    className="block w-full rounded-lg border border-gray-200 bg-white pl-11 pr-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 hover:border-gray-300 transition-colors"
+                    className={`block w-full rounded-lg border bg-white pl-11 pr-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-colors ${
+                      errors.email
+                        ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
+                        : 'border-gray-200 focus:border-brand-500 focus:ring-brand-500/20 hover:border-gray-300'
+                    }`}
                   />
                 </div>
+                {errors.email && <p className="text-xs text-red-600">{errors.email}</p>}
               </div>
 
               <div className="space-y-1.5">
@@ -117,9 +133,13 @@ export default function LoginPage() {
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
                     value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    onChange={(e) => { setForm({ ...form, password: e.target.value }); setErrors(prev => ({ ...prev, password: undefined, general: undefined })); }}
                     required
-                    className="block w-full rounded-lg border border-gray-200 bg-white pl-11 pr-11 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 hover:border-gray-300 transition-colors"
+                    className={`block w-full rounded-lg border bg-white pl-11 pr-11 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-colors ${
+                      errors.password
+                        ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
+                        : 'border-gray-200 focus:border-brand-500 focus:ring-brand-500/20 hover:border-gray-300'
+                    }`}
                   />
                   <button
                     type="button"
@@ -138,6 +158,7 @@ export default function LoginPage() {
                     )}
                   </button>
                 </div>
+                {errors.password && <p className="text-xs text-red-600">{errors.password}</p>}
               </div>
 
               <Button type="submit" isLoading={isLoading} className="w-full" size="lg">

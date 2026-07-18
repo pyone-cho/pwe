@@ -102,7 +102,7 @@ Revoke refresh token.
 
 ---
 
-### GET /api/v1/auth/me
+### GET /api/v1/auth/profile
 Get current user profile.
 
 **Response:** `200 OK`
@@ -114,9 +114,39 @@ Get current user profile.
     "role": "admin",
     "orgId": "...",
     "profile": { "firstName": "Ko", "lastName": "Thant" }
+  },
+  "organization": {
+    "id": "...",
+    "name": "Yangon Sports Club",
+    "slug": "yangon-sports"
   }
 }
 ```
+
+**Auth:** Authenticated
+
+---
+
+### PATCH /api/v1/auth/change-password
+Change the authenticated user's password. Verifies current password, hashes new one, and revokes all refresh tokens (forcing re-login).
+
+**Request Body:**
+```json
+{
+  "currentPassword": "oldPassword123",
+  "newPassword": "newSecurePassword456"
+}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "message": "Password changed successfully"
+}
+```
+
+**Errors:**
+- `400` — Current password is incorrect
 
 **Auth:** Authenticated
 
@@ -165,6 +195,49 @@ Update organization settings.
 ---
 
 ## 3. Members
+
+### GET /api/v1/members/me
+Get the authenticated member's own profile (including recent registrations).
+
+**Response:** `200 OK`
+```json
+{
+  "id": "...",
+  "firstName": "Aung",
+  "lastName": "Myo",
+  "phone": "+95 9...",
+  "email": "aung@email.com",
+  "membershipStatus": "active",
+  "membershipType": "regular",
+  "joinDate": "2026-01-15",
+  "registrations": [...]
+}
+```
+
+**Auth:** member, staff, admin
+
+---
+
+### PUT /api/v1/members/me
+Update the authenticated member's own profile. Members cannot change `membershipType` or `membershipStatus` (admin-controlled).
+
+**Request Body:**
+```json
+{
+  "firstName": "Aung",
+  "lastName": "Myo",
+  "phone": "+95 9 1234 5678",
+  "email": "aung@email.com",
+  "emergencyContact": "Daw May (+95 9 9999 0000)",
+  "notes": "Prefers morning events"
+}
+```
+
+**Response:** `200 OK` — Updated member record
+
+**Auth:** member, staff, admin
+
+---
 
 ### GET /api/v1/members
 List members with filtering, search, and pagination.
@@ -248,6 +321,24 @@ Toggle member status (active/inactive/suspended).
 ```
 
 **Response:** `200 OK`
+
+**Auth:** admin
+
+---
+
+### PATCH /api/v1/members/:id/reset-password
+Reset a member's password. Generates a random temporary password, hashes it, updates the user's credentials, and revokes all existing refresh tokens (forcing re-login).
+
+**Response:** `200 OK`
+```json
+{
+  "temporaryPassword": "a3f1b2c4"
+}
+```
+
+**Errors:**
+- `400` — Member has no linked user account
+- `404` — Member not found
 
 **Auth:** admin
 

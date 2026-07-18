@@ -18,6 +18,11 @@ export async function getMyMember(): Promise<Member> {
   return res.data.data;
 }
 
+export async function updateMyProfile(data: Partial<Member>): Promise<Member> {
+  const res = await api.put('/members/me', data);
+  return res.data.data;
+}
+
 export async function listMembers(filters: MemberFilters = {}): Promise<MemberListResponse> {
   const res = await api.get('/members', { params: buildParams(filters) });
   return res.data.data;
@@ -48,6 +53,11 @@ export async function updateMember(id: string, data: Partial<Member>): Promise<M
 
 export async function updateMemberStatus(id: string, status: string): Promise<void> {
   await api.patch(`/members/${id}/status`, { status });
+}
+
+export async function resetMemberPassword(id: string): Promise<string> {
+  const res = await api.patch(`/members/${id}/reset-password`);
+  return res.data.data.temporaryPassword;
 }
 
 export async function importMembers(file: File): Promise<{

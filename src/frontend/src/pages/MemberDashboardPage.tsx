@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Card, CardContent, Section, EmptyState, Badge } from '@/components/ui';
-import { getMyMember } from '@/services/members';
+import { Card, CardContent, Section, EmptyState, Badge, Modal, Input, Button } from '@/components/ui';
+import { getMyMember, updateMyProfile } from '@/services/members';
+import { changePassword } from '@/services/auth';
 import { listEvents } from '@/services/events';
 import { listAnnouncements } from '@/services/announcements';
 import { formatDate } from '@/lib/utils';
@@ -16,6 +17,28 @@ export default function MemberDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [expandedAnnouncement, setExpandedAnnouncement] = useState<string | null>(null);
 
+  // Edit profile modal state
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    email: '',
+    emergencyContact: '',
+    notes: '',
+  });
+  const [editErrors, setEditErrors] = useState<Record<string, string>>({});
+  const [isEditSaving, setIsEditSaving] = useState(false);
+
+  // Password change fields (inside edit profile modal)
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>({});
+  const [isPasswordSaving, setIsPasswordSaving] = useState(false);
+
   useEffect(() => {
     Promise.all([
       getMyMember().catch(() => null),
@@ -28,6 +51,86 @@ export default function MemberDashboardPage() {
       setIsLoading(false);
     });
   }, []);
+
+  const openEditModal = () => {
+    if (member) {
+      setEditForm({
+        firstName: member.firstName || '',
+        lastName: member.lastName || '',
+        phone: member.phone || '',
+        email: member.email || '',
+        emergencyContact: member.emergencyContact || '',
+        notes: member.notes || '',
+      });
+      setEditErrors({});
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setPasswordErrors({});
+      setIsEditOpen(true);
+    }
+  };
+
+  const handleEditSave = async () => {
+    const errors: Record<string, string> = {};
+    if (!editForm.firstName.trim()) errors.firstName = 'First name is required';
+    if (!editForm.phone.trim()) errors.phone = 'Phone is required';
+    if (editForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editForm.email)) {
+      errors.email = 'Invalid email address';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setEditErrors(errors);
+      return;
+    }
+
+    setIsEditSaving(true);
+    try {
+      const updated = await updateMyProfile({
+        firstName: editForm.firstName.trim(),
+        lastName: editForm.lastName.trim() || undefined,
+        phone: editForm.phone.trim(),
+        email: editForm.email.trim() || undefined,
+        emergencyContact: editForm.emergencyContact.trim() || undefined,
+        notes: editForm.notes.trim() || undefined,
+      });
+      setMember(updated);
+      setIsEditOpen(false);
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || 'Failed to update profile';
+      setEditErrors({ general: msg });
+    } finally {
+      setIsEditSaving(false);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    const errors: Record<string, string> = {};
+    if (!passwordForm.currentPassword) errors.currentPassword = 'Current password is required';
+    if (!passwordForm.newPassword) errors.newPassword = 'New password is required';
+    else if (passwordForm.newPassword.length < 8) errors.newPassword = 'Password must be at least 8 characters';
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setPasswordErrors(errors);
+      return;
+    }
+
+    setIsPasswordSaving(true);
+    try {
+      await changePassword({
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      });
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setPasswordErrors({});
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || 'Failed to change password';
+      setPasswordErrors({ general: msg });
+    } finally {
+      setIsPasswordSaving(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -125,7 +228,16 @@ export default function MemberDashboardPage() {
       {/* Membership Info + Quick Actions */}
       {member && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Section title="My Membership" description="Your membership details" className="lg:col-span-2">
+          <Section
+            title="My Membership"
+            description="Your membership details"
+            className="lg:col-span-2"
+            action={
+              <Button variant="outline" size="sm" onClick={openEditModal}>
+                Edit Profile
+              </Button>
+            }
+          >
             <div className="flex items-start gap-5">
               <div className="h-14 w-14 rounded-xl bg-brand-500 flex items-center justify-center text-lg font-semibold text-white shrink-0">
                 {member.firstName?.[0]}{member.lastName?.[0] || ''}
@@ -168,18 +280,18 @@ export default function MemberDashboardPage() {
 
           <Section title="Quick Actions">
             <div className="space-y-2">
-              <Link
-                to="/memberDashboard"
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors group"
+              <button
+                onClick={openEditModal}
+                className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors group text-left"
               >
                 <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center">
-                  <span className="text-base">📅</span>
+                  <span className="text-base">✏️</span>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Member Dashboard</p>
-                  <p className="text-xs text-gray-500">Access your member profile and settings</p>
+                  <p className="text-sm font-medium text-gray-900">Edit Profile</p>
+                  <p className="text-xs text-gray-500">Update your personal information and password</p>
                 </div>
-              </Link>
+              </button>
               <Link
                 to="/events"
                 className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors group"
@@ -345,6 +457,104 @@ export default function MemberDashboardPage() {
           )}
         </Section>
       </div>
+
+      {/* Edit Profile Modal */}
+      <Modal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} title="Edit Profile" size="md">
+        <div className="space-y-4">
+          {editErrors.general && (
+            <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+              {editErrors.general}
+            </div>
+          )}
+          <Input
+            label="First Name"
+            value={editForm.firstName}
+            onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
+            error={editErrors.firstName}
+            placeholder="Enter first name"
+          />
+          <Input
+            label="Last Name"
+            value={editForm.lastName}
+            onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
+            placeholder="Enter last name (optional)"
+          />
+          <Input
+            label="Phone"
+            value={editForm.phone}
+            onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+            error={editErrors.phone}
+            placeholder="Enter phone number"
+          />
+          <Input
+            label="Email"
+            type="email"
+            value={editForm.email}
+            onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+            error={editErrors.email}
+            placeholder="Enter email (optional)"
+          />
+          <Input
+            label="Emergency Contact"
+            value={editForm.emergencyContact}
+            onChange={(e) => setEditForm({ ...editForm, emergencyContact: e.target.value })}
+            placeholder="Emergency contact name and phone"
+          />
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-gray-700">Notes</label>
+            <textarea
+              value={editForm.notes}
+              onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+              rows={3}
+              className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 transition-all duration-200 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 hover:border-gray-300"
+              placeholder="Additional notes (optional)"
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="ghost" onClick={() => setIsEditOpen(false)}>Cancel</Button>
+            <Button variant="primary" onClick={handleEditSave} isLoading={isEditSaving}>Save Changes</Button>
+          </div>
+
+          {/* Password Change Section */}
+          <div className="border-t border-gray-200 pt-4 mt-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Change Password</h3>
+            {passwordErrors.general && (
+              <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700 mb-3">
+                {passwordErrors.general}
+              </div>
+            )}
+            <div className="space-y-3">
+              <Input
+                label="Current Password"
+                type="password"
+                value={passwordForm.currentPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                error={passwordErrors.currentPassword}
+                placeholder="Enter current password"
+              />
+              <Input
+                label="New Password"
+                type="password"
+                value={passwordForm.newPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                error={passwordErrors.newPassword}
+                placeholder="Enter new password (min 8 characters)"
+              />
+              <Input
+                label="Confirm New Password"
+                type="password"
+                value={passwordForm.confirmPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                error={passwordErrors.confirmPassword}
+                placeholder="Confirm new password"
+              />
+            </div>
+            <div className="flex justify-end gap-3 pt-3">
+              <Button variant="outline" size="sm" onClick={handlePasswordChange} isLoading={isPasswordSaving}>Change Password</Button>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -11,6 +11,8 @@ Backend API for the PWE Event Management System built with Express.js, TypeScrip
 - **Database**: PostgreSQL 16
 - **Auth**: JWT (access + refresh tokens)
 
+> **⚠️ Security Note**: `JWT_SECRET` and `REFRESH_TOKEN_SECRET` environment variables are **required**. The application will fail to start if they are not set. See [docs/fix-issue/issue-25-weak-jwt-secrets.md](../../docs/fix-issue/issue-25-weak-jwt-secrets.md) for details.
+
 ## Project Structure
 
 ```
@@ -46,6 +48,15 @@ npm install
 
 ```bash
 cp .env.example .env
+
+# Generate secure JWT secrets (REQUIRED - app won't start without them)
+JWT_SECRET=$(node -e "console.log(require('crypto').randomBytes(64).toString('hex'))")
+REFRESH_TOKEN_SECRET=$(node -e "console.log(require('crypto').randomBytes(64).toString('hex'))")
+
+# Update .env with generated secrets
+sed -i "s|GENERATE-A-SECURE-RANDOM-STRING|$JWT_SECRET|" .env
+sed -i "s|GENERATE-A-SECURE-RANDOM-STRING|$REFRESH_TOKEN_SECRET|" .env
+
 # Edit .env with your database credentials
 ```
 

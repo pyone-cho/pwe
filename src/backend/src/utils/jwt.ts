@@ -2,10 +2,14 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { JwtPayload, TokenPair } from "../types";
 
-const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret";
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "15m";
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "fallback-refresh-secret";
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
 const REFRESH_TOKEN_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN || "7d";
+
+if (!JWT_SECRET || !REFRESH_TOKEN_SECRET) {
+  throw new Error("JWT_SECRET and REFRESH_TOKEN_SECRET must be set in environment variables");
+}
 
 export function generateAccessToken(payload: JwtPayload): string {
   return jwt.sign(payload, JWT_SECRET, {

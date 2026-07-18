@@ -15,5 +15,6 @@ router.post("/refresh", authLimiter, validate(authSchemas.refreshToken), authCon
 // Protected routes
 router.post("/logout", authenticate, authController.logout);
 router.get("/profile", authenticate, authController.getProfile);
+router.patch("/change-password", authenticate, validate(authSchemas.changePassword), authController.changePassword);
 
 export default router;

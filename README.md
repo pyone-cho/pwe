@@ -16,6 +16,8 @@ PWE helps sports clubs, university societies, community groups, and NGOs manage 
 | [API Design](api-design.md) | REST API endpoint reference (40+ endpoints) |
 | [Database Schema](database-schema.md) | ER diagram, table definitions, indexes |
 | [Deployment](deployment.md) | Docker setup, CI/CD, server provisioning, backups |
+| [Local Deploy](src/local-deploy/README.md) | Local Docker development environment setup |
+| [Dev Deploy](src/dev-deployment/README.md) | DigitalOcean dev/staging deployment with SSL |
 | [Security](security.md) | Auth flow, RBAC, tenant isolation, security checklist |
 | [Pre-Production](pwe-pre-production.txt) | Original product requirements document |
 
@@ -51,6 +53,20 @@ See [tech-stack.md](tech-stack.md) for detailed rationale and alternatives.
 
 See [Feature-spec.md](Feature-spec.md) for detailed user stories and acceptance criteria.
 
+### Bug Fixes
+
+- **Event Dates** (Issue #26): End date/time must be after start date/time (validated on both frontend and backend)
+- **JWT Security** (Issue #25): Required environment variables enforced at startup (no fallback secrets)
+- **Token Refresh Path** (Issue #29): Axios interceptor correctly unwraps nested response path (`data.data.accessToken`)
+- **Refresh Instance** (Issue #30): Token refresh uses configured `api` instance instead of raw `axios`
+- **Phone Validation** (Issue #36): Organization Settings phone field validates input format (digits and symbols only)
+- **Members Filter & Search** (Issue #42): Status filter and search box on Members page correctly refetch data
+- **Signup Validation** (Issue #43): Organization creation form shows inline field errors and descriptive backend error messages
+- **Member Creation Validation** (Issue #44): Member create/edit forms show inline field errors and descriptive backend error messages
+- **Login Error Handling** (Issue #45): Login page shows inline field errors and no longer reloads on failed login
+
+See [docs/fix-issue/](docs/fix-issue/) for detailed fix documentation.
+
 ---
 
 ## User Guide
@@ -72,10 +88,10 @@ See [Feature-spec.md](Feature-spec.md) for detailed user stories and acceptance 
 ### Creating Events
 
 1. **Create Event** — Click "Create Event" to open the 4-step wizard:
-   - **Step 1: Basic Info** — Enter title, description, location, start/end dates, and optional capacity.
+   - **Step 1: Basic Info** — Enter title, description, location, start/end dates, and optional capacity. End date must be after start date.
    - **Step 2: Registration** — Set registration mode (public/members/both), enable payment if needed, set amount in MMK.
    - **Step 3: Custom Fields** — Add dynamic fields (text, select, checkbox) for the registration form.
-   - **Step 4: Review** — Review all details, then save as draft or publish immediately.
+   - **Step 4: Review** — Review all details with formatted dates/times, then save as draft or publish immediately.
 2. **Event List** — View events in card or table format. Tabs show Upcoming, Past, and Drafts. Each card shows title, date, location, registration count vs capacity, and status badge.
 3. **Event Detail** — Click an event to see stats (registrations, attendance, revenue), manage registrations, track attendance, and record payments.
 4. **Status Management** — Change event status: Draft → Published → Completed or Cancelled. Cancelled events show a red badge and disable registration.
@@ -127,20 +143,20 @@ See [Feature-spec.md](Feature-spec.md) for detailed user stories and acceptance 
 
 ```bash
 # Clone
-git clone https://github.com/your-org/pwe.git
-cd pwe/src/dev-deployment
+git clone https://github.com/pyone-cho/pwe.git
+cd pwe/src/local-deploy
 
 # Setup environment
 cp .env.example .env
 
 # Start services
-docker compose -f docker-compose.dev.yml up --build
+make build
 
 # Run migrations
-docker compose -f docker-compose.dev.yml exec backend npx prisma migrate dev
+make migrate
 
 # Seed data (optional)
-docker compose -f docker-compose.dev.yml exec backend npx prisma db seed
+make seed
 ```
 
 **Services:**
@@ -149,7 +165,7 @@ docker compose -f docker-compose.dev.yml exec backend npx prisma db seed
 - Prisma Studio: http://localhost:5555
 - Swagger UI: http://localhost/api/v1/docs
 
-See [dev-deployment/README.md](src/dev-deployment/README.md) for full setup guide and [deployment.md](deployment.md) for production deployment.
+See [local-deploy/README.md](src/local-deploy/README.md) for full setup guide and [dev-deployment/README.md](src/dev-deployment/README.md) for DigitalOcean dev deployment.
 
 ---
 
@@ -243,15 +259,19 @@ See [architecture.md](architecture.md) and [security.md](security.md) for detail
 ### Deploy
 
 ```bash
+# Local development
+cd src/local-deploy
+make build
+
 # Dev deployment (on DigitalOcean droplet)
 cd src/dev-deployment
-docker compose -f docker-compose.dev.yml up -d --build
+make build
 
 # Production (main branch)
 git push origin main
 ```
 
-See [dev-deployment/README.md](src/dev-deployment/README.md) for DigitalOcean setup and [deployment.md](deployment.md) for CI/CD pipeline and backup strategy.
+See [local-deploy/README.md](src/local-deploy/README.md) for local setup, [dev-deployment/README.md](src/dev-deployment/README.md) for DigitalOcean dev deployment, and [deployment.md](deployment.md) for CI/CD pipeline and backup strategy.
 
 ---
 
@@ -288,11 +308,15 @@ See [security.md](security.md) for full details.
 
 **Key practices:**
 - JWT with 15-min access tokens + refresh token rotation
+- **Required environment variables**: `JWT_SECRET` and `REFRESH_TOKEN_SECRET` must be set (application fails to start without them)
+- Generate secure secrets: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`
 - bcrypt password hashing (cost factor 12)
 - RBAC roles: Admin → Staff → Member → Guest
 - Tenant isolation on every query
 - Rate limiting on all endpoints
 - TLS everywhere, security headers via nginx
+
+See [docs/fix-issue/issue-25-weak-jwt-secrets.md](docs/fix-issue/issue-25-weak-jwt-secrets.md) for JWT security fix details.
 
 ---
 

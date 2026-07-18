@@ -3,11 +3,13 @@ import { Button, Modal, Input, Textarea, Select, Badge, Pagination, EmptyState, 
 import { usePagination } from '@/hooks/usePagination';
 import { useAuth } from '@/hooks/useAuth';
 import { useEventsPage } from '@/hooks/useEventsPage';
-import { formatDate } from '@/lib/utils';
+import { useToast } from '@/components/ui/Toast';
+import { formatDate, formatDateTime } from '@/lib/utils';
 
 export default function EventsPage() {
   const { page, limit, meta, setMeta, goToPage } = usePagination();
   const { user } = useAuth();
+  const { toast } = useToast();
   const {
     events,
     isLoading,
@@ -349,7 +351,10 @@ export default function EventsPage() {
             <div className="bg-gray-50 rounded-lg p-4 space-y-2">
               <p><span className="font-medium">Title:</span> {form.title}</p>
               <p><span className="font-medium">Location:</span> {form.location || '—'}</p>
-              <p><span className="font-medium">Dates:</span> {form.startDate} → {form.endDate}</p>
+              <p><span className="font-medium">Start:</span> {formatDateTime(form.startDate)}</p>
+              {form.endDate && (
+                <p><span className="font-medium">End:</span> {formatDateTime(form.endDate)}</p>
+              )}
               <p><span className="font-medium">Capacity:</span> {form.capacity || 'Unlimited'}</p>
               <p><span className="font-medium">Registration:</span> {form.registrationMode}</p>
               {form.requiresPayment && (
@@ -379,7 +384,18 @@ export default function EventsPage() {
                 </Button>
               </>
             ) : (
-              <Button onClick={() => setStep((s) => s + 1)}>
+              <Button onClick={() => {
+                // Validate dates on step 1
+                if (step === 1 && form.startDate && form.endDate) {
+                  const startDate = new Date(form.startDate);
+                  const endDate = new Date(form.endDate);
+                  if (endDate <= startDate) {
+                    toast('End date must be after start date', 'error');
+                    return;
+                  }
+                }
+                setStep((s) => s + 1);
+              }}>
                 Next
               </Button>
             )}
