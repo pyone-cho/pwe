@@ -1,4 +1,4 @@
-.PHONY: up down restart logs build seed migrate reset shell status clean help
+.PHONY: up down restart logs logs-caddy build seed migrate reset shell status clean help
 
 COMPOSE = docker compose
 
@@ -25,6 +25,9 @@ logs-backend: ## Follow backend logs
 
 logs-frontend: ## Follow frontend logs
 	$(COMPOSE) logs -f frontend
+
+logs-caddy: ## Follow caddy logs
+	$(COMPOSE) logs -f caddy
 
 migrate: ## Run database migrations
 	$(COMPOSE) exec backend npx prisma migrate deploy

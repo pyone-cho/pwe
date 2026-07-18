@@ -29,6 +29,8 @@ docker compose exec backend npx prisma db seed
 
 Open http://localhost in your browser.
 
+> **Note:** Caddy serves as the reverse proxy on port 80, routing to the frontend and backend containers.
+
 ## Using Make
 
 ```bash

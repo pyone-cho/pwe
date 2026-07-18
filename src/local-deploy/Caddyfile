@@ -1,0 +1,26 @@
+# Local development reverse proxy (HTTP only, no SSL)
+:80 {
+	# API proxy
+	reverse_proxy /api/* backend:3000 {
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+
+	# Swagger docs
+	reverse_proxy /docs backend:3000
+	reverse_proxy /docs.json backend:3000
+
+	# Health check
+	reverse_proxy /health backend:3000
+
+	# Frontend (Vite dev server with WebSocket HMR)
+	reverse_proxy frontend:5173 {
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+
+	# Compression
+	encode gzip
+}
