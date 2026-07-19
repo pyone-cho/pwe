@@ -42,8 +42,9 @@ app.use(compression());
 // Rate limiting
 app.use("/api/", apiLimiter);
 
-// Static files for uploads
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+// Static files for uploads (require auth)
+import { authenticate } from "./middleware/auth.middleware";
+app.use("/uploads", authenticate, express.static(path.join(__dirname, "../uploads")));
 
 // Swagger UI — disabled in production
 if (process.env.NODE_ENV !== "production") {

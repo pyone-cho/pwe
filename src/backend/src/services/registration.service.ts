@@ -49,6 +49,11 @@ export class RegistrationService {
       throw new AppError(400, "Event is not open for registration");
     }
 
+    // Enforce registration mode
+    if (event.registrationMode === "member" && !data.memberId) {
+      throw new AppError(403, "This event is restricted to members only");
+    }
+
     // Check capacity and create registration atomically
     if (event.capacity) {
       return prisma.$transaction(async (tx) => {

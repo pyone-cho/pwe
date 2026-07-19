@@ -12,7 +12,7 @@ export class AppError extends Error {
 }
 
 export function errorHandler(err: Error, req: Request, res: Response, _next: NextFunction): void {
-  console.error("Error:", err);
+  console.error("Error:", err.message, process.env.NODE_ENV === "development" ? err.stack : "");
 
   if (err instanceof AppError) {
     res.status(err.statusCode).json({

@@ -133,7 +133,12 @@ export const eventSchemas = {
       status: z.enum(["draft", "published", "cancelled", "completed"]).optional(),
       requiresPayment: z.boolean().optional(),
       paymentAmount: z.number().positive().optional(),
-      customFields: z.array(z.any()).optional(),
+      customFields: z.array(z.object({
+        name: z.string().max(255),
+        type: z.enum(["text", "select", "checkbox"]),
+        options: z.array(z.string()).optional(),
+        required: z.boolean().optional(),
+      })).optional(),
     }),
   }),
 };
@@ -146,7 +151,7 @@ export const registrationSchemas = {
       guestName: z.string().max(200).optional(),
       guestEmail: z.string().email().optional(),
       guestPhone: z.string().max(20).optional(),
-      formData: z.record(z.any()).optional(),
+      formData: z.record(z.string().max(1000)).optional(),
     }),
   }),
 };
@@ -158,6 +163,17 @@ export const paymentSchemas = {
       eventId: z.string().uuid().optional(),
       registrationId: z.string().uuid().optional(),
       amount: z.number().positive(),
+      currency: z.string().max(3).optional(),
+      paymentMethod: z.enum(["cash", "bank_transfer", "mobile_money", "other"]).optional(),
+      referenceNumber: z.string().max(100).optional(),
+      notes: z.string().optional(),
+      paidAt: z.string().datetime().optional(),
+    }),
+  }),
+  update: z.object({
+    params: z.object({ id: z.string().uuid() }),
+    body: z.object({
+      amount: z.number().positive().optional(),
       currency: z.string().max(3).optional(),
       paymentMethod: z.enum(["cash", "bank_transfer", "mobile_money", "other"]).optional(),
       referenceNumber: z.string().max(100).optional(),
