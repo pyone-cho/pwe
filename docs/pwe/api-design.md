@@ -6,7 +6,7 @@
 
 - **Auth**: Bearer JWT in `Authorization` header (access token) + httpOnly cookie (refresh token)
 - **Tenant**: `orgId` extracted from JWT, applied automatically via middleware
-- **Pagination**: `?page=1&limit=20` — response includes `{ data, meta: { total, page, limit, pages } }`
+- **Pagination**: `?page=1&limit=20` — response includes `{ data, meta: { total, page, limit, totalPages } }`
 - **Filtering**: `?status=active&search=john` — field-specific filters
 - **Sorting**: `?sort=created_at&order=desc`
 - **Dates**: ISO 8601 format (`2026-07-05T10:00:00Z`)
@@ -53,8 +53,7 @@ Authenticate user and return tokens.
 ```json
 {
   "email": "admin@yangonsports.com",
-  "password": "securePassword123",
-  "slug": "yangon-sports"
+  "password": "SecurePass123"
 }
 ```
 
@@ -189,7 +188,7 @@ List members with filtering, search, and pagination.
       "joinDate": "2026-01-15"
     }
   ],
-  "meta": { "total": 45, "page": 1, "limit": 20, "pages": 3 }
+  "meta": { "total": 45, "page": 1, "limit": 20, "totalPages": 3 }
 }
 ```
 
@@ -311,7 +310,7 @@ List events for the organization.
       "registeredCount": 18
     }
   ],
-  "meta": { "total": 12, "page": 1, "limit": 20, "pages": 1 }
+  "meta": { "total": 12, "page": 1, "limit": 20, "totalPages": 1 }
 }
 ```
 
@@ -451,11 +450,11 @@ List registrations for an event.
 ---
 
 ### PATCH /api/v1/registrations/:id/cancel
-Cancel a registration.
+Cancel a registration. Staff can cancel any registration; members can cancel their own via the `/events/:eventId/register/member` DELETE endpoint.
 
 **Response:** `200 OK`
 
-**Auth:** admin, staff, or the registrant themselves
+**Auth:** admin, staff
 
 ---
 
@@ -769,16 +768,18 @@ Change a user's role.
 
 ## Error Codes
 
+All error responses follow the format: `{ success: false, error: { code: string, message: string } }`
+
 | Code | HTTP Status | Description |
 |------|-------------|-------------|
 | `UNAUTHORIZED` | 401 | Missing or invalid token |
 | `FORBIDDEN` | 403 | Insufficient permissions |
 | `NOT_FOUND` | 404 | Resource not found |
 | `VALIDATION_ERROR` | 400 | Request validation failed |
-| `DUPLICATE` | 409 | Resource already exists |
+| `CONFLICT` | 409 | Resource already exists |
 | `TENANT_MISMATCH` | 403 | Attempting to access cross-org data |
 | `RATE_LIMITED` | 429 | Too many requests |
-| `INTERNAL_ERROR` | 500 | Server error |
+| `INTERNAL_ERROR` | 500 | Server error (no internal details leaked) |
 
 ---
 

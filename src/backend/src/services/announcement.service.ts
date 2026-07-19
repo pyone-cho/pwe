@@ -1,14 +1,29 @@
 import prisma from "../prisma/client";
 import { AppError } from "../middleware/errorHandler";
 import { PaginationQuery, PaginatedResponse } from "../types";
+import { Prisma, Announcement } from "@prisma/client";
+
+export interface AnnouncementCreateInput {
+  title: string;
+  content: string;
+  eventId?: string;
+  priority?: string;
+}
+
+export interface AnnouncementUpdateInput {
+  title?: string;
+  content?: string;
+  eventId?: string;
+  priority?: string;
+}
 
 export class AnnouncementService {
-  async list(orgId: string, query: PaginationQuery): Promise<PaginatedResponse<any>> {
+  async list(orgId: string, query: PaginationQuery): Promise<PaginatedResponse<Announcement>> {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    const where: any = { orgId };
+    const where: Prisma.AnnouncementWhereInput = { orgId };
 
     const [announcements, total] = await Promise.all([
       prisma.announcement.findMany({
@@ -55,7 +70,7 @@ export class AnnouncementService {
     return announcement;
   }
 
-  async create(orgId: string, data: any, userId: string) {
+  async create(orgId: string, data: AnnouncementCreateInput, userId: string) {
     return prisma.announcement.create({
       data: {
         orgId,
@@ -65,7 +80,7 @@ export class AnnouncementService {
     });
   }
 
-  async update(orgId: string, id: string, data: any) {
+  async update(orgId: string, id: string, data: AnnouncementUpdateInput) {
     const announcement = await prisma.announcement.findFirst({
       where: { id, orgId },
     });
@@ -89,7 +104,7 @@ export class AnnouncementService {
       throw new AppError(404, "Announcement not found");
     }
 
-    const updateData: any = { status };
+    const updateData: Prisma.AnnouncementUpdateInput = { status };
 
     if (status === "published" && !announcement.publishedAt) {
       updateData.publishedAt = new Date();

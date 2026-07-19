@@ -4,7 +4,7 @@ import { announcementService } from "../services/announcement.service";
 export class AnnouncementController {
   async list(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await announcementService.list(req.orgId!, req.query as any);
+      const result = await announcementService.list(req.orgId!, req.query as import("../types").PaginationQuery);
       res.json({ success: true, data: result });
     } catch (error) {
       next(error);

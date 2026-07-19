@@ -33,7 +33,9 @@ export const authSchemas = {
       orgName: z.string().min(2).max(255),
       slug: z.string().min(2).max(100).regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with hyphens"),
       email: z.string().email(),
-      password: z.string().min(8),
+      password: z.string().min(8).max(128)
+        .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+        .regex(/[0-9]/, "Password must contain at least one number"),
       firstName: z.string().min(1).max(100),
       lastName: z.string().max(100).optional(),
     }),
@@ -56,7 +58,9 @@ export const authSchemas = {
       lastName: z.string().max(100).optional(),
       phone: z.string().min(1).max(20),
       email: z.string().email(),
-      password: z.string().min(8),
+      password: z.string().min(8).max(128)
+        .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+        .regex(/[0-9]/, "Password must contain at least one number"),
     }),
   }),
 };
@@ -170,6 +174,37 @@ export const announcementSchemas = {
       content: z.string().min(1),
       eventId: z.string().uuid().optional(),
       priority: z.enum(["low", "normal", "high", "urgent"]).optional(),
+    }),
+  }),
+  update: z.object({
+    params: z.object({ id: z.string().uuid() }),
+    body: z.object({
+      title: z.string().min(1).max(255).optional(),
+      content: z.string().min(1).optional(),
+      eventId: z.string().uuid().optional(),
+      priority: z.enum(["low", "normal", "high", "urgent"]).optional(),
+    }),
+  }),
+  updateStatus: z.object({
+    params: z.object({ id: z.string().uuid() }),
+    body: z.object({
+      status: z.enum(["draft", "published", "archived"]),
+    }),
+  }),
+};
+
+export const orgSchemas = {
+  update: z.object({
+    body: z.object({
+      name: z.string().min(1).max(255).optional(),
+      description: z.string().max(1000).optional(),
+      phone: z.string().max(20).optional(),
+      logo: z.string().max(500).optional(),
+      settings: z.object({
+        timezone: z.string().optional(),
+        locale: z.string().optional(),
+        defaultEventSettings: z.record(z.unknown()).optional(),
+      }).optional(),
     }),
   }),
 };

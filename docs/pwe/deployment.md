@@ -244,31 +244,25 @@ volumes:
 
 ### .env.example
 
+> A `.env.example` file is provided in `src/backend/` with all required variables.
+
 ```bash
 # === Database ===
-DB_PASSWORD=change-me-to-a-strong-password
+POSTGRES_USER=pwe_user
+POSTGRES_PASSWORD=change-me-in-production
+POSTGRES_DB=pwe_dev
+DATABASE_URL=postgresql://pwe_user:change-me-in-production@db:5432/pwe_dev
 
-# === Authentication ===
-JWT_SECRET=change-me-to-a-random-64-char-string
-REFRESH_TOKEN_SECRET=change-me-to-another-random-64-char-string
+# === Authentication (REQUIRED — app won't start without these) ===
+JWT_SECRET=change-me-to-a-random-string
+JWT_EXPIRES_IN=15m
+REFRESH_TOKEN_SECRET=change-me-to-another-random-string
+REFRESH_TOKEN_EXPIRES_IN=7d
 
 # === Application ===
 NODE_ENV=development
 PORT=3000
 FRONTEND_URL=http://localhost:5173
-
-# === File Upload ===
-UPLOAD_DIR=/app/uploads
-MAX_FILE_SIZE=5242880  # 5MB
-
-# === Email (Future) ===
-# SMTP_HOST=smtp.gmail.com
-# SMTP_PORT=587
-# SMTP_USER=
-# SMTP_PASS=
-
-# === Monitoring (Future) ===
-# GRAFANA_PASSWORD=admin
 ```
 
 ### Generating Secrets

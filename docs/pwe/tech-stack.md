@@ -13,7 +13,7 @@
 | CSS | Tailwind CSS | 3.x |
 | Database | PostgreSQL | 16 |
 | ORM | Prisma | 6.x |
-| Auth | JWT + bcrypt | — |
+| Auth | JWT + bcryptjs | — |
 | HTTP Client | Axios | 1.x |
 | Forms | Formik + Zod | — |
 | Containerization | Docker + Docker Compose | — |
@@ -94,9 +94,10 @@
 - **Token strategy**: Short-lived access tokens (15 min) + longer-lived refresh tokens (7 days) stored in httpOnly cookies.
 - **Alternatives**: Session-based (requires server-side store), OAuth (overkill for MVP — add later for social login).
 
-### Password Hashing: bcrypt
-- **Why**: Industry standard, salted by default, slow enough to resist brute force.
+### Password Hashing: bcryptjs
+- **Why**: Pure JavaScript implementation of bcrypt — no native compilation required, works reliably in Docker Alpine containers.
 - **Cost factor**: 12 (configurable via env).
+- **Note**: Using `bcryptjs` (pure JS) instead of `bcrypt` (native) to avoid build dependencies (`python3`, `g++`) in Docker images.
 
 ---
 

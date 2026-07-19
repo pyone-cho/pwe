@@ -2,14 +2,15 @@ import prisma from "../prisma/client";
 import { AppError } from "../middleware/errorHandler";
 import { PaginationQuery, PaginatedResponse } from "../types";
 import { generateCsv, generateAttendanceExportData } from "../utils/export";
+import { Prisma, Attendance } from "@prisma/client";
 
 export class AttendanceService {
-  async listByEvent(orgId: string, eventId: string, query: PaginationQuery): Promise<PaginatedResponse<any>> {
+  async listByEvent(orgId: string, eventId: string, query: PaginationQuery): Promise<PaginatedResponse<Attendance>> {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    const where: any = { orgId, eventId };
+    const where: Prisma.AttendanceWhereInput = { orgId, eventId };
 
     const [attendance, total] = await Promise.all([
       prisma.attendance.findMany({
@@ -89,8 +90,9 @@ export class AttendanceService {
       try {
         const result = await this.checkIn(orgId, eventId, registrationId, userId);
         results.push(result);
-      } catch (error: any) {
-        errors.push({ registrationId, error: error.message });
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Unknown error";
+        errors.push({ registrationId, error: message });
       }
     }
 

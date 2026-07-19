@@ -57,8 +57,8 @@ const isValid = await bcrypt.compare(password, hash);
 ```
 
 **Rules:**
-- Minimum 8 characters
-- At least 1 letter and 1 number (enforced at registration)
+- Minimum 8 characters, maximum 128 characters
+- At least 1 uppercase letter and 1 number (enforced at registration via Zod)
 - Never log passwords or hashes
 - Never return password hash in API responses
 
@@ -296,10 +296,12 @@ add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style
 | Secret | Where Used | Rotation |
 |--------|-----------|----------|
 | DB_PASSWORD | Backend env | Quarterly |
-| JWT_SECRET | Backend env | Quarterly |
-| JWT_REFRESH_SECRET | Backend env | Quarterly |
+| JWT_SECRET | Backend env (required at startup) | Quarterly |
+| REFRESH_TOKEN_SECRET | Backend env (required at startup) | Quarterly |
 | DEPLOY_KEY | GitHub Secrets | On compromise |
 | SMTP_PASS (future) | Backend env | Quarterly |
+
+> **Note:** `JWT_SECRET` and `REFRESH_TOKEN_SECRET` are validated at server startup. The application will refuse to start if either is missing.
 
 ---
 
@@ -339,9 +341,12 @@ add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style
 - [ ] Security headers in nginx
 - [ ] `.env` files in `.gitignore`
 - [ ] No secrets in code or logs
+- [ ] JWT secrets validated at startup (no hardcoded fallbacks)
 - [ ] bcrypt cost factor >= 12
+- [ ] Password complexity enforced (uppercase + number, max 128 chars)
 - [ ] JWT access token expiry <= 15 minutes
 - [ ] Refresh token rotation enabled
+- [ ] Registration capacity check uses database transaction
 - [ ] SQL injection prevented (Prisma parameterized queries)
 - [ ] XSS prevention (input sanitization, CSP headers)
 - [ ] Error messages don't leak internal details

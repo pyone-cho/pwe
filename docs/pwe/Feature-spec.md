@@ -91,7 +91,7 @@
 - [ ] Required fields: first_name, phone. Optional: last_name, email, membership_type
 - [ ] Validation report shows errors per row before import
 - [ ] On import: success count, skip count, error details shown
-- [ ] Max 500 rows per import
+- [ ] Max 10,000 rows per import (server-side limit)
 
 **US-2.4: Export Members**
 > As an **admin**, I want to **export our member list** so that **I can share it with team leads or use it offline**.
@@ -221,7 +221,7 @@
 |--------|------|------|-------------|
 | POST | /api/v1/events/:eventId/register | Public/Auth | Register for event |
 | GET | /api/v1/events/:eventId/registrations | admin, staff | List registrations |
-| PATCH | /api/v1/registrations/:id/cancel | Auth | Cancel registration |
+| PATCH | /api/v1/registrations/:id/cancel | admin, staff | Cancel registration |
 
 ### UI Screens
 - **Registration Form**: Mobile-first card layout. Member: pre-filled form with confirm button. Guest: blank form with name/email/phone + custom fields + submit.

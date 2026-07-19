@@ -32,7 +32,7 @@ export class ReportService {
         type: t.membershipType || "unknown",
         count: t._count,
       })),
-      monthly: monthly.map((row: any) => ({
+      monthly: monthly.map((row: { month: Date | string; count: bigint | number }) => ({
         month: row.month?.toISOString?.() ?? row.month,
         count: Number(row.count),
       })),
@@ -40,7 +40,7 @@ export class ReportService {
   }
 
   async getEventReport(orgId: string, startDate?: string, endDate?: string) {
-    const where: any = { orgId };
+    const where: { orgId: string; startDate?: { gte?: Date; lte?: Date } } = { orgId };
 
     if (startDate || endDate) {
       where.startDate = {};
@@ -105,7 +105,7 @@ export class ReportService {
   }
 
   async getPaymentReport(orgId: string, startDate?: string, endDate?: string) {
-    const where: any = { orgId };
+    const where: { orgId: string; createdAt?: { gte?: Date; lte?: Date } } = { orgId };
 
     if (startDate || endDate) {
       where.createdAt = {};

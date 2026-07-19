@@ -1,14 +1,42 @@
 import prisma from "../prisma/client";
 import { AppError } from "../middleware/errorHandler";
 import { PaginationQuery, PaginatedResponse } from "../types";
+import { Prisma, Event } from "@prisma/client";
+
+export interface EventCreateInput {
+  title: string;
+  description?: string;
+  location?: string;
+  startDate: string;
+  endDate?: string;
+  capacity?: number;
+  registrationMode?: string;
+  requiresPayment?: boolean;
+  paymentAmount?: number;
+  customFields?: unknown[];
+}
+
+export interface EventUpdateInput {
+  title?: string;
+  description?: string;
+  location?: string;
+  startDate?: string;
+  endDate?: string;
+  capacity?: number;
+  registrationMode?: string;
+  status?: string;
+  requiresPayment?: boolean;
+  paymentAmount?: number;
+  customFields?: unknown[];
+}
 
 export class EventService {
-  async list(orgId: string, query: PaginationQuery): Promise<PaginatedResponse<any>> {
+  async list(orgId: string, query: PaginationQuery): Promise<PaginatedResponse<Event>> {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    const where: any = { orgId };
+    const where: Prisma.EventWhereInput = { orgId };
 
     // Search filter
     if (query.search) {
@@ -89,7 +117,7 @@ export class EventService {
     return event;
   }
 
-  async create(orgId: string, data: any, userId: string) {
+  async create(orgId: string, data: EventCreateInput, userId: string) {
     // Convert date strings to Date objects for Prisma
     const processedData = {
       ...data,
@@ -106,7 +134,7 @@ export class EventService {
     });
   }
 
-  async update(orgId: string, id: string, data: any) {
+  async update(orgId: string, id: string, data: EventUpdateInput) {
     const event = await prisma.event.findFirst({
       where: { id, orgId },
     });

@@ -1,14 +1,15 @@
+import { Prisma, Registration } from "@prisma/client";
 import prisma from "../prisma/client";
 import { AppError } from "../middleware/errorHandler";
 import { PaginationQuery, PaginatedResponse } from "../types";
 
 export class RegistrationService {
-  async listByEvent(orgId: string, eventId: string, query: PaginationQuery): Promise<PaginatedResponse<any>> {
+  async listByEvent(orgId: string, eventId: string, query: PaginationQuery): Promise<PaginatedResponse<Registration>> {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    const where: any = { orgId, eventId };
+    const where: Prisma.RegistrationWhereInput = { orgId, eventId };
 
     const [registrations, total] = await Promise.all([
       prisma.registration.findMany({
@@ -34,7 +35,7 @@ export class RegistrationService {
     };
   }
 
-  async create(orgId: string, eventId: string, data: any) {
+  async create(orgId: string, eventId: string, data: { memberId?: string; guestName?: string; guestEmail?: string; guestPhone?: string; formData?: Record<string, unknown> }) {
     // Check if event exists and is open for registration
     const event = await prisma.event.findFirst({
       where: { id: eventId, orgId },
@@ -48,29 +49,45 @@ export class RegistrationService {
       throw new AppError(400, "Event is not open for registration");
     }
 
-    // Check capacity
+    // Check capacity and create registration atomically
     if (event.capacity) {
-      const registrationCount = await prisma.registration.count({
-        where: {
-          eventId,
-          status: { not: "cancelled" },
-        },
-      });
+      return prisma.$transaction(async (tx) => {
+        const registrationCount = await tx.registration.count({
+          where: {
+            eventId,
+            status: { not: "cancelled" },
+          },
+        });
 
-      if (registrationCount >= event.capacity) {
-        // Add to waitlist
-        return prisma.registration.create({
+        const status = registrationCount >= event.capacity! ? "waitlisted" : "registered";
+
+        // Check for duplicate registration
+        if (data.memberId) {
+          const existing = await tx.registration.findFirst({
+            where: {
+              eventId,
+              memberId: data.memberId,
+              status: { not: "cancelled" },
+            },
+          });
+
+          if (existing) {
+            throw new AppError(409, "Already registered for this event");
+          }
+        }
+
+        return tx.registration.create({
           data: {
             eventId,
             orgId,
             ...data,
-            status: "waitlisted",
+            status,
           },
         });
-      }
+      });
     }
 
-    // Check for duplicate registration
+    // No capacity limit — check for duplicates and create
     if (data.memberId) {
       const existing = await prisma.registration.findFirst({
         where: {

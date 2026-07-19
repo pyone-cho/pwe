@@ -7,7 +7,7 @@ export function usePagination(initialPage = 1, initialLimit = 20) {
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
 
   const nextPage = useCallback(() => {
-    if (meta && page < meta.pages) setPage((p) => p + 1);
+    if (meta && page < meta.totalPages) setPage((p) => p + 1);
   }, [meta, page]);
 
   const prevPage = useCallback(() => {

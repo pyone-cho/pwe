@@ -3,7 +3,7 @@
 export interface User {
   id: string;
   email: string;
-  role: 'admin' | 'staff' | 'member';
+  role: 'admin' | 'staff' | 'member' | 'guest';
   orgId: string;
   profile: {
     firstName: string;
@@ -43,7 +43,7 @@ export interface OrgSettings {
 // ── Members ──
 
 export type MembershipStatus = 'active' | 'inactive' | 'suspended';
-export type MembershipType = 'regular' | 'student' | 'honorary' | 'lifetime';
+export type MembershipType = 'regular' | 'premium' | 'student' | 'honorary' | 'lifetime';
 
 export interface Member {
   id: string;
@@ -245,7 +245,7 @@ export interface PaginationMeta {
   total: number;
   page: number;
   limit: number;
-  pages: number;
+  totalPages: number;
 }
 
 export interface ApiError {

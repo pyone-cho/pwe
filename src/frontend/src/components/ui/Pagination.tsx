@@ -7,7 +7,7 @@ interface PaginationProps {
 }
 
 export default function Pagination({ meta, onPageChange }: PaginationProps) {
-  if (meta.pages <= 1) return null;
+  if (meta.totalPages <= 1) return null;
 
   return (
     <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
@@ -24,10 +24,10 @@ export default function Pagination({ meta, onPageChange }: PaginationProps) {
         >
           Prev
         </Button>
-        {Array.from({ length: Math.min(meta.pages, 5) }, (_, i) => {
-          const start = Math.max(1, Math.min(meta.page - 2, meta.pages - 4));
+        {Array.from({ length: Math.min(meta.totalPages, 5) }, (_, i) => {
+          const start = Math.max(1, Math.min(meta.page - 2, meta.totalPages - 4));
           const pageNum = start + i;
-          if (pageNum > meta.pages) return null;
+          if (pageNum > meta.totalPages) return null;
           return (
             <Button
               key={pageNum}
@@ -42,7 +42,7 @@ export default function Pagination({ meta, onPageChange }: PaginationProps) {
         <Button
           variant="ghost"
           size="sm"
-          disabled={meta.page >= meta.pages}
+          disabled={meta.page >= meta.totalPages}
           onClick={() => onPageChange(meta.page + 1)}
         >
           Next

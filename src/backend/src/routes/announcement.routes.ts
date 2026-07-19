@@ -13,7 +13,7 @@ router.use(authenticate, tenantIsolation);
 router.get("/", requireMinRole("member"), announcementController.list);
 router.get("/:id", requireMinRole("member"), announcementController.getById);
 router.post("/", requireMinRole("staff"), validate(announcementSchemas.create), announcementController.create);
-router.put("/:id", requireMinRole("staff"), announcementController.update);
-router.patch("/:id/status", requireMinRole("staff"), announcementController.updateStatus);
+router.put("/:id", requireMinRole("staff"), validate(announcementSchemas.update), announcementController.update);
+router.patch("/:id/status", requireMinRole("staff"), validate(announcementSchemas.updateStatus), announcementController.updateStatus);
 
 export default router;

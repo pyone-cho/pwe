@@ -21,7 +21,7 @@ export class OrgService {
     phone?: string;
     email?: string;
     address?: string;
-    settings?: any;
+    settings?: Record<string, unknown>;
   }) {
     const org = await prisma.organization.findUnique({
       where: { id: orgId },
