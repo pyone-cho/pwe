@@ -9,25 +9,29 @@
 The PWE codebase demonstrates a **moderate security posture** with strong foundational patterns (Prisma parameterized queries, Zod validation, RBAC middleware, bcrypt hashing) but several critical and high-severity issues that must be remediated before production deployment.
 
 **Finding Counts:**
-| Severity | Count |
-|----------|-------|
-| CRITICAL | 3 |
-| HIGH | 7 |
-| MEDIUM | 12 |
-| LOW | 5 |
-| **Total** | **27** |
+| Severity | Total | Remediated | Deferred |
+|----------|-------|------------|----------|
+| CRITICAL | 3 | 3 | 0 |
+| HIGH | 7 | 6 | 1 |
+| MEDIUM | 12 | 9 | 3 |
+| LOW | 5 | 5 | 0 |
+| **Total** | **27** | **23** | **4** |
 
-**Critical Risks:**
-1. Hardcoded fallback JWT secrets allow token forgery if environment variables are unset
-2. Frontend token refresh parsing bug completely breaks the refresh flow, causing forced logouts
-3. Tokens stored in localStorage expose them to XSS-based session theft
+**Remediation Status:**
+- ✅ **23 findings remediated** across commits `200c8c0` and `add188c`
+- ⏳ **4 findings deferred** (require major refactoring):
+  - #4 Tokens in localStorage → httpOnly cookie migration
+  - #17 Org data in localStorage → JWT-based org resolution
+  - #20 No soft delete → schema migration + Prisma middleware
+  - (Previously noted: #4 and #17 are related to the same httpOnly cookie migration)
 
 ---
 
 ## Findings
 
-### [CRITICAL] Hardcoded Fallback JWT Secrets
+### [CRITICAL] Hardcoded Fallback JWT Secrets ✅ REMEDIATED
 
+- **Remediated in:** `200c8c0` (code review commit)
 - **Location:** `src/backend/src/utils/jwt.ts:5-8`
 - **Category:** Auth
 - **Description:** JWT_SECRET and REFRESH_TOKEN_SECRET fall back to hardcoded strings if environment variables are not set. An attacker who knows or guesses these defaults can forge arbitrary JWT tokens, including admin tokens for any organization.
@@ -52,8 +56,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [CRITICAL] Frontend Token Refresh Response Parsing Bug
+### [CRITICAL] Frontend Token Refresh Response Parsing Bug ✅ REMEDIATED
 
+- **Remediated in:** `add188c` (security audit commit)
 - **Location:** `src/frontend/src/lib/axios.ts:29-31`
 - **Category:** Auth
 - **Description:** The 401 interceptor incorrectly extracts tokens from the refresh response. The backend returns `{ success: true, data: { accessToken, refreshToken } }`, but the code reads `data.accessToken` instead of `data.data.accessToken`. This means `accessToken` and `refreshToken` are set to `undefined`, which wipes the stored tokens and forces a redirect to `/login`.
@@ -78,8 +83,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [CRITICAL] Hardcoded Database Credentials in Docker Compose
+### [CRITICAL] Hardcoded Database Credentials in Docker Compose ✅ REMEDIATED
 
+- **Remediated in:** `200c8c0` (code review commit)
 - **Location:** `src/backend/docker-compose.yml:10-11, 28`
 - **Category:** Infra
 - **Description:** Database password and JWT secrets are hardcoded in the docker-compose.yml file. If this file is committed to version control (it is), credentials are exposed in the repository history.
@@ -96,8 +102,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [HIGH] Tokens Stored in localStorage (XSS Attack Surface)
+### [HIGH] Tokens Stored in localStorage (XSS Attack Surface) ⏳ DEFERRED
 
+- **Status:** Deferred — requires httpOnly cookie migration (backend Set-Cookie + frontend token removal)
 - **Location:** `src/frontend/src/hooks/useAuth.tsx:60-62`
 - **Category:** Auth
 - **Description:** Access tokens, refresh tokens, and organization data are stored in `localStorage`. Any XSS vulnerability in the application or its dependencies would allow an attacker to steal these tokens.
@@ -122,8 +129,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [HIGH] Mass Assignment in Payment and Announcement Updates
+### [HIGH] Mass Assignment in Payment and Announcement Updates ✅ REMEDIATED
 
+- **Remediated in:** `add188c` (security audit commit) — payment update schema added; announcement update schema added in `200c8c0`
 - **Location:** `src/backend/src/services/payment.service.ts:76-79`, `src/backend/src/services/announcement.service.ts:77-79`
 - **Category:** Input
 - **Description:** The `update` methods pass user-controlled `data` directly to Prisma without whitelisting allowed fields. The payment update route has no Zod validation schema. An admin could modify fields like `recordedById`, `orgId`, or `createdAt` by including them in the request body.
@@ -156,8 +164,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [HIGH] Docker Container Runs as Root
+### [HIGH] Docker Container Runs as Root ✅ REMEDIATED
 
+- **Remediated in:** `200c8c0` (code review commit)
 - **Location:** `src/backend/Dockerfile:1-22`
 - **Category:** Infra
 - **Description:** The Dockerfile does not create a non-root user. The Node.js application runs as root inside the container, which increases the blast radius of any container escape or application vulnerability.
@@ -189,8 +198,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [HIGH] Database Port Exposed to Host Network
+### [HIGH] Database Port Exposed to Host Network ✅ REMEDIATED
 
+- **Remediated in:** `add188c` (security audit commit)
 - **Location:** `src/backend/docker-compose.yml:6-7`, `src/dev-deployment/docker-compose.dev.yml:6`
 - **Category:** Infra
 - **Description:** PostgreSQL port 5432 is mapped to the host, making the database accessible from the host network and potentially from the internet if the server is publicly accessible.
@@ -210,8 +220,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [HIGH] Weak Seed Password and Credentials Logged
+### [HIGH] Weak Seed Password and Credentials Logged ✅ REMEDIATED
 
+- **Remediated in:** `200c8c0` (code review commit) — credential printing gated behind `NODE_ENV=development`
 - **Location:** `src/backend/prisma/seed.ts:23, 124-126`
 - **Category:** Auth
 - **Description:** The seed script creates an admin account with the password `admin123` and logs credentials to stdout. If this seed runs in production or if logs are collected centrally, the credentials are compromised.
@@ -228,8 +239,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [HIGH] Error Details Leaked in Non-Production Environments
+### [HIGH] Error Details Leaked in Non-Production Environments ✅ REMEDIATED
 
+- **Remediated in:** `200c8c0` (code review commit) — default error branch now returns generic message
 - **Location:** `src/backend/src/middleware/errorHandler.ts:39-42`
 - **Category:** Data
 - **Description:** The error handler returns full error messages when `NODE_ENV !== "production"`. The docker-compose files set `NODE_ENV: development`, meaning error details (stack traces, database errors, internal paths) are exposed to API consumers.
@@ -254,8 +266,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [HIGH] Dockerfile Uses Dev Mode and npm install
+### [HIGH] Dockerfile Uses Dev Mode and npm install ✅ REMEDIATED
 
+- **Remediated in:** `200c8c0` (code review commit) — `npm ci` + non-root user added
 - **Location:** `src/backend/Dockerfile:9, 22`
 - **Category:** Infra
 - **Description:** The Dockerfile uses `npm install` (non-deterministic) and runs with `npm run dev` (tsx watch), which is a development server without production optimizations, error handling, or proper process management.
@@ -293,8 +306,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [MEDIUM] Registration Cancel Lacks RBAC Enforcement
+### [MEDIUM] Registration Cancel Lacks RBAC Enforcement ✅ REMEDIATED
 
+- **Remediated in:** `200c8c0` (code review commit)
 - **Location:** `src/backend/src/routes/registration.routes.ts:19-22`
 - **Category:** Logic
 - **Description:** The `PATCH /registrations/:id/cancel` route requires authentication and tenant isolation but does not enforce any role requirement. Any authenticated user (including `member` role) can cancel any registration within their organization, not just their own.
@@ -318,8 +332,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [MEDIUM] Guest Registration Bypasses Registration Mode
+### [MEDIUM] Guest Registration Bypasses Registration Mode ✅ REMEDIATED
 
+- **Remediated in:** `add188c` (security audit commit)
 - **Location:** `src/backend/src/services/registration.service.ts:37-94`
 - **Category:** Logic
 - **Description:** The guest registration endpoint (`POST /events/:eventId/register`) accepts any registration regardless of the event's `registrationMode` setting. An event set to `member`-only registration can still be registered for by unauthenticated guests who supply the correct `x-org-id` header.
@@ -347,8 +362,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [MEDIUM] Arbitrary formData Stored in Registrations
+### [MEDIUM] Arbitrary formData Stored in Registrations ✅ REMEDIATED
 
+- **Remediated in:** `add188c` (security audit commit)
 - **Location:** `src/backend/src/middleware/validate.middleware.ts:145`, `src/backend/prisma/schema.prisma:172`
 - **Category:** Input
 - **Description:** The registration schema accepts `formData: z.record(z.any()).optional()` which allows arbitrary key-value pairs. This data is stored as JSON in the database and could be rendered unsafely in admin dashboards, leading to stored XSS.
@@ -369,8 +385,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [MEDIUM] Inconsistent Zod Validation on Event Custom Fields Update
+### [MEDIUM] Inconsistent Zod Validation on Event Custom Fields Update ✅ REMEDIATED
 
+- **Remediated in:** `add188c` (security audit commit)
 - **Location:** `src/backend/src/middleware/validate.middleware.ts:132`
 - **Category:** Input
 - **Description:** The event create schema properly validates `customFields` with specific type and options constraints, but the update schema uses `z.array(z.any())`, allowing arbitrary data to be written.
@@ -401,8 +418,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [MEDIUM] Missing Security Headers in Nginx Configuration
+### [MEDIUM] Missing Security Headers in Nginx Configuration ✅ REMEDIATED
 
+- **Remediated in:** `add188c` (security audit commit)
 - **Location:** `src/dev-deployment/nginx.conf:63-66`
 - **Category:** Infra
 - **Description:** The nginx configuration includes some security headers but is missing several important ones: Content-Security-Policy, Referrer-Policy, Permissions-Policy, and X-Permitted-Cross-Domain-Policies.
@@ -426,8 +444,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [MEDIUM] Frontend Has No Route-Level Authorization
+### [MEDIUM] Frontend Has No Route-Level Authorization ✅ REMEDIATED
 
+- **Remediated in:** `add188c` (security audit commit) — `ProtectedRoute` component created
 - **Location:** `src/frontend/src/components/layout/Layout.tsx:20`, `src/frontend/src/App.tsx:31-40`
 - **Category:** Logic
 - **Description:** The Layout component only checks `isAuthenticated` (line 20), not the user's role. All protected routes are accessible to any authenticated user regardless of role. A member-level user can navigate to `/settings`, `/reports`, `/members` and see error messages from the backend rather than being redirected.
@@ -453,8 +472,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [MEDIUM] Organization Data Stored in localStorage
+### [MEDIUM] Organization Data Stored in localStorage ⏳ DEFERRED
 
+- **Status:** Deferred — requires JWT-based org resolution refactor
 - **Location:** `src/frontend/src/hooks/useAuth.tsx:45-46, 62, 78, 94`
 - **Category:** Auth
 - **Description:** Organization data (including org ID, name, slug) is stored in localStorage and parsed without validation. An attacker who gains XSS access could modify the organization context, potentially causing the user to interact with a different organization's data.
@@ -471,8 +491,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [MEDIUM] Console Error Logging May Expose Sensitive Data
+### [MEDIUM] Console Error Logging May Expose Sensitive Data ✅ REMEDIATED
 
+- **Remediated in:** `add188c` (security audit commit)
 - **Location:** `src/frontend/src/lib/axios.ts:21`, `src/backend/src/middleware/errorHandler.ts:15`
 - **Category:** Data
 - **Description:** The frontend logs full API error responses to console, and the backend logs full Error objects. In production, this could include tokens, PII, or internal paths visible in browser devtools or server logs.
@@ -495,8 +516,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [MEDIUM] Static File Serving Without Access Controls
+### [MEDIUM] Static File Serving Without Access Controls ✅ REMEDIATED
 
+- **Remediated in:** `add188c` (security audit commit)
 - **Location:** `src/backend/src/app.ts:46`
 - **Category:** Infra
 - **Description:** The `/uploads` directory is served as static files without authentication or access controls. If user-uploaded files contain sensitive data or if the uploads directory is writable, unauthorized users can access all files.
@@ -513,8 +535,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [MEDIUM] No Soft Delete for Data Records
+### [MEDIUM] No Soft Delete for Data Records ⏳ DEFERRED
 
+- **Status:** Deferred — requires schema migration + Prisma middleware for default filtering
 - **Location:** `src/backend/prisma/schema.prisma` (all models)
 - **Category:** Data
 - **Description:** All database models lack soft delete fields (`deletedAt`). Hard deletes via `prisma.attendance.delete()` (in `attendance.service.ts:109`) permanently remove data with no recovery option.
@@ -535,8 +558,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [MEDIUM] User Password Hash Potentially Exposed in Queries
+### [MEDIUM] User Password Hash Potentially Exposed in Queries ✅ REMEDIATED
 
+- **Remediated in:** `add188c` (security audit commit) — uses Prisma `omit` + separate `select`
 - **Location:** `src/backend/src/services/auth.service.ts:214-220`
 - **Category:** Data
 - **Description:** The `login` method queries the user with `include: { profile: true, organization: true }`, which includes `passwordHash` in the result object. While it's not returned to the client, the password hash is loaded into memory and could be leaked through error handling or memory dumps.
@@ -566,8 +590,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [LOW] Swagger Docs Exposed Without Authentication
+### [LOW] Swagger Docs Exposed Without Authentication ✅ REMEDIATED
 
+- **Remediated in:** `200c8c0` (code review commit)
 - **Location:** `src/backend/src/app.ts:49-52`
 - **Category:** Infra
 - **Description:** The Swagger API documentation is accessible at `/docs` without authentication, exposing the full API surface including endpoint signatures, parameter types, and response schemas.
@@ -586,8 +611,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [LOW] npm install Instead of npm ci in Dockerfile
+### [LOW] npm install Instead of npm ci in Dockerfile ✅ REMEDIATED
 
+- **Remediated in:** `200c8c0` (code review commit)
 - **Location:** `src/backend/Dockerfile:9`
 - **Category:** Infra
 - **Description:** `npm install` resolves and potentially modifies `package-lock.json`, leading to non-reproducible builds. This could introduce dependency confusion or supply chain attacks.
@@ -604,8 +630,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [LOW] Email Templates Use Unescaped User Input
+### [LOW] Email Templates Use Unescaped User Input ✅ REMEDIATED
 
+- **Remediated in:** `add188c` (security audit commit)
 - **Location:** `src/backend/src/utils/email.ts:25, 37`
 - **Category:** Input
 - **Description:** Email templates interpolate user-provided values (name, org name, event title) directly into HTML strings without entity encoding.
@@ -626,8 +653,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [LOW] Full Error Object Logged to Console
+### [LOW] Full Error Object Logged to Console ✅ REMEDIATED
 
+- **Remediated in:** `add188c` (security audit commit)
 - **Location:** `src/backend/src/middleware/errorHandler.ts:15`
 - **Category:** Data
 - **Description:** The error handler logs the full Error object, which may contain stack traces with file paths, database connection details, or sensitive data embedded in error messages.
@@ -644,8 +672,9 @@ The PWE codebase demonstrates a **moderate security posture** with strong founda
 
 ---
 
-### [LOW] Vite dev server allowedHosts Set to True
+### [LOW] Vite dev server allowedHosts Set to True ✅ REMEDIATED
 
+- **Remediated in:** `add188c` (security audit commit)
 - **Location:** `src/frontend/vite.config.ts:14`
 - **Category:** Infra
 - **Description:** `allowedHosts: true` disables host header checking, allowing the Vite dev server to respond to requests with any Host header. This can be exploited for DNS rebinding attacks during development.
@@ -688,49 +717,49 @@ The codebase implements several strong security patterns:
 
 ## Remediation Priority Matrix
 
-| # | Finding | Severity | Effort | Category |
-|---|---------|----------|--------|----------|
-| 1 | Hardcoded fallback JWT secrets | CRITICAL | Low | Auth |
-| 2 | Token refresh parsing bug | CRITICAL | Low | Auth |
-| 3 | Hardcoded DB credentials in compose | CRITICAL | Low | Infra |
-| 4 | Tokens in localStorage | HIGH | High | Auth |
-| 5 | Mass assignment in payment/announcement update | HIGH | Medium | Input |
-| 6 | Docker container runs as root | HIGH | Low | Infra |
-| 7 | Database port exposed | HIGH | Low | Infra |
-| 8 | Weak seed password + logged credentials | HIGH | Low | Auth |
-| 9 | Error details in non-production | HIGH | Low | Data |
-| 10 | Dev mode in Dockerfile | HIGH | Medium | Infra |
-| 11 | Registration cancel lacks RBAC | MEDIUM | Low | Logic |
-| 12 | Guest registration mode bypass | MEDIUM | Low | Logic |
-| 13 | Arbitrary formData in registration | MEDIUM | Medium | Input |
-| 14 | Inconsistent Zod validation (customFields) | MEDIUM | Low | Input |
-| 15 | Missing security headers in nginx | MEDIUM | Low | Infra |
-| 16 | No frontend route-level auth | MEDIUM | Medium | Logic |
-| 17 | Org data in localStorage | MEDIUM | Medium | Auth |
-| 18 | Console error logging sensitive data | MEDIUM | Low | Data |
-| 19 | Static file serving without auth | MEDIUM | Low | Infra |
-| 20 | No soft delete | MEDIUM | High | Data |
-| 21 | Password hash in query memory | MEDIUM | Low | Data |
-| 22 | Swagger docs exposed | LOW | Low | Infra |
-| 23 | npm install vs npm ci | LOW | Low | Infra |
-| 24 | Email template HTML injection | LOW | Low | Input |
-| 25 | Full error logged | LOW | Low | Data |
-| 26 | Vite allowedHosts true | LOW | Low | Infra |
-| 27 | Prisma Studio port exposed | LOW | Low | Infra |
+| # | Finding | Severity | Effort | Category | Status |
+|---|---------|----------|--------|----------|--------|
+| 1 | Hardcoded fallback JWT secrets | CRITICAL | Low | Auth | ✅ `200c8c0` |
+| 2 | Token refresh parsing bug | CRITICAL | Low | Auth | ✅ `add188c` |
+| 3 | Hardcoded DB credentials in compose | CRITICAL | Low | Infra | ✅ `200c8c0` |
+| 4 | Tokens in localStorage | HIGH | High | Auth | ⏳ Deferred |
+| 5 | Mass assignment in payment/announcement update | HIGH | Medium | Input | ✅ `add188c` |
+| 6 | Docker container runs as root | HIGH | Low | Infra | ✅ `200c8c0` |
+| 7 | Database port exposed | HIGH | Low | Infra | ✅ `add188c` |
+| 8 | Weak seed password + logged credentials | HIGH | Low | Auth | ✅ `200c8c0` |
+| 9 | Error details in non-production | HIGH | Low | Data | ✅ `200c8c0` |
+| 10 | Dev mode in Dockerfile | HIGH | Medium | Infra | ✅ `200c8c0` |
+| 11 | Registration cancel lacks RBAC | MEDIUM | Low | Logic | ✅ `200c8c0` |
+| 12 | Guest registration mode bypass | MEDIUM | Low | Logic | ✅ `add188c` |
+| 13 | Arbitrary formData in registration | MEDIUM | Medium | Input | ✅ `add188c` |
+| 14 | Inconsistent Zod validation (customFields) | MEDIUM | Low | Input | ✅ `add188c` |
+| 15 | Missing security headers in nginx | MEDIUM | Low | Infra | ✅ `add188c` |
+| 16 | No frontend route-level auth | MEDIUM | Medium | Logic | ✅ `add188c` |
+| 17 | Org data in localStorage | MEDIUM | Medium | Auth | ⏳ Deferred |
+| 18 | Console error logging sensitive data | MEDIUM | Low | Data | ✅ `add188c` |
+| 19 | Static file serving without auth | MEDIUM | Low | Infra | ✅ `add188c` |
+| 20 | No soft delete | MEDIUM | High | Data | ⏳ Deferred |
+| 21 | Password hash in query memory | MEDIUM | Low | Data | ✅ `add188c` |
+| 22 | Swagger docs exposed | LOW | Low | Infra | ✅ `200c8c0` |
+| 23 | npm install vs npm ci | LOW | Low | Infra | ✅ `200c8c0` |
+| 24 | Email template HTML injection | LOW | Low | Input | ✅ `add188c` |
+| 25 | Full error logged | LOW | Low | Data | ✅ `add188c` |
+| 26 | Vite allowedHosts true | LOW | Low | Infra | ✅ `add188c` |
+| 27 | Prisma Studio port exposed | LOW | Low | Infra | ✅ `add188c` |
 
 ---
 
 ## OWASP Top 10 (2021) Mapping
 
-| OWASP Category | Findings |
-|----------------|----------|
-| **A01: Broken Access Control** | Mass assignment (#5), Registration cancel RBAC (#11), Guest registration bypass (#12), Frontend route auth (#16), Static file access (#19) |
-| **A02: Cryptographic Failures** | Hardcoded JWT secrets (#1), Tokens in localStorage (#4), Weak seed password (#8) |
-| **A03: Injection** | Arbitrary formData stored (#13), Email template injection (#24) |
-| **A04: Insecure Design** | No soft delete (#20), Inconsistent validation (#14) |
-| **A05: Security Misconfiguration** | Hardcoded DB creds (#3), DB port exposed (#7), Dev mode in Docker (#10), Missing security headers (#15), Swagger exposed (#22), Vite allowedHosts (#26) |
-| **A06: Vulnerable and Outdated Components** | No known vulnerable dependencies at time of audit |
-| **A07: Identification and Authentication Failures** | Token refresh parsing bug (#2), Docker root user (#6) |
-| **A08: Software and Data Integrity Failures** | npm install non-deterministic (#23) |
-| **A09: Security Logging and Monitoring Failures** | Error details leaked (#9), Console logging sensitive data (#18), Full error logged (#25) |
-| **A10: Server-Side Request Forgery** | Not directly identified, though tenant isolation header trust could be exploited in specific scenarios |
+| OWASP Category | Findings | Status |
+|----------------|----------|--------|
+| **A01: Broken Access Control** | Mass assignment (#5), Registration cancel RBAC (#11), Guest registration bypass (#12), Frontend route auth (#16), Static file access (#19) | ✅ All remediated |
+| **A02: Cryptographic Failures** | Hardcoded JWT secrets (#1), Tokens in localStorage (#4), Weak seed password (#8) | ✅ 2/3, ⏳ #4 deferred |
+| **A03: Injection** | Arbitrary formData stored (#13), Email template injection (#24) | ✅ All remediated |
+| **A04: Insecure Design** | No soft delete (#20), Inconsistent validation (#14) | ✅ 1/2, ⏳ #20 deferred |
+| **A05: Security Misconfiguration** | Hardcoded DB creds (#3), DB port exposed (#7), Dev mode in Docker (#10), Missing security headers (#15), Swagger exposed (#22), Vite allowedHosts (#26) | ✅ All remediated |
+| **A06: Vulnerable and Outdated Components** | No known vulnerable dependencies at time of audit | ✅ N/A |
+| **A07: Identification and Authentication Failures** | Token refresh parsing bug (#2), Docker root user (#6) | ✅ All remediated |
+| **A08: Software and Data Integrity Failures** | npm install non-deterministic (#23) | ✅ Remediated |
+| **A09: Security Logging and Monitoring Failures** | Error details leaked (#9), Console logging sensitive data (#18), Full error logged (#25) | ✅ All remediated |
+| **A10: Server-Side Request Forgery** | Not directly identified, though tenant isolation header trust could be exploited in specific scenarios | ✅ N/A |
