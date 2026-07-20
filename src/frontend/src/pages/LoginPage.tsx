@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui';
+import { getErrorMessage } from '@/lib/utils';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -19,7 +20,7 @@ export default function LoginPage() {
       await login(form.email, form.password);
       navigate('/dashboard');
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Login failed';
+      const msg = getErrorMessage(err);
       // Show inline field errors for credential issues
       if (msg.toLowerCase().includes('invalid email or password')) {
         setErrors({ email: 'Invalid email or password', password: 'Invalid email or password' });

@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button, Input } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
+import { getErrorMessage } from '@/lib/utils';
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -26,13 +27,7 @@ export default function RegisterPage() {
       await register(form);
       navigate('/dashboard');
     } catch (err: unknown) {
-      const msg =
-        err instanceof Error && err.message.includes('Network Error')
-          ? 'Cannot connect to server. Please try again later.'
-          : err instanceof Error
-            ? err.message
-            : 'Registration failed';
-      toast(msg, 'error');
+      toast(getErrorMessage(err) || 'Registration failed', 'error');
     } finally {
       setIsLoading(false);
     }
