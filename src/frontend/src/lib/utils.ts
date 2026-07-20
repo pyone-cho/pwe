@@ -52,9 +52,15 @@ export function generateSlug(name: string): string {
 /** Extract a human-readable error message from an unknown thrown value */
 export function getErrorMessage(error: unknown): string {
   if (error && typeof error === 'object' && 'response' in error) {
-    const axiosError = error as { response?: { status?: number; data?: { message?: string } } };
+    const axiosError = error as {
+      response?: {
+        status?: number;
+        data?: { message?: string; error?: { message?: string } };
+      };
+    };
     const status = axiosError.response?.status;
-    const serverMessage = axiosError.response?.data?.message;
+    const serverMessage =
+      axiosError.response?.data?.message || axiosError.response?.data?.error?.message;
 
     if (serverMessage) return serverMessage;
 
