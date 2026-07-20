@@ -1,6 +1,12 @@
-# PWE
+<p align="center">
+  <img src="docs/user-guide/screenshots/01-landing-page.png" alt="PWE - Organization Management" width="100%">
+</p>
 
-> Membership management platform for organizations in Myanmar.
+<h1 align="center">PWE</h1>
+
+<p align="center">
+  <strong>Membership management platform for organizations in Myanmar.</strong>
+</p>
 
 PWE helps sports clubs, university societies, community groups, and NGOs manage members, run events, accept payments, deliver announcements, and track attendance — all inside private organization workspaces.
 
@@ -10,6 +16,7 @@ PWE helps sports clubs, university societies, community groups, and NGOs manage 
 
 | Document | Description |
 |----------|-------------|
+| [User Guide](docs/user-guide/USER-GUIDE.md) | Visual guide with screenshots for all features |
 | [Feature Spec](Feature-spec.md) | User stories, acceptance criteria, and UI specs for all 7 features |
 | [Tech Stack](tech-stack.md) | Technology choices with rationale and alternatives |
 | [Architecture](architecture.md) | System design, container layout, multi-tenancy model |
@@ -71,64 +78,34 @@ See [docs/fix-issue/](docs/fix-issue/) for detailed fix documentation.
 
 ## User Guide
 
-### Organization Setup
+For a complete visual guide with screenshots, see **[User Guide](docs/user-guide/USER-GUIDE.md)**.
 
-1. **Sign Up** — Go to `/signup`, enter your organization name, admin email, and password. The system auto-generates a slug from the org name.
-2. **Dashboard** — After signup, you land on the admin dashboard with an overview of members, events, and announcements.
-3. **Settings** — Navigate to Org Settings to update your organization name, description, logo, timezone, and contact info. Changes save immediately.
+### Quick Start
 
-### Managing Members
+1. **Sign Up** — Go to `/signup`, enter your organization name, admin email, and password
+2. **Dashboard** — After signup, you land on the admin dashboard with an overview of members, events, and announcements
+3. **Add Members** — Navigate to Members page, click "Add Member" to add your first member
+4. **Create Events** — Go to Events, click "Create Event" to use the 4-step wizard
+5. **Announcements** — Send organization-wide updates with priority levels
 
-1. **Add a Member** — Click "Add Member" on the Members page. Fill in first name, last name, and phone (required). Optionally add email, membership type, emergency contact, and notes.
-2. **Search & Filter** — Use the search bar to find members by name, email, or phone. Use filter chips to narrow by status (active/inactive/suspended) or membership type.
-3. **Import from CSV** — Click "Import" to bulk-add members. Upload a `.csv` or `.xlsx` file, map columns to fields, review the validation report, then confirm import. Max 500 rows per import.
-4. **Export** — Click "Export" to download your member list as CSV or Excel. Respects any active filters.
-5. **Member Profile** — Click any member row to view their full profile, edit details, toggle status, or view their event history.
+### Key Features
 
-### Creating Events
+| Feature | Description |
+|---------|-------------|
+| **Member Management** | CRUD, search, filter, status toggle, password reset |
+| **Event Management** | 4-step wizard, registration modes, capacity tracking |
+| **Attendance** | Real-time check-in, bulk operations, undo support |
+| **Payments** | Record payments in MMK, track status, revenue reports |
+| **Announcements** | Priority levels (urgent/high/normal/low), archive support |
+| **Reports** | Member trends, event performance, revenue analytics |
 
-1. **Create Event** — Click "Create Event" to open the 4-step wizard:
-   - **Step 1: Basic Info** — Enter title, description, location, start/end dates, and optional capacity. End date must be after start date.
-   - **Step 2: Registration** — Set registration mode (public/members/both), enable payment if needed, set amount in MMK.
-   - **Step 3: Custom Fields** — Add dynamic fields (text, select, checkbox) for the registration form.
-   - **Step 4: Review** — Review all details with formatted dates/times, then save as draft or publish immediately.
-2. **Event List** — View events in card or table format. Tabs show Upcoming, Past, and Drafts. Each card shows title, date, location, registration count vs capacity, and status badge.
-3. **Event Detail** — Click an event to see stats (registrations, attendance, revenue), manage registrations, track attendance, and record payments.
-4. **Status Management** — Change event status: Draft → Published → Completed or Cancelled. Cancelled events show a red badge and disable registration.
+### User Roles
 
-### Registration
-
-1. **Member Registration** — Logged-in members see a "Register" button on event pages. Click to register with pre-filled info. Only custom fields need responses.
-2. **Guest Registration** — Public events allow anyone to register without an account. Fill in name, email, phone, and custom fields.
-3. **Waitlist** — When an event reaches capacity, new registrations go to a waitlist. Staff can promote from waitlist when spots open.
-4. **Cancellation** — Registrants can cancel via a link in their confirmation. This frees up the spot for waitlisted people.
-
-### Attendance Tracking
-
-1. **Check-In** — During an event, open the Attendance tab. Tap/click a member's name to mark them present. Shows check-in time and who checked them in.
-2. **Real-Time Counter** — Top of the attendance list shows "18 / 30 checked in" with a live count.
-3. **Search** — Use the search bar to quickly find a specific person in the list.
-4. **Bulk Check-In** — Select multiple members and check them in at once.
-5. **Dashboard** — Admins see an attendance overview with total registered, checked in, absent, and attendance rate percentage.
-
-### Payment Tracking
-
-1. **Record Payment** — Click "Record Payment" on the event's Payments tab. Select the member, enter amount in MMK, choose payment method (cash, bank transfer, mobile money, other), add reference number and notes.
-2. **Track Status** — View payment summary: total expected, collected, and pending. Filter by status, member, or payment method.
-3. **Update Status** — Toggle payment status: Pending → Paid → Refunded. Status changes are logged with timestamp.
-4. **Export** — Download payment reports as CSV for accounting.
-
-### Announcements
-
-1. **Create Announcement** — Admins and staff can click "New Announcement" to write a title, content, and set priority (low/normal/high/urgent). Optionally link to an event.
-2. **View Announcements** — Members see announcements on their dashboard, sorted by priority then date. Urgent announcements show a red badge.
-3. **Draft/Publish** — Announcements can be saved as draft and published later.
-
-### Reports
-
-1. **Member Report** — View total members, status breakdown, new members over time (monthly chart), and membership type distribution.
-2. **Event Report** — Per-event stats (registrations, attendance rate, revenue) and aggregate totals.
-3. **Export** — Download any report as PDF or CSV.
+| Role | Access |
+|------|--------|
+| **Admin** | Full access — members, events, reports, settings |
+| **Staff** | Members, events, reports (no settings) |
+| **Member** | Dashboard, events (register), announcements |
 
 ---
 
