@@ -22,7 +22,7 @@ export class MemberController {
 
   async list(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await memberService.list(req.orgId!, req.query as any);
+      const result = await memberService.list(req.orgId!, req.query as import("../types").PaginationQuery);
       res.json({ success: true, data: result });
     } catch (error) {
       next(error);
@@ -76,7 +76,7 @@ export class MemberController {
 
   async exportCsv(req: Request, res: Response, next: NextFunction) {
     try {
-      const csv = await memberService.exportCsv(req.orgId!, req.query as any);
+      const csv = await memberService.exportCsv(req.orgId!, req.query as import("../types").PaginationQuery);
       res.setHeader("Content-Type", "text/csv");
       res.setHeader("Content-Disposition", "attachment; filename=members.csv");
       res.send(csv);

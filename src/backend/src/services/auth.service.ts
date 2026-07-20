@@ -217,6 +217,13 @@ export class AuthService {
         profile: true,
         organization: true,
       },
+      omit: { passwordHash: true },
+    });
+
+    // Fetch password hash separately for comparison
+    const userWithHash = await prisma.user.findFirst({
+      where: { email: input.email },
+      select: { id: true, passwordHash: true },
     });
 
     if (!user) {
@@ -228,7 +235,10 @@ export class AuthService {
     }
 
     // Verify password
-    const isValidPassword = await bcrypt.compare(input.password, user.passwordHash);
+    if (!userWithHash) {
+      throw new AppError(401, "Invalid email or password");
+    }
+    const isValidPassword = await bcrypt.compare(input.password, userWithHash.passwordHash);
     if (!isValidPassword) {
       throw new AppError(401, "Invalid email or password");
     }

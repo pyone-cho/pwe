@@ -4,7 +4,7 @@ import { eventService } from "../services/event.service";
 export class EventController {
   async list(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await eventService.list(req.orgId!, req.query as any);
+      const result = await eventService.list(req.orgId!, req.query as import("../types").PaginationQuery);
       res.json({ success: true, data: result });
     } catch (error) {
       next(error);

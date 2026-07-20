@@ -57,6 +57,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://pwe_user:${DB_PASSWORD}@db:5432/pwe_prod
       - JWT_SECRET=${JWT_SECRET}
+      - REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
       - NODE_ENV=production
     expose: ["3000"]
     depends_on: [db]
@@ -81,7 +82,7 @@ services:
 | Container | Role | Port | Notes |
 |-----------|------|------|-------|
 | **nginx** | TLS termination, static serving, rate limiting, gzip | 80, 443 | Public-facing entry point |
-| **backend** | API server, auth, business logic | 3000 (internal only) | Not exposed publicly |
+| **backend** | API server, auth, business logic | 3000 (internal only) | Runs as non-root user, not exposed publicly |
 | **frontend** | React SPA (built static files) | — | Served by nginx |
 | **db** | PostgreSQL database | 5432 (internal only) | Not exposed publicly |
 

@@ -121,9 +121,11 @@ async function main() {
   console.log(`✅ Created announcement: ${announcement.title}`);
 
   console.log("\n🎉 Seeding complete!");
-  console.log("\n📋 Test Credentials:");
-  console.log("   Admin: admin@eventhub.com / admin123");
-  console.log("   Staff: staff@eventhub.com / admin123");
+  if (process.env.NODE_ENV === "development") {
+    console.log("\n📋 Test Credentials:");
+    console.log("   Admin: admin@eventhub.com / admin123");
+    console.log("   Staff: staff@eventhub.com / admin123");
+  }
 }
 
 main()

@@ -17,24 +17,25 @@ async function main() {
   }
 
   // Start server
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
     console.log(`🔗 API: http://localhost:${PORT}/api/v1`);
   });
+
+  // Graceful shutdown
+  const shutdown = async () => {
+    console.log("\n⏹️  Shutting down...");
+    server.close(() => {
+      console.log("   HTTP server closed");
+    });
+    await prisma.$disconnect();
+    console.log("   Database disconnected");
+    process.exit(0);
+  };
+
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
 }
-
-// Graceful shutdown
-process.on("SIGINT", async () => {
-  console.log("\n⏹️  Shutting down...");
-  await prisma.$disconnect();
-  process.exit(0);
-});
-
-process.on("SIGTERM", async () => {
-  console.log("\n⏹️  Shutting down...");
-  await prisma.$disconnect();
-  process.exit(0);
-});
 
 main();

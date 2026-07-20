@@ -8,6 +8,15 @@ export interface EmailOptions {
   text?: string;
 }
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   // TODO: Implement email sending
   // For MVP, just log the email
@@ -22,7 +31,7 @@ export function buildWelcomeEmail(name: string, orgName: string): EmailOptions {
   return {
     to: "",
     subject: `Welcome to ${orgName}`,
-    html: `<h1>Welcome, ${name}!</h1><p>Thank you for joining ${orgName}.</p>`,
+    html: `<h1>Welcome, ${escapeHtml(name)}!</h1><p>Thank you for joining ${escapeHtml(orgName)}.</p>`,
   };
 }
 
@@ -34,6 +43,6 @@ export function buildRegistrationConfirmation(
   return {
     to: "",
     subject: `Registration Confirmed: ${eventTitle}`,
-    html: `<h1>Registration Confirmed</h1><p>Hi ${memberName},</p><p>You're registered for <strong>${eventTitle}</strong> on ${eventDate.toLocaleDateString()}.</p>`,
+    html: `<h1>Registration Confirmed</h1><p>Hi ${escapeHtml(memberName)},</p><p>You're registered for <strong>${escapeHtml(eventTitle)}</strong> on ${eventDate.toLocaleDateString()}.</p>`,
   };
 }

@@ -23,7 +23,6 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
-      - "5555:5555"
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://pwe_dev:dev_password@db:5432/pwe_dev}
       JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-not-for-production}

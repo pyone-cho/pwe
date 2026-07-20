@@ -18,7 +18,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   async (error) => {
-    console.error('API Error:', error.response?.data || error.message);
+    if (import.meta.env.DEV) {
+      console.error('API Error:', error.response?.data || error.message);
+    }
     const originalRequest = error.config;
 
     // Skip auto-refresh redirect for the login endpoint itself

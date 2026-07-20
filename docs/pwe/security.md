@@ -64,8 +64,8 @@ const isValid = await bcrypt.compare(password, hash);
 ```
 
 **Rules:**
-- Minimum 8 characters
-- At least 1 letter and 1 number (enforced at registration)
+- Minimum 8 characters, maximum 128 characters
+- At least 1 uppercase letter and 1 number (enforced at registration via Zod)
 - Never log passwords or hashes
 - Never return password hash in API responses
 
@@ -309,6 +309,8 @@ add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style
 | DEPLOY_KEY | GitHub Secrets | On compromise | Yes |
 | SMTP_PASS (future) | Backend env | Quarterly | No |
 
+> **Note:** `JWT_SECRET` and `REFRESH_TOKEN_SECRET` are validated at server startup. The application will refuse to start if either is missing.
+
 ---
 
 ## Data Protection
@@ -347,7 +349,9 @@ add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style
 - [ ] Security headers in nginx
 - [ ] `.env` files in `.gitignore`
 - [ ] No secrets in code or logs
+- [ ] JWT secrets validated at startup (no hardcoded fallbacks)
 - [ ] bcrypt cost factor >= 12
+- [ ] Password complexity enforced (uppercase + number, max 128 chars)
 - [ ] JWT access token expiry <= 15 minutes
 - [ ] Refresh token rotation enabled
 - [ ] **JWT secrets required** — No fallback values, app fails without them

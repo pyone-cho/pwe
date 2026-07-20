@@ -33,7 +33,9 @@ export const authSchemas = {
       orgName: z.string().min(2).max(255),
       slug: z.string().min(2).max(100).regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with hyphens"),
       email: z.string().email(),
-      password: z.string().min(8),
+      password: z.string().min(8).max(128)
+        .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+        .regex(/[0-9]/, "Password must contain at least one number"),
       firstName: z.string().min(1).max(100),
       lastName: z.string().max(100).optional(),
     }),
@@ -56,7 +58,9 @@ export const authSchemas = {
       lastName: z.string().max(100).optional(),
       phone: z.string().min(1).max(20),
       email: z.string().email(),
-      password: z.string().min(8),
+      password: z.string().min(8).max(128)
+        .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+        .regex(/[0-9]/, "Password must contain at least one number"),
     }),
   }),
   changePassword: z.object({
@@ -155,7 +159,12 @@ export const eventSchemas = {
       status: z.enum(["draft", "published", "cancelled", "completed"]).optional(),
       requiresPayment: z.boolean().optional(),
       paymentAmount: z.number().positive().optional(),
-      customFields: z.array(z.any()).optional(),
+      customFields: z.array(z.object({
+        name: z.string().max(255),
+        type: z.enum(["text", "select", "checkbox"]),
+        options: z.array(z.string()).optional(),
+        required: z.boolean().optional(),
+      })).optional(),
     }),
   }).refine(
     (data) => {
@@ -178,7 +187,7 @@ export const registrationSchemas = {
       guestName: z.string().max(200).optional(),
       guestEmail: z.string().email().optional(),
       guestPhone: z.string().max(20).optional(),
-      formData: z.record(z.any()).optional(),
+      formData: z.record(z.string().max(1000)).optional(),
     }),
   }),
 };
@@ -197,6 +206,17 @@ export const paymentSchemas = {
       paidAt: z.string().datetime().optional(),
     }),
   }),
+  update: z.object({
+    params: z.object({ id: z.string().uuid() }),
+    body: z.object({
+      amount: z.number().positive().optional(),
+      currency: z.string().max(3).optional(),
+      paymentMethod: z.enum(["cash", "bank_transfer", "mobile_money", "other"]).optional(),
+      referenceNumber: z.string().max(100).optional(),
+      notes: z.string().optional(),
+      paidAt: z.string().datetime().optional(),
+    }),
+  }),
 };
 
 export const announcementSchemas = {
@@ -206,6 +226,37 @@ export const announcementSchemas = {
       content: z.string().min(1),
       eventId: z.string().uuid().optional(),
       priority: z.enum(["low", "normal", "high", "urgent"]).optional(),
+    }),
+  }),
+  update: z.object({
+    params: z.object({ id: z.string().uuid() }),
+    body: z.object({
+      title: z.string().min(1).max(255).optional(),
+      content: z.string().min(1).optional(),
+      eventId: z.string().uuid().optional(),
+      priority: z.enum(["low", "normal", "high", "urgent"]).optional(),
+    }),
+  }),
+  updateStatus: z.object({
+    params: z.object({ id: z.string().uuid() }),
+    body: z.object({
+      status: z.enum(["draft", "published", "archived"]),
+    }),
+  }),
+};
+
+export const orgSchemas = {
+  update: z.object({
+    body: z.object({
+      name: z.string().min(1).max(255).optional(),
+      description: z.string().max(1000).optional(),
+      phone: z.string().max(20).optional(),
+      logo: z.string().max(500).optional(),
+      settings: z.object({
+        timezone: z.string().optional(),
+        locale: z.string().optional(),
+        defaultEventSettings: z.record(z.unknown()).optional(),
+      }).optional(),
     }),
   }),
 };

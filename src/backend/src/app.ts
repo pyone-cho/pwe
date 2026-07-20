@@ -42,19 +42,21 @@ app.use(compression());
 // Rate limiting
 app.use("/api/", apiLimiter);
 
-// Static files for uploads
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+// Static files for uploads (require auth)
+import { authenticate } from "./middleware/auth.middleware";
+app.use("/uploads", authenticate, express.static(path.join(__dirname, "../uploads")));
 
-// Swagger UI
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiSpec, {
-  customCss: ".swagger-ui .topbar { display: none }",
-  customSiteTitle: "PWE API Docs",
-}));
+// Swagger UI — disabled in production
+if (process.env.NODE_ENV !== "production") {
+  app.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiSpec, {
+    customCss: ".swagger-ui .topbar { display: none }",
+    customSiteTitle: "PWE API Docs",
+  }));
 
-// JSON spec endpoint (for clients/tooling)
-app.get("/docs.json", (_req, res) => {
-  res.json(openApiSpec);
-});
+  app.get("/docs.json", (_req, res) => {
+    res.json(openApiSpec);
+  });
+}
 
 // Health check
 app.get("/health", (req, res) => {
@@ -76,7 +78,7 @@ app.use(`${API_PREFIX}/reports`, reportRoutes);
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ success: false, error: "Route not found" });
+  res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "Route not found" } });
 });
 
 // Error handler

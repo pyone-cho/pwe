@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const orgSlug = import.meta.env.VITE_ORG_SLUG || 'eventhub';
+const orgSlug = import.meta.env.VITE_ORG_SLUG;
+if (!orgSlug) {
+  console.warn('VITE_ORG_SLUG is not set — public API requests will fail');
+}
 
 const publicApi = axios.create({
   baseURL: '/api/v1',

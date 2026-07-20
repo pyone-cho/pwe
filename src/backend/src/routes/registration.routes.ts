@@ -18,6 +18,7 @@ router.get(
 
 router.patch(
   "/registrations/:id/cancel",
+  requireMinRole("staff"),
   registrationController.cancel
 );
 

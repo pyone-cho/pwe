@@ -2,14 +2,39 @@ import prisma from "../prisma/client";
 import { AppError } from "../middleware/errorHandler";
 import { PaginationQuery, PaginatedResponse } from "../types";
 import { generateCsv, generatePaymentExportData } from "../utils/export";
+import { Prisma, Payment } from "@prisma/client";
+
+export interface PaymentCreateInput {
+  memberId: string;
+  eventId?: string;
+  registrationId?: string;
+  amount: number;
+  currency?: string;
+  paymentMethod?: string;
+  referenceNumber?: string;
+  notes?: string;
+  paidAt?: string;
+}
+
+export interface PaymentUpdateInput {
+  memberId?: string;
+  eventId?: string;
+  registrationId?: string;
+  amount?: number;
+  currency?: string;
+  paymentMethod?: string;
+  referenceNumber?: string;
+  notes?: string;
+  paidAt?: string;
+}
 
 export class PaymentService {
-  async list(orgId: string, query: PaginationQuery): Promise<PaginatedResponse<any>> {
+  async list(orgId: string, query: PaginationQuery): Promise<PaginatedResponse<Payment>> {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    const where: any = { orgId };
+    const where: Prisma.PaymentWhereInput = { orgId };
 
     // Filter by status
     if (query.search) {
@@ -45,7 +70,7 @@ export class PaymentService {
     };
   }
 
-  async create(orgId: string, data: any, userId: string) {
+  async create(orgId: string, data: PaymentCreateInput, userId: string) {
     // Verify member exists
     const member = await prisma.member.findFirst({
       where: { id: data.memberId, orgId },
@@ -64,7 +89,7 @@ export class PaymentService {
     });
   }
 
-  async update(orgId: string, id: string, data: any) {
+  async update(orgId: string, id: string, data: PaymentUpdateInput) {
     const payment = await prisma.payment.findFirst({
       where: { id, orgId },
     });
@@ -88,7 +113,7 @@ export class PaymentService {
       throw new AppError(404, "Payment not found");
     }
 
-    const updateData: any = { status };
+    const updateData: Prisma.PaymentUpdateInput = { status };
 
     if (status === "paid" && !payment.paidAt) {
       updateData.paidAt = new Date();
@@ -101,7 +126,7 @@ export class PaymentService {
   }
 
   async getSummary(orgId: string, eventId?: string) {
-    const where: any = { orgId };
+    const where: Prisma.PaymentWhereInput = { orgId };
     if (eventId) {
       where.eventId = eventId;
     }
@@ -125,7 +150,7 @@ export class PaymentService {
   }
 
   async exportCsv(orgId: string, eventId?: string) {
-    const where: any = { orgId };
+    const where: Prisma.PaymentWhereInput = { orgId };
     if (eventId) {
       where.eventId = eventId;
     }

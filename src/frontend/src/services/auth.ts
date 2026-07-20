@@ -16,7 +16,6 @@ export async function signup(data: {
 export async function login(data: {
   email: string;
   password: string;
-  slug?: string;
 }): Promise<AuthResponse> {
   const res = await api.post('/auth/login', data);
   return res.data.data;

@@ -7,7 +7,7 @@ export class AttendanceController {
       const result = await attendanceService.listByEvent(
         req.orgId!,
         req.params.eventId,
-        req.query as any
+        req.query as import("../types").PaginationQuery
       );
       res.json({ success: true, data: result });
     } catch (error) {

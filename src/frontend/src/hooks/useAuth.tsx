@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const res = await authService.login({ email, password, slug: '' });
+    const res = await authService.login({ email, password });
     localStorage.setItem('accessToken', res.accessToken);
     localStorage.setItem('refreshToken', res.refreshToken);
     localStorage.setItem('organization', JSON.stringify(res.organization));

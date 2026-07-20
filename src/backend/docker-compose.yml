@@ -3,16 +3,14 @@ services:
     image: postgres:16-alpine
     container_name: pwe-postgres
     restart: unless-stopped
-    ports:
-      - "5432:5432"
     environment:
-      POSTGRES_USER: pwe_user
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: pwe_dev
+      POSTGRES_USER: ${POSTGRES_USER:-pwe_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-pwe_dev}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U pwe_user -d pwe_dev"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pwe_user} -d ${POSTGRES_DB:-pwe_dev}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -24,10 +22,10 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: postgresql://pwe_user:mypassword@db:5432/pwe_dev
-      JWT_SECRET: your-super-secret-jwt-key-change-this
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pwe_user}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-pwe_dev}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
       JWT_EXPIRES_IN: 15m
-      REFRESH_TOKEN_SECRET: your-refresh-token-secret-change-this
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:?Set REFRESH_TOKEN_SECRET in .env}
       REFRESH_TOKEN_EXPIRES_IN: 7d
       PORT: 3000
       NODE_ENV: development

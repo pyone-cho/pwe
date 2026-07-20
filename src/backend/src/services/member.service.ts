@@ -4,14 +4,44 @@ import prisma from "../prisma/client";
 import { AppError } from "../middleware/errorHandler";
 import { PaginationQuery, PaginatedResponse } from "../types";
 import { generateCsv, generateMemberExportData } from "../utils/export";
+import { Prisma, Member } from "@prisma/client";
+
+export interface MemberCreateInput {
+  firstName: string;
+  lastName?: string;
+  phone: string;
+  email?: string;
+  membershipType?: string;
+  emergencyContact?: string;
+  notes?: string;
+}
+
+export interface MemberUpdateInput {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  email?: string;
+  membershipType?: string;
+  membershipStatus?: string;
+  emergencyContact?: string;
+  notes?: string;
+}
+
+export interface MemberCsvRecord {
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  email?: string;
+  membership_type?: string;
+}
 
 export class MemberService {
-  async list(orgId: string, query: PaginationQuery): Promise<PaginatedResponse<any>> {
+  async list(orgId: string, query: PaginationQuery): Promise<PaginatedResponse<Member>> {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    const where: any = { orgId };
+    const where: Prisma.MemberWhereInput = { orgId };
 
     // Search filter
     if (query.search) {
@@ -101,7 +131,7 @@ export class MemberService {
     return member;
   }
 
-  async create(orgId: string, data: any) {
+  async create(orgId: string, data: MemberCreateInput) {
     // Check for duplicate phone
     const existing = await prisma.member.findFirst({
       where: { orgId, phone: data.phone },
@@ -120,7 +150,7 @@ export class MemberService {
     });
   }
 
-  async update(orgId: string, id: string, data: any) {
+  async update(orgId: string, id: string, data: MemberUpdateInput) {
     const member = await prisma.member.findFirst({
       where: { id, orgId },
     });

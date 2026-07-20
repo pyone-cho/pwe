@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '@/hooks/useAuth';
 import { ToastProvider } from '@/components/ui/Toast';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from '@/components/layout/Layout';
 import HomePage from '@/pages/HomePage';
 import LoginPage from '@/pages/LoginPage';
@@ -19,6 +21,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <ErrorBoundary>
         <ToastProvider>
           <Routes>
             {/* Public routes */}
@@ -30,12 +33,12 @@ export default function App() {
             {/* Protected routes */}
             <Route element={<Layout />}>
               <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/members" element={<MembersPage />} />
+              <Route path="/members" element={<ProtectedRoute allowedRoles={["admin", "staff"]}><MembersPage /></ProtectedRoute>} />
               <Route path="/events" element={<EventsPage />} />
               <Route path="/events/:id" element={<EventDetailPage />} />
               <Route path="/announcements" element={<AnnouncementsPage />} />
-              <Route path="/reports" element={<ReportsPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/reports" element={<ProtectedRoute allowedRoles={["admin", "staff"]}><ReportsPage /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute allowedRoles={["admin"]}><SettingsPage /></ProtectedRoute>} />
               <Route path="/memberDashboard" element={<MemberDashboardPage />} />
             </Route>
 
@@ -43,6 +46,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </ToastProvider>
+        </ErrorBoundary>
       </AuthProvider>
     </BrowserRouter>
   );
