@@ -23,13 +23,16 @@ api.interceptors.response.use(
     }
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Skip auto-refresh redirect for the login endpoint itself
+    const isLoginRequest = originalRequest.url?.includes('/auth/login');
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isLoginRequest) {
       originalRequest._retry = true;
       const refreshToken = localStorage.getItem('refreshToken');
       if (refreshToken) {
         try {
-          const { data: responseData } = await axios.post('/api/v1/auth/refresh', { refreshToken });
-          const { accessToken, refreshToken: newRefreshToken } = responseData.data;
+          const { data } = await api.post('/auth/refresh', { refreshToken });
+          const { accessToken, refreshToken: newRefreshToken } = data.data;
           localStorage.setItem('accessToken', accessToken);
           localStorage.setItem('refreshToken', newRefreshToken);
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
@@ -37,9 +40,9 @@ api.interceptors.response.use(
         } catch {
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
-          window.location.href = '/login';
+          if (!isLoginRequest) window.location.href = '/login';
         }
-      } else {
+      } else if (!isLoginRequest) {
         window.location.href = '/login';
       }
     }

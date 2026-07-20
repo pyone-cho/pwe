@@ -80,6 +80,16 @@ export function useEventsPage(
 
   const handleCreate = useCallback(
     async (publish: boolean) => {
+      // Validate end date is after start date
+      if (form.startDate && form.endDate) {
+        const startDate = new Date(form.startDate);
+        const endDate = new Date(form.endDate);
+        if (endDate <= startDate) {
+          toast('End date must be after start date', 'error');
+          return;
+        }
+      }
+
       try {
         await createEvent({
           ...form,

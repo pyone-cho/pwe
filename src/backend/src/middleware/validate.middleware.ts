@@ -63,6 +63,12 @@ export const authSchemas = {
         .regex(/[0-9]/, "Password must contain at least one number"),
     }),
   }),
+  changePassword: z.object({
+    body: z.object({
+      currentPassword: z.string().min(1),
+      newPassword: z.string().min(8),
+    }),
+  }),
 };
 
 export const memberSchemas = {
@@ -86,6 +92,16 @@ export const memberSchemas = {
       email: z.string().email().optional(),
       membershipType: z.enum(["regular", "premium", "student", "honorary", "lifetime"]).optional(),
       membershipStatus: z.enum(["active", "inactive", "suspended"]).optional(),
+      emergencyContact: z.string().max(255).optional(),
+      notes: z.string().optional(),
+    }),
+  }),
+  updateMe: z.object({
+    body: z.object({
+      firstName: z.string().min(1).max(100).optional(),
+      lastName: z.string().max(100).optional(),
+      phone: z.string().min(1).max(20).optional(),
+      email: z.string().email().optional(),
       emergencyContact: z.string().max(255).optional(),
       notes: z.string().optional(),
     }),
@@ -115,7 +131,17 @@ export const eventSchemas = {
         required: z.boolean().optional(),
       })).optional(),
     }),
-  }),
+  }).refine(
+    (data) => {
+      const { startDate, endDate } = data.body;
+      if (!endDate || endDate === "") return true;
+      return new Date(endDate) > new Date(startDate);
+    },
+    {
+      message: "End date must be after start date",
+      path: ["body", "endDate"],
+    }
+  ),
   update: z.object({
     params: z.object({ id: z.string().uuid() }),
     body: z.object({
@@ -140,7 +166,17 @@ export const eventSchemas = {
         required: z.boolean().optional(),
       })).optional(),
     }),
-  }),
+  }).refine(
+    (data) => {
+      const { startDate, endDate } = data.body;
+      if (!startDate || !endDate || endDate === "") return true;
+      return new Date(endDate) > new Date(startDate);
+    },
+    {
+      message: "End date must be after start date",
+      path: ["body", "endDate"],
+    }
+  ),
 };
 
 export const registrationSchemas = {

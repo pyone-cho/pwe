@@ -26,6 +26,13 @@ Access Token (15 min)          Refresh Token (7 days)
 - Stateless                    - Stateful (can revoke)
 ```
 
+> **⚠️ Critical Security Requirement**: `JWT_SECRET` and `REFRESH_TOKEN_SECRET` environment variables are **required**. The application will fail to start without them — no fallback values are allowed. This prevents token forgery attacks.
+>
+> Generate secure secrets:
+> ```bash
+> node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+> ```
+
 ### Token Flow
 
 ```
@@ -280,6 +287,7 @@ add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style
 2. **Never log** secrets, tokens, or passwords
 3. **Rotate** secrets periodically (quarterly)
 4. **Use different** secrets per environment
+5. **No fallback values** — Application fails to start if secrets are missing (prevents token forgery)
 
 ### .gitignore
 
@@ -293,13 +301,13 @@ add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style
 
 ### Secret Inventory
 
-| Secret | Where Used | Rotation |
-|--------|-----------|----------|
-| DB_PASSWORD | Backend env | Quarterly |
-| JWT_SECRET | Backend env (required at startup) | Quarterly |
-| REFRESH_TOKEN_SECRET | Backend env (required at startup) | Quarterly |
-| DEPLOY_KEY | GitHub Secrets | On compromise |
-| SMTP_PASS (future) | Backend env | Quarterly |
+| Secret | Where Used | Rotation | Required |
+|--------|-----------|----------|----------|
+| DB_PASSWORD | Backend env | Quarterly | Yes |
+| JWT_SECRET | Backend env | Quarterly | Yes (no fallback) |
+| JWT_REFRESH_SECRET | Backend env | Quarterly | Yes (no fallback) |
+| DEPLOY_KEY | GitHub Secrets | On compromise | Yes |
+| SMTP_PASS (future) | Backend env | Quarterly | No |
 
 > **Note:** `JWT_SECRET` and `REFRESH_TOKEN_SECRET` are validated at server startup. The application will refuse to start if either is missing.
 
@@ -346,7 +354,7 @@ add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style
 - [ ] Password complexity enforced (uppercase + number, max 128 chars)
 - [ ] JWT access token expiry <= 15 minutes
 - [ ] Refresh token rotation enabled
-- [ ] Registration capacity check uses database transaction
+- [ ] **JWT secrets required** — No fallback values, app fails without them
 - [ ] SQL injection prevented (Prisma parameterized queries)
 - [ ] XSS prevention (input sanitization, CSP headers)
 - [ ] Error messages don't leak internal details

@@ -11,12 +11,14 @@ const router = Router();
 router.use(authenticate, tenantIsolation);
 
 router.get("/me", requireMinRole("member"), memberController.getMe);
+router.put("/me", requireMinRole("member"), validate(memberSchemas.updateMe), memberController.updateMe);
 router.get("/", requireMinRole("staff"), memberController.list);
 router.get("/export", requireMinRole("staff"), memberController.exportCsv);
 router.get("/:id", requireMinRole("staff"), memberController.getById);
 router.post("/", requireMinRole("staff"), validate(memberSchemas.create), memberController.create);
 router.put("/:id", requireMinRole("staff"), validate(memberSchemas.update), memberController.update);
 router.patch("/:id/status", requireMinRole("admin"), memberController.updateStatus);
+router.patch("/:id/reset-password", requireMinRole("admin"), memberController.resetPassword);
 router.post("/import", requireMinRole("admin"), memberController.importCsv);
 
 export default router;

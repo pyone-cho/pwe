@@ -4,6 +4,15 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button, Input } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { generateSlug } from '@/lib/utils';
+import { isAxiosError } from 'axios';
+
+interface FieldErrors {
+  orgName?: string;
+  slug?: string;
+  email?: string;
+  password?: string;
+  firstName?: string;
+}
 
 export default function SignupPage() {
   const { signup } = useAuth();
@@ -11,6 +20,7 @@ export default function SignupPage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [form, setForm] = useState({
     orgName: '',
     slug: '',
@@ -22,22 +32,51 @@ export default function SignupPage() {
 
   const handleNameChange = (value: string) => {
     setForm({ ...form, orgName: value, slug: generateSlug(value) });
+    setFieldErrors((prev) => ({ ...prev, orgName: undefined, slug: undefined }));
+  };
+
+  const validate = (): boolean => {
+    const errors: FieldErrors = {};
+    if (!form.orgName.trim()) errors.orgName = 'Organization name is required';
+    if (!form.slug.trim()) errors.slug = 'Workspace slug is required';
+    else if (!/^[a-z0-9-]+$/.test(form.slug)) errors.slug = 'Slug must be lowercase with hyphens only';
+    if (!form.email.trim()) errors.email = 'Email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = 'Invalid email format';
+    if (!form.password) errors.password = 'Password is required';
+    else if (form.password.length < 8) errors.password = 'Password must be at least 8 characters';
+    if (!form.firstName.trim()) errors.firstName = 'First name is required';
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
     setIsLoading(true);
     try {
       await signup(form);
       navigate('/dashboard');
     } catch (err: unknown) {
-      const msg =
-        err instanceof Error && err.message.includes('Network Error')
-          ? 'Cannot connect to server. Please try again later.'
-          : err instanceof Error
-            ? err.message
-            : 'Signup failed';
-      toast(msg, 'error');
+      if (isAxiosError(err) && err.response?.data) {
+        const data = err.response.data as { error?: string; details?: { field: string; message: string }[] };
+        if (data.details && Array.isArray(data.details)) {
+          const errors: FieldErrors = {};
+          data.details.forEach((d) => {
+            const field = d.field.replace('body.', '') as keyof FieldErrors;
+            errors[field] = d.message;
+          });
+          setFieldErrors(errors);
+          toast('Please fix the form errors below', 'error');
+        } else if (data.error) {
+          toast(data.error, 'error');
+        } else {
+          toast('Signup failed. Please try again.', 'error');
+        }
+      } else if (err instanceof Error && err.message.includes('Network Error')) {
+        toast('Cannot connect to server. Please try again later.', 'error');
+      } else {
+        toast('Signup failed. Please try again.', 'error');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -122,9 +161,10 @@ export default function SignupPage() {
                     value={form.orgName}
                     onChange={(e) => handleNameChange(e.target.value)}
                     required
-                    className="block w-full rounded-xl border border-gray-200 bg-white pl-11 pr-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20  transition-all duration-200"
+                    className={`block w-full rounded-xl bg-white pl-11 pr-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${fieldErrors.orgName ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border border-gray-200 focus:border-brand-500 focus:ring-brand-500/20'}`}
                   />
                 </div>
+                {fieldErrors.orgName && <p className="text-xs text-red-500">{fieldErrors.orgName}</p>}
               </div>
 
               {/* Slug */}
@@ -138,11 +178,12 @@ export default function SignupPage() {
                     type="text"
                     placeholder="yangon-sports"
                     value={form.slug}
-                    onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                    onChange={(e) => { setForm({ ...form, slug: e.target.value }); setFieldErrors((prev) => ({ ...prev, slug: undefined })); }}
                     required
-                    className="block w-full rounded-xl border border-gray-200 bg-white pl-9 pr-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20  transition-all duration-200"
+                    className={`block w-full rounded-xl bg-white pl-9 pr-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${fieldErrors.slug ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border border-gray-200 focus:border-brand-500 focus:ring-brand-500/20'}`}
                   />
                 </div>
+                {fieldErrors.slug && <p className="text-xs text-red-500">{fieldErrors.slug}</p>}
               </div>
 
               {/* Name */}
@@ -153,10 +194,11 @@ export default function SignupPage() {
                     type="text"
                     placeholder="Ko"
                     value={form.firstName}
-                    onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                    onChange={(e) => { setForm({ ...form, firstName: e.target.value }); setFieldErrors((prev) => ({ ...prev, firstName: undefined })); }}
                     required
-                    className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20  transition-all duration-200"
+                    className={`block w-full rounded-xl bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${fieldErrors.firstName ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border border-gray-200 focus:border-brand-500 focus:ring-brand-500/20'}`}
                   />
+                  {fieldErrors.firstName && <p className="text-xs text-red-500">{fieldErrors.firstName}</p>}
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-sm font-medium text-gray-700">Last Name</label>
@@ -184,11 +226,12 @@ export default function SignupPage() {
                     type="email"
                     placeholder="admin@example.com"
                     value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    onChange={(e) => { setForm({ ...form, email: e.target.value }); setFieldErrors((prev) => ({ ...prev, email: undefined })); }}
                     required
-                    className="block w-full rounded-xl border border-gray-200 bg-white pl-11 pr-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20  transition-all duration-200"
+                    className={`block w-full rounded-xl bg-white pl-11 pr-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${fieldErrors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border border-gray-200 focus:border-brand-500 focus:ring-brand-500/20'}`}
                   />
                 </div>
+                {fieldErrors.email && <p className="text-xs text-red-500">{fieldErrors.email}</p>}
               </div>
 
               {/* Password */}
@@ -204,9 +247,9 @@ export default function SignupPage() {
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
                     value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    onChange={(e) => { setForm({ ...form, password: e.target.value }); setFieldErrors((prev) => ({ ...prev, password: undefined })); }}
                     required
-                    className="block w-full rounded-xl border border-gray-200 bg-white pl-11 pr-11 py-2.5 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20  transition-all duration-200"
+                    className={`block w-full rounded-xl bg-white pl-11 pr-11 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${fieldErrors.password ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border border-gray-200 focus:border-brand-500 focus:ring-brand-500/20'}`}
                   />
                   <button
                     type="button"
@@ -225,6 +268,7 @@ export default function SignupPage() {
                     )}
                   </button>
                 </div>
+                {fieldErrors.password && <p className="text-xs text-red-500">{fieldErrors.password}</p>}
               </div>
 
               <Button type="submit" isLoading={isLoading} className="w-full" size="lg">
