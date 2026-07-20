@@ -10,6 +10,7 @@ import {
 } from '@/services/registrations';
 import { listAttendance, bulkCheckIn, undoCheckIn } from '@/services/attendance';
 import { listPayments, getPaymentSummary } from '@/services/payments';
+import { getErrorMessage } from '@/lib/utils';
 import type {
   Event,
   Registration,
@@ -153,8 +154,7 @@ export function useEventDetailPage(id?: string, userRole?: string) {
       setMyRegistration(reg);
       await loadEvent();
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to register';
-      toast(message, 'error');
+      toast(getErrorMessage(error) || 'Failed to register', 'error');
     }
   }, [id, loadEvent, toast]);
 
@@ -166,8 +166,7 @@ export function useEventDetailPage(id?: string, userRole?: string) {
       setMyRegistration(null);
       await loadEvent();
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to cancel registration';
-      toast(message, 'error');
+      toast(getErrorMessage(error) || 'Failed to cancel registration', 'error');
     }
   }, [id, loadEvent, toast]);
 

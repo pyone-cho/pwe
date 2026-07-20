@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/ui/Toast';
 import { listEvents, createEvent, updateEventStatus } from '@/services/events';
 import { registerForMember, getMyRegistration, cancelMyRegistration } from '@/services/registrations';
+import { getErrorMessage } from '@/lib/utils';
 import type { Event, EventStatus, PaginationMeta } from '@/types';
 
 const initialEventForm = {
@@ -103,8 +104,7 @@ export function useEventsPage(
         setForm({ ...initialEventForm });
         await fetchEvents();
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Failed to create event';
-        toast(message, 'error');
+        toast(getErrorMessage(error) || 'Failed to create event', 'error');
       }
     },
     [form, fetchEvents, toast]
@@ -131,8 +131,7 @@ export function useEventsPage(
         setMyRegistrations((prev) => new Set([...prev, eventId]));
         await fetchEvents();
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Failed to register';
-        toast(message, 'error');
+        toast(getErrorMessage(error) || 'Failed to register', 'error');
       }
     },
     [fetchEvents, toast]
@@ -150,8 +149,7 @@ export function useEventsPage(
         });
         await fetchEvents();
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Failed to cancel registration';
-        toast(message, 'error');
+        toast(getErrorMessage(error) || 'Failed to cancel registration', 'error');
       }
     },
     [fetchEvents, toast]

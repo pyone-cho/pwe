@@ -49,6 +49,36 @@ export function generateSlug(name: string): string {
     .replace(/(^-|-$)/g, '');
 }
 
+/** Extract a human-readable error message from an unknown thrown value */
+export function getErrorMessage(error: unknown): string {
+  if (error && typeof error === 'object' && 'response' in error) {
+    const axiosError = error as { response?: { status?: number; data?: { message?: string } } };
+    const status = axiosError.response?.status;
+    const serverMessage = axiosError.response?.data?.message;
+
+    if (serverMessage) return serverMessage;
+
+    const statusMessages: Record<number, string> = {
+      400: 'Invalid request. Please check your input.',
+      401: 'Please log in to continue.',
+      403: 'You don\'t have permission to do this.',
+      404: 'The requested resource was not found.',
+      409: 'This conflicts with an existing entry.',
+      422: 'Invalid data. Please check your input.',
+      429: 'Too many requests. Please try again later.',
+      500: 'Something went wrong on our end. Please try again later.',
+      502: 'Server is temporarily unavailable. Please try again later.',
+      503: 'Service is temporarily unavailable. Please try again later.',
+    };
+
+    if (status && statusMessages[status]) return statusMessages[status];
+    if (status) return `Request failed (HTTP ${status}). Please try again.`;
+  }
+
+  if (error instanceof Error) return error.message;
+  return 'An unexpected error occurred.';
+}
+
 export function statusColor(status: string): string {
   const map: Record<string, string> = {
     active: 'bg-green-50 text-green-700',
