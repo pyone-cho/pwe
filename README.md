@@ -17,16 +17,16 @@ PWE helps sports clubs, university societies, community groups, and NGOs manage 
 | Document | Description |
 |----------|-------------|
 | [User Guide](docs/user-guide/USER-GUIDE.md) | Visual guide with screenshots for all features |
-| [Feature Spec](Feature-spec.md) | User stories, acceptance criteria, and UI specs for all 7 features |
-| [Tech Stack](tech-stack.md) | Technology choices with rationale and alternatives |
-| [Architecture](architecture.md) | System design, container layout, multi-tenancy model |
-| [API Design](api-design.md) | REST API endpoint reference (40+ endpoints) |
-| [Database Schema](database-schema.md) | ER diagram, table definitions, indexes |
-| [Deployment](deployment.md) | Docker setup, CI/CD, server provisioning, backups |
+| [Feature Spec](docs/pwe/Feature-spec.md) | User stories, acceptance criteria, and UI specs for all 7 features |
+| [Tech Stack](docs/pwe/tech-stack.md) | Technology choices with rationale and alternatives |
+| [Architecture](docs/pwe/architecture.md) | System design, container layout, multi-tenancy model |
+| [API Design](docs/pwe/api-design.md) | REST API endpoint reference (40+ endpoints) |
+| [Database Schema](docs/pwe/database-schema.md) | ER diagram, table definitions, indexes |
+| [Deployment](docs/pwe/deployment.md) | Docker setup, CI/CD, server provisioning, backups |
 | [Local Deploy](src/local-deploy/README.md) | Local Docker development environment setup |
 | [Dev Deploy](src/dev-deployment/README.md) | DigitalOcean dev/staging deployment with SSL |
-| [Security](security.md) | Auth flow, RBAC, tenant isolation, security checklist |
-| [Pre-Production](pwe-pre-production.txt) | Original product requirements document |
+| [Security](docs/pwe/security.md) | Auth flow, RBAC, tenant isolation, security checklist |
+| [Pre-Production](docs/pwe/pwe-pre-production.txt) | Original product requirements document |
 
 ---
 
