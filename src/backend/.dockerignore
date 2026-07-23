@@ -1,6 +1,6 @@
-.env*
-node_modules
-dist
-.git
-*.md
-docker-compose*.yml
+**
+!src/
+!prisma/
+!package*.json
+!tsconfig.json
+!.env.example
