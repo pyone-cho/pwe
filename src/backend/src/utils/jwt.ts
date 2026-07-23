@@ -10,9 +10,11 @@ const REFRESH_TOKEN_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN || "7d";
 if (!JWT_SECRET || !REFRESH_TOKEN_SECRET) {
   throw new Error("JWT_SECRET and REFRESH_TOKEN_SECRET must be set in environment variables");
 }
+const secret = JWT_SECRET as string;
+const refreshSecret = REFRESH_TOKEN_SECRET as string;
 
 export function generateAccessToken(payload: JwtPayload): string {
-  return jwt.sign(payload, JWT_SECRET, {
+  return jwt.sign(payload, secret, {
     expiresIn: JWT_EXPIRES_IN,
   });
 }
@@ -24,7 +26,7 @@ export function generateRefreshToken(): { token: string; hash: string } {
 }
 
 export function verifyAccessToken(token: string): JwtPayload {
-  return jwt.verify(token, JWT_SECRET) as JwtPayload;
+  return jwt.verify(token, secret) as unknown as JwtPayload;
 }
 
 export function getRefreshTokenExpiry(): Date {

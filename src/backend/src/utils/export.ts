@@ -105,7 +105,7 @@ export function generatePaymentExportData(payments: PaymentWithRelations[]): Csv
   return payments.map((p) => ({
     Member: `${p.member?.firstName || ""} ${p.member?.lastName || ""}`.trim(),
     Event: p.event?.title || "Membership",
-    Amount: p.amount,
+    Amount: p.amount.toString(),
     Currency: p.currency,
     Method: p.paymentMethod || "",
     Status: p.status,

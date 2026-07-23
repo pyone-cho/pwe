@@ -3,7 +3,7 @@ import { generateCsv, generateMemberExportData, generateEventExportData, generat
 
 export class ReportService {
   async getMemberReport(orgId: string) {
-    const [total, active, inactive, suspended, byType, monthly] = await Promise.all([
+    const [total, active, inactive, suspended, byType, monthlyRaw] = await Promise.all([
       prisma.member.count({ where: { orgId } }),
       prisma.member.count({ where: { orgId, membershipStatus: "active" } }),
       prisma.member.count({ where: { orgId, membershipStatus: "inactive" } }),
@@ -32,8 +32,8 @@ export class ReportService {
         type: t.membershipType || "unknown",
         count: t._count,
       })),
-      monthly: monthly.map((row: { month: Date | string; count: bigint | number }) => ({
-        month: row.month?.toISOString?.() ?? row.month,
+      monthly: (monthlyRaw as Array<{ month: Date; count: bigint }>).map((row) => ({
+        month: row.month.toISOString?.() ?? row.month,
         count: Number(row.count),
       })),
     };
