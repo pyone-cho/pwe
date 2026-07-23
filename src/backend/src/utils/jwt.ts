@@ -14,9 +14,7 @@ const secret = JWT_SECRET as string;
 const refreshSecret = REFRESH_TOKEN_SECRET as string;
 
 export function generateAccessToken(payload: JwtPayload): string {
-  return jwt.sign(payload, secret, {
-    expiresIn: JWT_EXPIRES_IN,
-  });
+  return jwt.sign(payload, secret, { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions);
 }
 
 export function generateRefreshToken(): { token: string; hash: string } {

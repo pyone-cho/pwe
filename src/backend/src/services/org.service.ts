@@ -33,7 +33,7 @@ export class OrgService {
 
     return prisma.organization.update({
       where: { id: orgId },
-      data,
+      data: data as any,
     });
   }
 

@@ -87,7 +87,7 @@ export class RegistrationService {
             orgId,
             ...data,
             status,
-          },
+          } as Prisma.RegistrationCreateInput,
         });
       });
     }
@@ -112,7 +112,7 @@ export class RegistrationService {
         eventId,
         orgId,
         ...data,
-      },
+      } as Prisma.RegistrationCreateInput,
     });
   }
 
