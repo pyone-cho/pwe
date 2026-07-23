@@ -5,7 +5,7 @@ import compression from "compression";
 import path from "path";
 import swaggerUi from "swagger-ui-express";
 
-import { apiLimiter } from "./middleware/rateLimit.middleware";
+import { apiLimiter, uploadLimiter } from "./middleware/rateLimit.middleware";
 import { errorHandler } from "./middleware/errorHandler";
 import { openApiSpec } from "./swagger/openapi";
 
@@ -44,7 +44,7 @@ app.use("/api/", apiLimiter);
 
 // Static files for uploads (require auth)
 import { authenticate } from "./middleware/auth.middleware";
-app.use("/uploads", authenticate, express.static(path.join(__dirname, "../uploads")));
+app.use("/uploads", authenticate, uploadLimiter, express.static(path.join(__dirname, "../uploads")));
 
 // Swagger UI — disabled in production
 if (process.env.NODE_ENV !== "production") {
