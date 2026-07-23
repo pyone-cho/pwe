@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Button, Input } from '@/components/ui';
+import { Button } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { getErrorMessage } from '@/lib/utils';
 

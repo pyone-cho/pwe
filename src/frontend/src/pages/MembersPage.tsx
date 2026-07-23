@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { isAxiosError } from 'axios';
 import { listMembers, createMember, updateMember, updateMemberStatus, resetMemberPassword } from '@/services/members';
-import { Button, Input, Select, Modal, Badge, Pagination, EmptyState, Card, PageHeader, Section } from '@/components/ui';
+import { Button, Input, Select, Modal, Badge, Pagination, EmptyState, PageHeader, Section } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { usePagination } from '@/hooks/usePagination';
 import { formatDate } from '@/lib/utils';

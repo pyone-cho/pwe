@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getOrganization, updateOrganization } from '@/services/organization';
-import { Button, Input, Textarea, Card, CardContent, Spinner, PageHeader, Section } from '@/components/ui';
+import { Button, Input, Textarea, Spinner, PageHeader, Section } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/hooks/useAuth';
 import type { Organization } from '@/types';
