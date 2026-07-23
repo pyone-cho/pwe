@@ -2,6 +2,7 @@ import { Router } from "express";
 import { eventController } from "../controllers/event.controller";
 import { registrationController } from "../controllers/registration.controller";
 import { authenticate, optionalAuth } from "../middleware/auth.middleware";
+import { authLimiter } from "../middleware/rateLimit.middleware";
 import { requireMinRole } from "../middleware/rbac.middleware";
 import { tenantIsolation } from "../middleware/tenant.middleware";
 import { validate, eventSchemas, registrationSchemas } from "../middleware/validate.middleware";
@@ -13,7 +14,7 @@ router.get("/public", tenantIsolation, eventController.getPublicEvents);
 router.get("/public/:id", tenantIsolation, eventController.getPublicEventById);
 
 // Guest registration (no auth required, needs org context via x-org-id header)
-router.post("/:eventId/register", optionalAuth, tenantIsolation, validate(registrationSchemas.create), registrationController.create);
+router.post("/:eventId/register", authLimiter, optionalAuth, tenantIsolation, validate(registrationSchemas.create), registrationController.create);
 
 // Protected routes
 router.use(authenticate, tenantIsolation);
