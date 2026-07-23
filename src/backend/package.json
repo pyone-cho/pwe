@@ -18,6 +18,9 @@
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit"
   },
+  "overrides": {
+    "tar": "7.5.19"
+  },
   "dependencies": {
     "@prisma/client": "^6.11.0",
     "bcryptjs": "^3.0.3",
