@@ -1,3 +1,12 @@
+## Project
+
+- **GitHub username:** @pyone-cho
+- **Repo URL:** https://github.com/pyone-cho/pwe
+- **Live / download URL:** https://dev.pwe-mm.site
+- **License:** MIT
+
+---
+
 <p align="center">
   <img src="docs/user-guide/screenshots/01-landing-page.png" alt="PWE - Organization Management" width="100%">
 </p>
