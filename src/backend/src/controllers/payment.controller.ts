@@ -22,7 +22,7 @@ export class PaymentController {
 
   async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const payment = await paymentService.update(req.orgId!, req.params.id, req.body);
+      const payment = await paymentService.update(req.orgId!, req.params.id as string, req.body);
       res.json({ success: true, data: payment });
     } catch (error) {
       next(error);
@@ -31,7 +31,7 @@ export class PaymentController {
 
   async updateStatus(req: Request, res: Response, next: NextFunction) {
     try {
-      const payment = await paymentService.updateStatus(req.orgId!, req.params.id, req.body.status);
+      const payment = await paymentService.updateStatus(req.orgId!, req.params.id as string, req.body.status);
       res.json({ success: true, data: payment });
     } catch (error) {
       next(error);

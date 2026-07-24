@@ -6,7 +6,7 @@ export class RegistrationController {
     try {
       const result = await registrationService.listByEvent(
         req.orgId!,
-        req.params.eventId,
+        req.params.eventId as string,
         req.query as import("../types").PaginationQuery
       );
       res.json({ success: true, data: result });
@@ -19,7 +19,7 @@ export class RegistrationController {
     try {
       const registration = await registrationService.create(
         req.orgId!,
-        req.params.eventId,
+        req.params.eventId as string,
         req.body
       );
       res.status(201).json({ success: true, data: registration });
@@ -32,7 +32,7 @@ export class RegistrationController {
     try {
       const registration = await registrationService.registerForMember(
         req.orgId!,
-        req.params.eventId,
+        req.params.eventId as string,
         req.user!.userId
       );
       res.status(201).json({ success: true, data: registration });
@@ -45,7 +45,7 @@ export class RegistrationController {
     try {
       const registration = await registrationService.getMyRegistration(
         req.orgId!,
-        req.params.eventId,
+        req.params.eventId as string,
         req.user!.userId
       );
       res.json({ success: true, data: registration });
@@ -56,7 +56,7 @@ export class RegistrationController {
 
   async cancel(req: Request, res: Response, next: NextFunction) {
     try {
-      const registration = await registrationService.cancel(req.orgId!, req.params.id);
+      const registration = await registrationService.cancel(req.orgId!, req.params.id as string);
       res.json({ success: true, data: registration });
     } catch (error) {
       next(error);
@@ -67,7 +67,7 @@ export class RegistrationController {
     try {
       const registration = await registrationService.cancelMyRegistration(
         req.orgId!,
-        req.params.eventId,
+        req.params.eventId as string,
         req.user!.userId
       );
       res.json({ success: true, data: registration });

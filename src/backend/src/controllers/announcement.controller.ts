@@ -13,7 +13,7 @@ export class AnnouncementController {
 
   async getById(req: Request, res: Response, next: NextFunction) {
     try {
-      const announcement = await announcementService.getById(req.orgId!, req.params.id);
+      const announcement = await announcementService.getById(req.orgId!, req.params.id as string);
       res.json({ success: true, data: announcement });
     } catch (error) {
       next(error);
@@ -35,7 +35,7 @@ export class AnnouncementController {
 
   async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const announcement = await announcementService.update(req.orgId!, req.params.id, req.body);
+      const announcement = await announcementService.update(req.orgId!, req.params.id as string, req.body);
       res.json({ success: true, data: announcement });
     } catch (error) {
       next(error);
@@ -46,7 +46,7 @@ export class AnnouncementController {
     try {
       const announcement = await announcementService.updateStatus(
         req.orgId!,
-        req.params.id,
+        req.params.id as string,
         req.body.status
       );
       res.json({ success: true, data: announcement });

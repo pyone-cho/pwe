@@ -1,3 +1,5 @@
+import "express";
+
 declare global {
   namespace Express {
     interface Request {
@@ -8,6 +10,7 @@ declare global {
         email: string;
       };
       orgId?: string;
+      params: Record<string, string>;
     }
   }
 }

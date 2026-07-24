@@ -31,7 +31,7 @@ export class MemberController {
 
   async getById(req: Request, res: Response, next: NextFunction) {
     try {
-      const member = await memberService.getById(req.orgId!, req.params.id);
+      const member = await memberService.getById(req.orgId!, req.params.id as string);
       res.json({ success: true, data: member });
     } catch (error) {
       next(error);
@@ -49,7 +49,7 @@ export class MemberController {
 
   async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const member = await memberService.update(req.orgId!, req.params.id, req.body);
+      const member = await memberService.update(req.orgId!, req.params.id as string, req.body);
       res.json({ success: true, data: member });
     } catch (error) {
       next(error);
@@ -58,7 +58,7 @@ export class MemberController {
 
   async updateStatus(req: Request, res: Response, next: NextFunction) {
     try {
-      const member = await memberService.updateStatus(req.orgId!, req.params.id, req.body.status);
+      const member = await memberService.updateStatus(req.orgId!, req.params.id as string, req.body.status);
       res.json({ success: true, data: member });
     } catch (error) {
       next(error);
@@ -87,7 +87,7 @@ export class MemberController {
 
   async resetPassword(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await memberService.resetPassword(req.orgId!, req.params.id);
+      const result = await memberService.resetPassword(req.orgId!, req.params.id as string);
       res.json({ success: true, data: result });
     } catch (error) {
       next(error);

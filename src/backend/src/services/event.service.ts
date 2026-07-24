@@ -130,7 +130,7 @@ export class EventService {
         orgId,
         createdById: userId,
         ...processedData,
-      } as Prisma.EventCreateInput,
+      } as unknown as Prisma.EventCreateInput,
     });
   }
 
@@ -157,7 +157,7 @@ export class EventService {
 
     return prisma.event.update({
       where: { id },
-      data: cleanData as Prisma.EventUpdateInput,
+      data: cleanData as unknown as Prisma.EventUpdateInput,
     });
   }
 

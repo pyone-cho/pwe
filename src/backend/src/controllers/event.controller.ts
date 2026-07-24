@@ -13,7 +13,7 @@ export class EventController {
 
   async getById(req: Request, res: Response, next: NextFunction) {
     try {
-      const event = await eventService.getById(req.orgId!, req.params.id);
+      const event = await eventService.getById(req.orgId!, req.params.id as string);
       res.json({ success: true, data: event });
     } catch (error) {
       next(error);
@@ -31,7 +31,7 @@ export class EventController {
 
   async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const event = await eventService.update(req.orgId!, req.params.id, req.body);
+      const event = await eventService.update(req.orgId!, req.params.id as string, req.body);
       res.json({ success: true, data: event });
     } catch (error) {
       next(error);
@@ -40,7 +40,7 @@ export class EventController {
 
   async updateStatus(req: Request, res: Response, next: NextFunction) {
     try {
-      const event = await eventService.updateStatus(req.orgId!, req.params.id, req.body.status);
+      const event = await eventService.updateStatus(req.orgId!, req.params.id as string, req.body.status);
       res.json({ success: true, data: event });
     } catch (error) {
       next(error);
@@ -58,7 +58,7 @@ export class EventController {
 
   async getPublicEventById(req: Request, res: Response, next: NextFunction) {
     try {
-      const event = await eventService.getPublicEventById(req.orgId!, req.params.id);
+      const event = await eventService.getPublicEventById(req.orgId!, req.params.id as string);
       res.json({ success: true, data: event });
     } catch (error) {
       next(error);
