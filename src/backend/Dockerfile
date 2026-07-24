@@ -30,14 +30,14 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/.env* ./
 
-# Create non-root user
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+# Create non-root user with writable npm cache
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup \
+    && mkdir -p /tmp/npm-cache && chown appuser:appgroup /tmp/npm-cache
+
 USER appuser
+ENV npm_config_cache=/tmp/npm-cache
 
 EXPOSE 3000
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:3000/health || exit 1
-
-# On Railway: generate Prisma client, run pending migrations, then start
-CMD ["sh", "-c", "npx prisma generate && npx prisma migrate deploy && node dist/server.js"]
+# Prisma client already generated during build; migrations run at startup
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/server.js"]
