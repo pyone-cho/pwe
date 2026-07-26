@@ -13,3 +13,11 @@
 # /src/backend/         @member-c @member-d
 # *.md                  @member-e
 # /.github/             @team-anchor
+
+| Role | Person |
+|------|--------|
+| Product & Design | @Heinkhantphyoe + @pyaesone-gipsy|
+| Backend (Express, Prisma, Auth) | @Heinkhantphyoe + @mangsuan |
+| Frontend (React, Tailwind) | @Phyu1788 + @AungAung88 |
+| DevOps (Docker, Railway) | @pyone-cho + @royallyre7 |
+| AI-assisted tooling | @kokoye2007 + Claude Code |
