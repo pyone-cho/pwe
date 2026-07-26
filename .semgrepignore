@@ -1,0 +1,4 @@
+# WebSocket support for Vite HMR — these configs legitimately need Upgrade headers.
+# The H2C smuggling rule is a false positive for WebSocket proxying.
+src/dev-deployment/nginx.conf
+src/local-deploy/nginx.conf
