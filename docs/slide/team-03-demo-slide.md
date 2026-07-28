@@ -122,11 +122,11 @@ No unified, local-friendly solution exists.
 # Slide 11 — Team roles
 | Role | Person |
 |------|--------|
-| Product & Design | Hein Ko + Pyae Sone|
-| Backend (Express, Prisma, Auth) | Hein Ko + Maung Suan Kim |
-| Frontend (React, Tailwind) | Phyu Thant Sin + Aung Pyae Sone |
-| DevOps (Docker, Railway) | pyone-cho + U Lay Aung |
-| AI-assisted tooling | Claude Code |
+| Product & Design | @Heinkhantphyoe + @pyaesone-gipsy|
+| Backend (Express, Prisma, Auth) | @Heinkhantphyoe + @mangsuan |
+| Frontend (React, Tailwind) | @Phyu1788 + @AungAung88 |
+| DevOps (Docker, Railway) | @pyone-cho + @royallyre7 |
+| AI-assisted tooling | @kokoye2007 + Claude Code |
 
 Solo-built with AI-assisted development throughout — from architecture decisions to deployment.
 
