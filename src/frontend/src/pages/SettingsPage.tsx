@@ -1,70 +1,17 @@
-import { useState, useEffect } from 'react';
-import { getOrganization, updateOrganization } from '@/services/organization';
-import { Button, Input, Textarea, Card, CardContent, Spinner, PageHeader, Section } from '@/components/ui';
-import { useToast } from '@/components/ui/Toast';
-import { useAuth } from '@/hooks/useAuth';
-import type { Organization } from '@/types';
+import { Button, Input, Textarea, Spinner, PageHeader, Section } from '@/components/ui';
+import { useSettingsPage } from '@/hooks/useSettingsPage';
 
 export default function SettingsPage() {
-  const { toast } = useToast();
-  const { organization: orgFromAuth } = useAuth();
-  const [org, setOrg] = useState<Organization | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [form, setForm] = useState({
-    name: '',
-    description: '',
-    phone: '',
-  });
-
-  useEffect(() => {
-    getOrganization()
-      .then((res) => {
-        setOrg(res.organization);
-        setForm({
-          name: res.organization.name,
-          description: res.organization.description || '',
-          phone: res.organization.phone || '',
-        });
-      })
-      .catch(() => {
-        // Fallback to auth-stored org
-        if (orgFromAuth) {
-          setForm({ name: orgFromAuth.name, description: '', phone: '' });
-        }
-      })
-      .finally(() => setIsLoading(false));
-  }, [orgFromAuth]);
-
-  const [phoneError, setPhoneError] = useState('');
-
-  const validatePhone = (value: string): boolean => {
-    if (!value) {
-      setPhoneError('');
-      return true;
-    }
-    const phoneRegex = /^[+]?[\d\s\-()]+$/;
-    if (!phoneRegex.test(value)) {
-      setPhoneError('Phone must contain only numbers and symbols (+, -, (, ))');
-      return false;
-    }
-    setPhoneError('');
-    return true;
-  };
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validatePhone(form.phone)) return;
-    setIsSaving(true);
-    try {
-      await updateOrganization(form);
-      toast('Settings saved', 'success');
-    } catch {
-      toast('Failed to save settings', 'error');
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  const {
+    org,
+    isLoading,
+    isSaving,
+    form,
+    setForm,
+    phoneError,
+    validatePhone,
+    handleSave,
+  } = useSettingsPage();
 
   if (isLoading) return <Spinner size="lg" className="mt-12" />;
 
