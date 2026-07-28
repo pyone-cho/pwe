@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { User, Organization } from '@/types';
 import * as authService from '@/services/auth';
+import { clearAuthSession, persistAuthSession, getStoredAccessToken } from '@/lib/authStorage';
 
 interface AuthContextType {
   user: User | null;
@@ -35,19 +36,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
+    const token = getStoredAccessToken();
     if (token) {
       authService
         .getMe()
         .then((res) => {
           setUser(res.user);
-          // Org info comes from login/signup, stored separately
           const storedOrg = localStorage.getItem('organization');
           if (storedOrg) setOrganization(JSON.parse(storedOrg));
         })
         .catch(() => {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
+          clearAuthSession();
         })
         .finally(() => setIsLoading(false));
     } else {
@@ -57,9 +56,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await authService.login({ email, password });
-    localStorage.setItem('accessToken', res.accessToken);
-    localStorage.setItem('refreshToken', res.refreshToken);
-    localStorage.setItem('organization', JSON.stringify(res.organization));
+    persistAuthSession({
+      accessToken: res.accessToken,
+      refreshToken: res.refreshToken,
+      organization: res.organization,
+    });
     setUser(res.user);
     setOrganization(res.organization);
   }, []);
@@ -73,9 +74,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     lastName: string;
   }) => {
     const res = await authService.signup(data);
-    localStorage.setItem('accessToken', res.accessToken);
-    localStorage.setItem('refreshToken', res.refreshToken);
-    localStorage.setItem('organization', JSON.stringify(res.organization));
+    persistAuthSession({
+      accessToken: res.accessToken,
+      refreshToken: res.refreshToken,
+      organization: res.organization,
+    });
     setUser(res.user);
     setOrganization(res.organization);
   }, []);
@@ -89,9 +92,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string;
   }) => {
     const res = await authService.register(data);
-    localStorage.setItem('accessToken', res.accessToken);
-    localStorage.setItem('refreshToken', res.refreshToken);
-    localStorage.setItem('organization', JSON.stringify(res.organization));
+    persistAuthSession({
+      accessToken: res.accessToken,
+      refreshToken: res.refreshToken,
+      organization: res.organization,
+    });
     setUser(res.user);
     setOrganization(res.organization);
   }, []);
@@ -100,9 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await authService.logout();
     } finally {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('organization');
+      clearAuthSession();
       setUser(null);
       setOrganization(null);
     }

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { clearAuthSession, getStoredAccessToken, getStoredRefreshToken, persistAuthSession } from '@/lib/authStorage';
 
 const api = axios.create({
   baseURL: '/api/v1',
@@ -7,7 +8,7 @@ const api = axios.create({
 
 // Request interceptor — attach access token
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken');
+  const token = getStoredAccessToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -28,18 +29,16 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401 && !originalRequest._retry && !isLoginRequest) {
       originalRequest._retry = true;
-      const refreshToken = localStorage.getItem('refreshToken');
+      const refreshToken = getStoredRefreshToken();
       if (refreshToken) {
         try {
           const { data } = await api.post('/auth/refresh', { refreshToken });
           const { accessToken, refreshToken: newRefreshToken } = data.data;
-          localStorage.setItem('accessToken', accessToken);
-          localStorage.setItem('refreshToken', newRefreshToken);
+          persistAuthSession({ accessToken, refreshToken: newRefreshToken });
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           return api(originalRequest);
         } catch {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
+          clearAuthSession();
           if (!isLoginRequest) window.location.href = '/login';
         }
       } else if (!isLoginRequest) {
