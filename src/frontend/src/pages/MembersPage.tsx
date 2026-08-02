@@ -1,182 +1,37 @@
-import { useState, useEffect } from 'react';
-import { isAxiosError } from 'axios';
-import { listMembers, createMember, updateMember, updateMemberStatus, resetMemberPassword } from '@/services/members';
-import { Button, Input, Select, Modal, Badge, Pagination, EmptyState, Card, PageHeader, Section } from '@/components/ui';
-import { useToast } from '@/components/ui/Toast';
-import { usePagination } from '@/hooks/usePagination';
-import { formatDate } from '@/lib/utils';
-import type { Member, MembershipStatus, MembershipType } from '@/types';
-
-const statusOptions = [
-  { value: 'active', label: 'Active' },
-  { value: 'inactive', label: 'Inactive' },
-  { value: 'suspended', label: 'Suspended' },
-];
+import { Button, Input, Select, Modal, Badge, Pagination, EmptyState, PageHeader, Section } from '@/components/ui';
+import { useMembersPage } from '@/hooks/useMembersPage';
 
 export default function MembersPage() {
-  const { toast } = useToast();
-  const { page, limit, meta, setMeta, goToPage } = usePagination();
-  const [members, setMembers] = useState<Member[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [searchTrigger, setSearchTrigger] = useState(0);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editingMember, setEditingMember] = useState<Member | null>(null);
-  const [form, setForm] = useState({
-    firstName: '',
-    lastName: '',
-    phone: '',
-    email: '',
-    membershipType: '',
-    emergencyContact: '',
-    notes: '',
-  });
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [resetModalMember, setResetModalMember] = useState<Member | null>(null);
-  const [resetPassword, setResetPassword] = useState<string | null>(null);
-  const [isResetting, setIsResetting] = useState(false);
-
-  const validateMember = (): boolean => {
-    const errors: Record<string, string> = {};
-    if (!form.firstName.trim()) errors.firstName = 'First name is required';
-    if (!form.lastName.trim()) errors.lastName = 'Last name is required';
-    if (!form.phone.trim()) errors.phone = 'Phone is required';
-    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = 'Invalid email format';
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const extractBackendErrors = (err: unknown): string => {
-    if (isAxiosError(err) && err.response?.data) {
-      const data = err.response.data as { error?: string; details?: { field: string; message: string }[] };
-      if (data.details && Array.isArray(data.details)) {
-        const errors: Record<string, string> = {};
-        data.details.forEach((d) => {
-          const field = d.field.replace('body.', '');
-          errors[field] = d.message;
-        });
-        setFieldErrors(errors);
-        return 'Please fix the form errors below';
-      }
-      if (data.error) return data.error;
-    }
-    return 'An unexpected error occurred';
-  };
-
-  const clearFieldError = (field: string) => {
-    setFieldErrors((prev) => {
-      const next = { ...prev };
-      delete next[field];
-      return next;
-    });
-  };
-
-  const fetchMembers = async () => {
-    setIsLoading(true);
-    try {
-      const res = await listMembers({
-        page,
-        limit,
-        search: search || undefined,
-        status: (statusFilter as MembershipStatus) || undefined,
-      });
-      setMembers(res.data);
-      setMeta(res.meta);
-    } catch {
-      toast('Failed to load members', 'error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchMembers();
-  }, [page, statusFilter, search, searchTrigger]);
-
-  const handleSearch = () => {
-    goToPage(1);
-    setSearchTrigger((t) => t + 1);
-  };
-
-  const resetForm = () => {
-    setForm({ firstName: '', lastName: '', phone: '', email: '', membershipType: '', emergencyContact: '', notes: '' });
-    setEditingMember(null);
-    setFieldErrors({});
-  };
-
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateMember()) return;
-    try {
-      await createMember(form);
-      toast('Member created', 'success');
-      setShowCreateModal(false);
-      resetForm();
-      fetchMembers();
-    } catch (err: unknown) {
-      toast(extractBackendErrors(err), 'error');
-    }
-  };
-
-  const handleEdit = (member: Member) => {
-    setEditingMember(member);
-    setForm({
-      firstName: member.firstName,
-      lastName: member.lastName,
-      phone: member.phone,
-      email: member.email || '',
-      membershipType: member.membershipType || '',
-      emergencyContact: member.emergencyContact || '',
-      notes: member.notes || '',
-    });
-    setFieldErrors({});
-    setShowCreateModal(true);
-  };
-
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingMember) return;
-    if (!validateMember()) return;
-    try {
-      await updateMember(editingMember.id, {
-        ...form,
-        membershipType: (form.membershipType || undefined) as MembershipType | undefined,
-      });
-      toast('Member updated', 'success');
-      setShowCreateModal(false);
-      resetForm();
-      fetchMembers();
-    } catch (err: unknown) {
-      toast(extractBackendErrors(err), 'error');
-    }
-  };
-
-  const handleStatusToggle = async (member: Member) => {
-    const newStatus: MembershipStatus =
-      member.membershipStatus === 'active' ? 'inactive' : 'active';
-    try {
-      await updateMemberStatus(member.id, newStatus);
-      toast(`Member ${newStatus}`, 'success');
-      fetchMembers();
-    } catch {
-      toast('Failed to update status', 'error');
-    }
-  };
-
-  const handleResetPassword = async () => {
-    if (!resetModalMember) return;
-    setIsResetting(true);
-    try {
-      const password = await resetMemberPassword(resetModalMember.id);
-      setResetPassword(password);
-    } catch {
-      toast('Failed to reset password', 'error');
-      setResetModalMember(null);
-    } finally {
-      setIsResetting(false);
-    }
-  };
+  const {
+    members,
+    isLoading,
+    search,
+    setSearch,
+    statusFilter,
+    setStatusFilter,
+    showCreateModal,
+    setShowCreateModal,
+    editingMember,
+    form,
+    setForm,
+    fieldErrors,
+    clearFieldError,
+    resetForm,
+    handleSearch,
+    handleCreate,
+    handleEdit,
+    handleUpdate,
+    handleStatusToggle,
+    handleResetPassword,
+    resetModalMember,
+    setResetModalMember,
+    resetPassword,
+    setResetPassword,
+    isResetting,
+    statusOptions,
+    meta,
+    goToPage,
+  } = useMembersPage();
 
   return (
     <div className="space-y-6 animate-slide-up">
@@ -261,7 +116,7 @@ export default function MembersPage() {
                       <td className="px-6 py-4">
                         <Badge variant="status" value={m.membershipStatus}>{m.membershipStatus}</Badge>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{formatDate(m.joinDate)}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{m.joinedLabel}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2">
                           <Button variant="ghost" size="sm" onClick={() => handleEdit(m)}>Edit</Button>

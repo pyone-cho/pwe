@@ -1,72 +1,28 @@
-import { useState, useEffect } from 'react';
-import { listAnnouncements, createAnnouncement, updateAnnouncementStatus } from '@/services/announcements';
-import { Button, Modal, Input, Textarea, Select, Badge, Pagination, EmptyState, Card, CardContent, PageHeader, Section } from '@/components/ui';
-import { useToast } from '@/components/ui/Toast';
-import { usePagination } from '@/hooks/usePagination';
+import { Button, Modal, Input, Textarea, Select, Badge, Pagination, EmptyState, Card, CardContent } from '@/components/ui';
 import { formatDateTime, formatDate } from '@/lib/utils';
-import { useAuth } from '@/hooks/useAuth';
-import type { Announcement, AnnouncementPriority } from '@/types';
+import { useAnnouncementsPage } from '@/hooks/useAnnouncementsPage';
+import type { AnnouncementPriority } from '@/types';
 
 export default function AnnouncementsPage() {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const { page, limit, meta, setMeta, goToPage } = usePagination();
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | AnnouncementPriority>('all');
-  const [form, setForm] = useState({
-    title: '',
-    content: '',
-    priority: 'normal' as AnnouncementPriority,
-  });
-
-  const isAdmin = user?.role === 'admin' || user?.role === 'staff';
-
-  const fetchAnnouncements = async () => {
-    setIsLoading(true);
-    try {
-      const res = await listAnnouncements({ page, limit, status: 'published' });
-      setAnnouncements(res.data);
-      setMeta(res.meta);
-    } catch {
-      toast('Failed to load announcements', 'error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAnnouncements();
-  }, [page]);
-
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await createAnnouncement({ ...form, status: 'published' });
-      toast('Announcement published', 'success');
-      setShowCreateModal(false);
-      setForm({ title: '', content: '', priority: 'normal' });
-      fetchAnnouncements();
-    } catch {
-      toast('Failed to create announcement', 'error');
-    }
-  };
-
-  const priorityOrder: Record<AnnouncementPriority, number> = {
-    urgent: 0,
-    high: 1,
-    normal: 2,
-    low: 3,
-  };
-
-  const sorted = [...announcements]
-    .filter((a) => filter === 'all' || a.priority === filter)
-    .sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
-
-  const urgentCount = announcements.filter((a) => a.priority === 'urgent').length;
-  const highCount = announcements.filter((a) => a.priority === 'high').length;
+  const {
+    announcements,
+    isLoading,
+    isAdmin,
+    showCreateModal,
+    setShowCreateModal,
+    expandedId,
+    setExpandedId,
+    filter,
+    setFilter,
+    form,
+    setForm,
+    handleCreate,
+    handleArchive,
+    urgentCount,
+    highCount,
+    meta,
+    goToPage,
+  } = useAnnouncementsPage();
 
   return (
     <div className="space-y-6 animate-slide-up">
@@ -232,9 +188,7 @@ export default function AnnouncementsPage() {
                                 variant="ghost"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  updateAnnouncementStatus(a.id, 'archived')
-                                    .then(() => { toast('Archived', 'success'); fetchAnnouncements(); })
-                                    .catch(() => toast('Failed', 'error'));
+                                  void handleArchive(a);
                                 }}
                                 className="text-gray-400 hover:text-red-600 hover:bg-red-50"
                               >
