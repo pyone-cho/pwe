@@ -50,7 +50,8 @@ Project documentation for the single-club badminton management application built
 - Database Requirements: requirements/database-requirements.md
 - Database Design: architecture/database-design.md
 - Entity Relationship Diagrams: architecture/erd.md
+- Prisma Schema Design: architecture/prisma-schema-design.md
 
 ## Scope boundary
 
-This directory documents requirements and design only. It does not contain an implemented Prisma schema, migration, Docker deployment, or application feature code. Those changes require a separate implementation task and review.
+This directory documents requirements and design only. The Prisma schema design is documented separately as a review blueprint. No Prisma schema, migration, Docker deployment, or application feature code has been changed. Those changes require a separate implementation task and review.
