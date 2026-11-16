@@ -51,6 +51,7 @@ Project documentation for the single-club badminton management application built
 - Database Design: architecture/database-design.md
 - Entity Relationship Diagrams: architecture/erd.md
 - Prisma Schema Design: architecture/prisma-schema-design.md
+- Authentication and RBAC Review: architecture/auth-rbac-review.md
 
 ## Scope boundary
 

@@ -1,6 +1,6 @@
 # PWE Badminton – Prisma Schema Design
 
-**Document version:** 0.1  
+**Document version:** 0.2  
 **Status:** Proposed schema blueprint for review; not implemented  
 **Target:** Prisma 6 + PostgreSQL 16
 
@@ -179,7 +179,11 @@ Do not break existing PWE foreign keys as part of the first Badminton migration 
 10. Run Prisma format, validate, generate, migration diff and migration tests against a disposable database.
 11. Verify existing Event, Registration, Attendance, Payment and authentication flows.
 
-## 9. Review gates before editing schema.prisma
+## 9. Authentication and RBAC findings
+
+See [auth-rbac-review.md](auth-rbac-review.md) for inspected middleware, registration-flow gaps, permission requirements and proposed legacy-role migration. Key implementation blockers are: current public registration immediately issues a normal member login without Manager approval; current Member-level Event self-registration conflicts with Q013; and the numeric role hierarchy cannot safely distinguish Manager from Coach.
+
+## 10. Review gates before editing schema.prisma
 
 - Does Guest approval apply to an activity category (e.g. all Training), a specific scheduled instance, or support both?
 - How do existing legacy role values map to Admin, Manager, Coach and Player? Inspect authorization middleware first.
@@ -188,6 +192,6 @@ Do not break existing PWE foreign keys as part of the first Badminton migration 
 - Are there duplicate Member-user links or duplicate active memberships in existing data?
 - What are the existing Payment reference patterns, and which composite tenant-safe relations are feasible?
 
-## 10. Non-goals
+## 11. Non-goals
 
 This blueprint does not authorize changing schema.prisma, generating migrations, altering live data, or implementing APIs/UI. Those are subsequent steps after review of the gates above.
