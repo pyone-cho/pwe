@@ -1,7 +1,7 @@
 # PWE Badminton – Entity Relationship Diagrams
 
-**Version:** 1.0  
-**Status:** Proposed logical ERD; not a generated Prisma schema
+**Version:** 1.1  
+**Status:** Proposed logical ERD; Q001–Q014 confirmed; not a generated Prisma schema
 
 The diagrams show the badminton-specific logical extension. Existing PWE core entities are marked by their current names. Some constraints (for example, exactly two match sides and one/two players per side) are business rules enforced by services and database constraints, not fully expressed by Mermaid ER notation.
 
@@ -267,26 +267,21 @@ flowchart TD
     D --> E{Decision}
     E -->|Approve| F[Registration status: APPROVED]
     E -->|Reject| G[Registration status: REJECTED]
-    F --> H[Apply approved-player RBAC policy]
+    F --> H[Grant Basic Access: own profile and club schedule]
     G --> I[Show rejection status and next steps]
 ~~~
 
-The registration status is distinct from User.isActive. Q013 remains pending, so the approved-player permission set is not fixed in this design.
+The registration status is distinct from User.isActive. After approval, Basic Access permits viewing/editing the Player's own profile and viewing the club schedule only; Training enrollment, Event registration and Court Booking are not self-service permissions.
 
-## 7. Confirmed and pending rules
-
-Confirmed:
+## 7. Confirmed business rules
 
 - Both Member and Guest Player categories exist.
 - Player self-registration requires Manager approval.
+- Guest Players require Manager approval for each relevant Training, Friendly Match or Tournament activity/event type.
+- An approved Player receives Basic Access: view/edit own profile and view club schedule. Self-service Training enrollment, Event registration and Court Booking are not permitted.
+- A Member may have at most one active Membership at a time; historical Membership records must be retained.
 - Fixed and Dynamic Doubles are supported.
 - Court booking is staff-managed.
 - Match score entry is manual.
 
-Pending:
-
-- Q012: Guest Player participation permissions.
-- Q013: permissions after Player approval.
-- Q014: simultaneous active Membership policy.
-
-Do not implement policy-dependent constraints until these decisions are approved.
+Implement these policies in API authorization and database constraints where appropriate; do not rely on frontend controls alone.

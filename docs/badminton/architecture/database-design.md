@@ -1,7 +1,7 @@
 # PWE Badminton – Database Design
 
-**Document version:** 1.0  
-**Status:** Proposed logical design; not an implemented Prisma schema  
+**Document version:** 1.1  
+**Status:** Proposed logical design; Q001–Q014 confirmed; not an implemented Prisma schema  
 **Database:** PostgreSQL 16  
 **ORM:** Prisma 6
 
@@ -59,6 +59,7 @@ Self-registration transaction:
 5. Commit all records in one transaction.
 6. Notify or expose the pending status to the registrant.
 7. Manager approval creates a PlayerRegistrationReview record and updates the current registration status.
+8. On approval, grant Basic Access only: the Player may view/edit their own profile and view the club schedule. Do not grant self-service training enrollment, event registration or court booking.
 
 Do not use User.isActive as the registration approval field. Authentication account status and business approval are separate controls.
 
@@ -68,7 +69,7 @@ Do not use User.isActive as the registration approval field. Authentication acco
 
 MembershipPlan defines a named plan, fee, duration and active flag. Membership stores an individual member's purchased period, status, start/end dates and plan reference.
 
-Keep a full history. Do not overwrite the previous Membership on renewal. Q014 remains pending, so the database design must not yet impose a one-active-membership rule. If Q014 later confirms one active membership, implement it with a PostgreSQL partial unique index in a migration and matching application validation.
+Keep a full history. Do not overwrite the previous Membership on renewal. Q014 confirms at most one active Membership per Member. Enforce this with application validation and a PostgreSQL partial unique index in a reviewed migration (for example, unique memberId where status is ACTIVE), scoped by orgId as appropriate.
 
 ### 2.3 Courts and bookings
 
@@ -76,7 +77,7 @@ Keep a full history. Do not overwrite the previous Membership on renewal. Q014 r
 
 CourtBooking fields should include orgId, courtId, bookedForMemberId (nullable only if club policy permits unassigned bookings), createdByUserId, startAt, endAt, status, fee snapshot/currency and notes.
 
-The booking creator must be an authorized staff User. Enforce the staff-only rule in the API authorization layer and test it; hiding the booking button in the frontend is not sufficient.
+The booking creator must be an authorized staff User. Enforce the staff-only rule in the API authorization layer and test it; hiding the booking button in the frontend is not sufficient. Player Basic Access does not include self-service booking.
 
 Use a PostgreSQL exclusion constraint to prevent overlapping active bookings for the same court. A half-open interval [startAt, endAt) permits one booking to end exactly when the next begins. Cancelled bookings should not block a time slot. Implement the exact predicate and range expression in a reviewed SQL migration; Prisma schema alone may not express this constraint.
 
@@ -178,9 +179,11 @@ The existing PWE schema uses several simple foreign keys. During implementation,
 7. Deploy additive migration; validate data; then update application services.
 8. Only remove deprecated fields in a later migration after verifying no code or reports depend on them.
 
-## 7. Open decisions
+## 7. Confirmed business policies
 
-Q012 Guest participation, Q013 post-approval permissions and Q014 simultaneous active membership policy are pending. They affect authorization and conditional constraints and must be confirmed before implementing the final enforcement rules.
+- **Q012 – Guest participation:** Guest Players may participate in Training, Friendly Matches and Tournaments only after Manager approval for the specific activity/event type. Model the approval decision with reviewer, timestamp, scope and status so approval for one event does not automatically authorize another.
+- **Q013 – Approved Player permissions:** Basic Access only. A Player can view and edit their own profile and view the club schedule. Self-service Training enrollment, Event registration and Court Booking are not granted. Keep this policy in RBAC/API authorization, not only frontend visibility.
+- **Q014 – Active Membership cardinality:** A Member can have at most one ACTIVE Membership at a time. Preserve historical Membership rows. Enforce with application validation and a PostgreSQL partial unique index in a reviewed SQL migration; ensure the index is tenant-safe.
 
 ## 8. Non-goals for the initial database
 

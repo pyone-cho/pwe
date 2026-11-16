@@ -35,16 +35,15 @@ Project documentation for the single-club badminton management application built
 | Q009 | Player categories | Members and Guest Players |
 | Q010 | Player registration | Player self-registration; Manager approval required |
 | Q011 | Doubles teams | Fixed teams and match-specific dynamic teams |
+| Q012 | Guest Player participation | Manager approval is required for each event/activity type |
+| Q013 | Approved Player permissions | Basic Access: view/edit own profile and view club schedule |
+| Q014 | Simultaneous active memberships | One active Membership per Member at a time |
 
-## Pending business decisions
+## Confirmed business rules
 
-The following items are intentionally not treated as approved requirements:
-
-- Q012: Guest Player participation scope.
-- Q013: Permissions granted after registration approval.
-- Q014: Whether a member may hold multiple simultaneous active memberships.
-
-The database design keeps these policies configurable or enforceable in the application until they are decided. See the database requirements document.
+- Guest Players may participate in Training, Friendly Matches or Tournaments only when a Manager approves their participation for the relevant event/activity type.
+- After approval, a Player has Basic Access: view and edit their own profile and view the club schedule. Self-service training enrollment, event registration and court booking are not included in this permission set.
+- A Member may have only one active Membership at a time. Membership history is retained; a new membership may become active after the current one expires or is replaced according to club policy.
 
 ## Documents
 

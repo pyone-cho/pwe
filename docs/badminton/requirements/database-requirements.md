@@ -1,7 +1,7 @@
 # PWE Badminton – Database Requirements
 
-**Document version:** 1.0  
-**Status:** Design baseline; Q012–Q014 remain pending  
+**Document version:** 1.1  
+**Status:** Design baseline; Q001–Q014 confirmed  
 **Target database:** PostgreSQL 16  
 **ORM:** Prisma 6
 
@@ -46,7 +46,7 @@ The system must support:
 
 The member category and membership status are separate concepts. A Member can remain a Player after a membership expires. A Guest must not be represented by inventing a paid Membership record.
 
-The exact activities available to Guest Players are pending Q012.
+Guest Player participation is subject to Manager approval for each relevant event/activity type. This applies to Training, Friendly Matches and Tournaments; approval is not a blanket entitlement.
 
 ### 3.3 Player self-registration and approval
 
@@ -57,7 +57,8 @@ The exact activities available to Guest Players are pending Q012.
 5. Every review decision stores reviewer, timestamp and optional remarks.
 6. Repeated submissions must not create duplicate accounts or duplicate Member records for the same organization and user.
 7. Authentication account status and player-registration status must remain separate. Approval must not be implemented by overloading User.isActive.
-8. Pending or rejected users may only access the limited registration-status experience. Feature permissions after approval remain subject to Q013.
+8. Pending or rejected users may only access the limited registration-status experience.
+9. After approval, a Player receives Basic Access only: view and edit their own profile and view the club schedule. They cannot self-enroll in Training, register for Events or create Court Bookings under this permission set.
 
 ### 3.4 Membership plans and history
 
@@ -66,7 +67,7 @@ The exact activities available to Guest Players are pending Q012.
 3. Preserve historical memberships; do not overwrite an expired membership when a new one is purchased.
 4. Store start date, end date, status, plan, and the Member to whom it belongs.
 5. A Guest Player has no Membership unless they later join as a club Member.
-6. Whether multiple active memberships are allowed simultaneously is pending Q014. Do not add a database uniqueness rule for one active membership until this policy is confirmed.
+6. A Member may have only one active Membership at a time. Retain all historical Membership records. A replacement Membership may become active only after the current active Membership is expired or otherwise formally ended.
 
 ### 3.5 Fixed and Dynamic Doubles Teams
 
@@ -159,9 +160,9 @@ The exact activities available to Guest Players are pending Q012.
 
 | ID | Question | Status | Design handling |
 |---|---|---|---|
-| Q012 | What can Guest Players participate in? | Pending | Keep eligibility policy in application permissions/configuration |
-| Q013 | What can an approved Player do? | Pending | Use RBAC; do not grant a fixed permission set in schema |
-| Q014 | Can a Member hold multiple active memberships? | Pending | Preserve membership history; defer active-membership uniqueness constraint |
+| Q012 | What can Guest Players participate in? | Confirmed | Manager approval is required for each activity/event type: Training, Friendly Match or Tournament |
+| Q013 | What can an approved Player do? | Confirmed | Basic Access: view/edit own profile and view club schedule; no self-service training enrollment, event registration or court booking |
+| Q014 | Can a Member hold multiple active memberships? | Confirmed | No; at most one active Membership per Member at a time |
 
 ## 7. Acceptance criteria for the database design
 
@@ -174,4 +175,4 @@ The exact activities available to Guest Players are pending Q012.
 - Match scores can be recorded manually for up to three games.
 - Payments can be linked to the relevant business transaction without replacing the existing Payment model.
 - Tenant isolation is maintained for all new records.
-- Q012–Q014 are resolved before implementing the final business constraints affected by them.
+- Q012–Q014 are confirmed and must be enforced in authorization logic and membership integrity constraints.
